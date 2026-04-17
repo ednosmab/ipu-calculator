@@ -1,7 +1,13 @@
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { theme } from '../styles/theme';
 
-export const InputField = ({ label, value, onChange }: any) => (
+type Props = {
+  label: string;
+  value: string;
+  onChange: (text: string) => void;
+};
+
+export const InputField = ({ label, value, onChange }: Props) => (
   <View style={styles.container}>
     <Text style={styles.label}>{label}</Text>
     <TextInput

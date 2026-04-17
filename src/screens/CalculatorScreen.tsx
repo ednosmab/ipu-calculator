@@ -1,8 +1,8 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { useCalculator } from '../hooks/useCalculator';
-import { InputField } from '../components/InputField';
+import { StyleSheet, Text, View } from 'react-native';
 import { Button } from '../components/Button';
+import { InputField } from '../components/InputField';
 import { ResultCard } from '../components/ResultCard';
+import { useCalculator } from '../hooks/useCalculator';
 import { theme } from '../styles/theme';
 
 export const CalculatorScreen = () => {
@@ -25,7 +25,20 @@ export const CalculatorScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.bg, padding: 20, justifyContent: 'center' },
-  title: { fontSize: 28, color: theme.colors.text, marginBottom: 24, fontWeight: 'bold' },
-  error: { color: theme.colors.error }
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.bg,
+    padding: 20,
+    justifyContent: 'center'
+  },
+  title: {
+    fontSize: 28,
+    color: theme.colors.text,
+    marginBottom: 24,
+    fontWeight: 'bold'
+  },
+  error: {
+    color: theme.colors.error,
+    marginBottom: 10
+  }
 });

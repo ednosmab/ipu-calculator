@@ -1,9 +1,14 @@
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { theme } from '../styles/theme';
 
-export const Button = ({ title, onPress }: any) => (
+type Props = {
+  title: string;
+  onPress: () => void;
+};
+
+export const Button = ({ title, onPress }: Props) => (
   <TouchableOpacity style={styles.button} onPress={onPress}>
-    <Text>{title}</Text>
+    <Text style={styles.text}>{title}</Text>
   </TouchableOpacity>
 );
 
@@ -14,5 +19,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     marginVertical: 12
+  },
+  text: {
+    fontWeight: 'bold'
   }
 });

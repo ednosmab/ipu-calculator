@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { calculateIPU } from '../services/calc.service';
 
 export const useCalculator = () => {
   const [iso, setIso] = useState('');
@@ -6,17 +7,39 @@ export const useCalculator = () => {
   const [result, setResult] = useState<number | null>(null);
   const [error, setError] = useState(false);
 
+  const parse = (value: string) => parseFloat(value);
+
+  const validate = (i: number, p: number) => {
+    return !isNaN(i) && !isNaN(p);
+  };
+
   const calculate = () => {
-    if (!iso || !poliol) return setError(true);
+    if (!iso || !poliol) {
+      setError(true);
+      return;
+    }
 
-    const i = parseFloat(iso);
-    const p = parseFloat(poliol);
+    const parsedIso = parse(iso);
+    const parsedPoliol = parse(poliol);
 
-    if (isNaN(i) || isNaN(p)) return setError(true);
+    if (!validate(parsedIso, parsedPoliol)) {
+      setError(true);
+      return;
+    }
 
-    setResult((i + p) / 0.140);
+    const value = calculateIPU(parsedIso, parsedPoliol);
+
+    setResult(value);
     setError(false);
   };
 
-  return { iso, poliol, setIso, setPoliol, result, error, calculate };
+  return {
+    iso,
+    poliol,
+    setIso,
+    setPoliol,
+    result,
+    error,
+    calculate
+  };
 };

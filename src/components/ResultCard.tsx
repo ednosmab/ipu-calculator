@@ -1,10 +1,14 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { formatNumber } from '../utils/format';
+import { StyleSheet, Text, View } from 'react-native';
 import { theme } from '../styles/theme';
+import { formatNumber } from '../utils/format';
 
-export const ResultCard = ({ result }: any) => (
+type Props = {
+  result: number;
+};
+
+export const ResultCard = ({ result }: Props) => (
   <View style={styles.card}>
-    <Text>Resultado</Text>
+    <Text style={styles.label}>Resultado</Text>
     <Text style={styles.value}>{formatNumber(result)}</Text>
   </View>
 );
@@ -15,6 +19,10 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 16,
     marginTop: 16
+  },
+  label: {
+    color: theme.colors.muted,
+    marginBottom: 8
   },
   value: {
     fontSize: 32,
