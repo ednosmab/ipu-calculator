@@ -1,36 +1,31 @@
-import { useState } from 'react';
-import { calculateIPU } from '../services/calc.service';
+import { useState } from "react";
+import { calculateIPU } from "../services/calculateIPU";
+import { formatNumber } from "../utils/number/formatNumber";
+import { parseNumber } from "../utils/number/numberParser";
 
 export const useCalculator = () => {
-  const [iso, setIso] = useState('');
-  const [poliol, setPoliol] = useState('');
-  const [result, setResult] = useState<number | null>(null);
+  const [iso, setIso] = useState("");
+  const [poliol, setPoliol] = useState("");
+  const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState(false);
 
-  const parse = (value: string) => parseFloat(value);
-
-  const validate = (i: number, p: number) => {
-    return !isNaN(i) && !isNaN(p);
-  };
-
   const calculate = () => {
-    if (!iso || !poliol) {
+    const isoParsed = parseNumber(iso);
+    const poliolParsed = parseNumber(poliol);
+
+    // 🔴 validação
+    if (Number.isNaN(isoParsed) || Number.isNaN(poliolParsed)) {
       setError(true);
+      setResult(null);
       return;
     }
 
-    const parsedIso = parse(iso);
-    const parsedPoliol = parse(poliol);
-
-    if (!validate(parsedIso, parsedPoliol)) {
-      setError(true);
-      return;
-    }
-
-    const value = calculateIPU(parsedIso, parsedPoliol);
-
-    setResult(value);
     setError(false);
+
+    const value = calculateIPU(isoParsed, poliolParsed);
+    const formatted = formatNumber(value);
+
+    setResult(formatted);
   };
 
   return {
@@ -40,6 +35,6 @@ export const useCalculator = () => {
     setPoliol,
     result,
     error,
-    calculate
+    calculate,
   };
 };

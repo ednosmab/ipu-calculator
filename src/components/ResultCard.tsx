@@ -1,15 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { theme } from '../styles/theme';
-import { formatNumber } from '../utils/format';
 
 type Props = {
-  result: number;
+  result: string;
 };
 
 export const ResultCard = ({ result }: Props) => (
   <View style={styles.card}>
     <Text style={styles.label}>Resultado</Text>
-    <Text style={styles.value}>{formatNumber(result)}</Text>
+    <Text style={styles.value}>{result}</Text>
   </View>
 );
 

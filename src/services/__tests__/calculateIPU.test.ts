@@ -1,4 +1,4 @@
-import { calculateIPU } from "../calc.service";
+import { calculateIPU } from "../calculateIPU";
 
 describe("Calculator Service - IPU", () => {
   // 1. O teste principal com os valores reais que você validou
