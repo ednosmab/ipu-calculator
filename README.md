@@ -65,11 +65,9 @@ npx jest
 
 ## 📌 Funcionalidades
 
-- Entrada de dados com validação
-- Cálculo automatizado
-- Exibição formatada no padrão brasileiro
-- Tratamento de erros
-- Testes unitários da regra de negócio
+- Realização de cálculos no contexto de IPU de forma rápida e confiável  
+- Redução de erros manuais por meio de validação de entrada   
+- Interface simples e objetiva para uso direto no dia a dia operacional  
 
 ---
 
