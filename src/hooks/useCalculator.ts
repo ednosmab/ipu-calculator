@@ -28,6 +28,13 @@ export const useCalculator = () => {
     setResult(formatted);
   };
 
+  const clear = () => {
+    setIso("");
+    setPoliol("");
+    setResult(null);
+    setError(false);
+  };
+
   return {
     iso,
     poliol,
@@ -36,5 +43,6 @@ export const useCalculator = () => {
     result,
     error,
     calculate,
+    clear,
   };
 };

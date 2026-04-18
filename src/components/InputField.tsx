@@ -1,19 +1,20 @@
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardTypeOptions, StyleSheet, Text, TextInput, View } from 'react-native';
 import { theme } from '../styles/theme';
 
 type Props = {
   label: string;
   value: string;
   onChange: (text: string) => void;
+  keyboardType?: KeyboardTypeOptions;
 };
 
-export const InputField = ({ label, value, onChange }: Props) => (
+export const InputField = ({ label, value, onChange, keyboardType = "numeric" }: Props) => (
   <View style={styles.container}>
     <Text style={styles.label}>{label}</Text>
     <TextInput
       value={value}
       onChangeText={onChange}
-      keyboardType="numeric"
+      keyboardType={keyboardType}
       placeholder="0.00"
       placeholderTextColor={theme.colors.muted}
       style={styles.input}
