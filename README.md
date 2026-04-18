@@ -1,50 +1,82 @@
-# Welcome to your Expo app 👋
+# 📱 Calculadora IPU
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicativo mobile desenvolvido com React Native, Expo Router e TypeScript, com foco em arquitetura limpa e boas práticas de engenharia de software.
 
-## Get started
+A aplicação realiza cálculos no domínio de IPU, com validação de entrada, formatação no padrão brasileiro e testes unitários para garantir a confiabilidade da lógica de negócio.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## 🚀 Tecnologias
 
-2. Start the app
+- React Native
+- Expo Router
+- TypeScript
+- Jest
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## 🧠 Princípios aplicados
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Clean Architecture
+- SRP (Single Responsibility Principle)
+- DRY (Don't Repeat Yourself)
+- Baixo acoplamento
+- Código reutilizável e escalável
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+---
 
-## Get a fresh project
+## 📁 Estrutura do projeto
+src/
+components/ # Componentes reutilizáveis (UI)
+hooks/ # Lógica de orquestração
+services/ # Regras de negócio
+utils/ # Funções auxiliares
+screens/ # Telas da aplicação
+styles/ # Tema e estilos globais
 
-When you're ready, run:
+---
 
-```bash
-npm run reset-project
-```
+## ⚙️ Como rodar o projeto
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 1. Clonar o repositório
+git clone https://github.com/seu-usuario/calculadora-ipu.git
 
-## Learn more
+### 2. Acessar a pasta
+cd calculadora-ipu
 
-To learn more about developing your project with Expo, look at the following resources:
+### 3. Instalar dependências
+npm install
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### 4. Rodar o projeto
+npx expo start
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## 📦 Gerar APK
+eas build -p android --profile preview
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
+
+## 🧪 Rodar testes
+npx jest
+
+
+---
+
+## 📌 Funcionalidades
+
+- Entrada de dados com validação
+- Cálculo automatizado
+- Exibição formatada no padrão brasileiro
+- Tratamento de erros
+- Testes unitários da regra de negócio
+
+---
+
+## 🎯 Objetivo
+
+Demonstrar aplicação prática de boas práticas de engenharia de software em um projeto mobile, com foco em organização, testabilidade e escalabilidade.
+
+## 🎯 Objetivo
+
+Fornecer uma ferramenta simples, rápida e confiável para realização de cálculos relacionados ao domínio de IPU, reduzindo erros operacionais e otimizando o processo de tomada de decisão no uso prático.
