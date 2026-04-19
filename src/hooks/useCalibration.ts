@@ -1,59 +1,23 @@
-import { useState } from 'react';
 import { calculateCalibration } from '../services/calculateCalibration';
-import { formatNumber } from '../utils/number/formatNumber';
-import { parseNumber } from '../utils/number/numberParser';
+import { useCalculatorLogic } from './useCalculatorLogic';
 
 export const useCalibration = () => {
-  const [pesoDesejado, setPesoDesejado] = useState('');
-  const [valorMaquina, setValorMaquina] = useState('');
-  const [pesoReal, setPesoReal] = useState('');
-
-  const [result, setResult] = useState<string | null>(null);
-  const [error, setError] = useState(false);
-
-  const calculate = () => {
-    const pDesejado = parseNumber(pesoDesejado);
-    const vMaquina = parseNumber(valorMaquina);
-    const pReal = parseNumber(pesoReal);
-
-    // 🔴 validações críticas
-    if (
-      Number.isNaN(pDesejado) ||
-      Number.isNaN(vMaquina) ||
-      Number.isNaN(pReal) ||
-      pReal === 0
-    ) {
-      setError(true);
-      setResult(null);
-      return;
-    }
-
-    setError(false);
-
-    const value = calculateCalibration(pDesejado, vMaquina, pReal);
-    const formatted = formatNumber(value);
-
-    setResult(formatted);
-  };
-
-  const clear = () => {
-    setPesoDesejado("");
-    setValorMaquina("");
-    setPesoReal("");
-    setResult(null);
-    setError(false);
-  };
+  const logic = useCalculatorLogic({
+    inputs: ['pesoDesejado', 'valorMaquina', 'pesoReal'],
+    calculateFn: (pD, vM, pR) => calculateCalibration(pD, vM, pR),
+    validate: (_, __, pR) => pR !== 0,
+  });
 
   return {
-    pesoDesejado,
-    valorMaquina,
-    pesoReal,
-    setPesoDesejado,
-    setValorMaquina,
-    setPesoReal,
-    result,
-    error,
-    calculate,
-    clear,
+    pesoDesejado: logic.inputs.pesoDesejado,
+    valorMaquina: logic.inputs.valorMaquina,
+    pesoReal: logic.inputs.pesoReal,
+    setPesoDesejado: (val: string) => logic.setInputValue('pesoDesejado', val),
+    setValorMaquina: (val: string) => logic.setInputValue('valorMaquina', val),
+    setPesoReal: (val: string) => logic.setInputValue('pesoReal', val),
+    result: logic.result,
+    error: logic.error,
+    calculate: logic.calculate,
+    clear: logic.clear,
   };
 };
