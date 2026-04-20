@@ -1,4 +1,4 @@
-import { calculateIPU } from "../services/calculateIPU";
+import { calculateIPU } from "../domain/ipu/calculateIPU";
 import { useCalculatorLogic } from "./useCalculatorLogic";
 
 export const useCalculator = () => {

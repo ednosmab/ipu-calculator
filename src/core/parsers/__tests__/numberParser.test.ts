@@ -1,4 +1,4 @@
-import { parseNumber } from "./numberParser";
+import { parseNumber } from "../numberParser";
 
 describe("parseNumber", () => {
   // ✅ Casos válidos

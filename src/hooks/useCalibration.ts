@@ -1,4 +1,4 @@
-import { calculateCalibration } from '../services/calculateCalibration';
+import { calculateCalibration } from '../domain/rule-of-three/calculateCalibration';
 import { useCalculatorLogic } from './useCalculatorLogic';
 
 export const useCalibration = () => {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { formatNumber } from '../utils/number/formatNumber';
-import { parseNumber } from '../utils/number/numberParser';
+import { formatToUserView } from '../core/formatters/numberFormatter';
+import { parseNumber } from '../core/parsers/numberParser';
 
 export type CalculatorConfig<T extends string> = {
   inputs: T[];
@@ -38,7 +38,7 @@ export const useCalculatorLogic = <T extends string>(config: CalculatorConfig<T>
 
     setError(false);
     const value = config.calculateFn(...parsedValues);
-    setResult(formatNumber(value));
+    setResult(formatToUserView(value));
   };
 
   const clear = () => {

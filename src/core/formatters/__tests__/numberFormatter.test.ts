@@ -1,39 +1,39 @@
-import { formatNumber } from "./formatNumber";
+import { formatToUserView } from "../numberFormatter";
 
-describe("formatNumber", () => {
+describe("formatToUserView", () => {
   // ✅ Inteiros
 
   it("should format integer using pt-BR locale", () => {
-    expect(formatNumber(1000)).toBe("1.000");
+    expect(formatToUserView(1000)).toBe("1.000");
   });
 
   // ✅ Decimais
 
   it("should format decimal numbers with minimum 2 fraction digits", () => {
-    expect(formatNumber(10.5)).toBe("10,50");
+    expect(formatToUserView(10.5)).toBe("10,50");
   });
 
   it("should limit maximum fraction digits to 6", () => {
-    expect(formatNumber(1.123456789)).toBe("1,123457");
+    expect(formatToUserView(1.123456789)).toBe("1,123457");
   });
 
   it("should keep precision within range (2 to 6 decimals)", () => {
-    expect(formatNumber(2.1234)).toBe("2,1234");
+    expect(formatToUserView(2.1234)).toBe("2,1234");
   });
 
   // 🔸 Casos de borda
 
   it("should format zero correctly", () => {
-    expect(formatNumber(0)).toBe("0");
+    expect(formatToUserView(0)).toBe("0");
   });
 
   it("should format negative numbers", () => {
-    expect(formatNumber(-1234.5)).toBe("-1.234,50");
+    expect(formatToUserView(-1234.5)).toBe("-1.234,50");
   });
 
   // ❌ Comportamento inesperado (documentado)
 
   it("should return 'NaN' when input is NaN", () => {
-    expect(formatNumber(NaN)).toBe("NaN");
+    expect(formatToUserView(NaN)).toBe("NaN");
   });
 });
