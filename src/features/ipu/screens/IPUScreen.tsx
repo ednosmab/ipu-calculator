@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { Button } from '../../../components/Button';
 import { InputField } from '../../../components/InputField';
 import { ResultCard } from '../../../components/ResultCard';
 import { ScreenLayout } from '../../../components/ScreenLayout';
 import { useIPUCalculator } from '../hooks/useIPUCalculator';
+import { styles } from './IPUScreen.styles';
 import { theme } from '../../../styles/theme';
 
 type Props = {
@@ -24,13 +25,13 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
           <Button
             title="Voltar"
             onPress={goBack}
-            icon={<Ionicons name="arrow-back" size={20} color="#000" />}
-            style={{ flex: 1, marginRight: 8 }}
+            icon={<Ionicons name="arrow-back" size={20} color={theme.colors.black} />}
+            style={{ flex: 1, marginRight: theme.spacing.sm }}
           />
           <Button
             title="Calibrar Vazão"
             onPress={goToCalibration}
-            style={{ flex: 1, marginLeft: 8 }}
+            style={{ flex: 1, marginLeft: theme.spacing.sm }}
           />
         </>
       }
@@ -54,20 +55,9 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
 
       <View style={styles.buttonGroup}>
         <Button title="Calcular" onPress={calculate} />
-        <View style={{ height: 12 }} />
+        <View style={styles.spacer} />
         <Button title="Limpar" onPress={clear} />
       </View>
     </ScreenLayout>
   );
 };
-
-const styles = StyleSheet.create({
-  error: {
-    color: theme.colors.error,
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  buttonGroup: {
-    marginTop: 8,
-  },
-});
