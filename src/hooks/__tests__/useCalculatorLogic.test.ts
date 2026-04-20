@@ -10,7 +10,6 @@ describe('useCalculatorLogic Integration Test', () => {
   const mockConfig: CalculatorConfig<'val1' | 'val2'> = {
     inputs: ['val1', 'val2'],
     calculateFn: (a: number, b: number) => a + b,
-    // Removendo validate complexo para isolar o problema
   };
 
   it('should manage input states correctly', () => {
@@ -35,14 +34,8 @@ describe('useCalculatorLogic Integration Test', () => {
       result.current.calculate();
     });
 
-    // Se o resultado for null, queremos saber o estado dos inputs
-    if (result.current.result === null) {
-      console.log('DEBUG - Inputs status:', result.current.inputs);
-      console.log('DEBUG - Error status:', result.current.error);
-    }
-
     expect(result.current.result).not.toBeNull();
-    expect(result.current.error).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
   it('should trigger error state for invalid number inputs', () => {
@@ -56,7 +49,7 @@ describe('useCalculatorLogic Integration Test', () => {
       result.current.calculate();
     });
 
-    expect(result.current.error).toBe(true);
+    expect(result.current.error).not.toBeNull();
     expect(result.current.result).toBeNull();
   });
 
@@ -80,6 +73,6 @@ describe('useCalculatorLogic Integration Test', () => {
 
     expect(result.current.inputs.val1).toBe('');
     expect(result.current.result).toBeNull();
-    expect(result.current.error).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 });

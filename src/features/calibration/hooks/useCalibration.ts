@@ -1,11 +1,12 @@
-import { calculateCalibration } from '../domain/rule-of-three/calculateCalibration';
-import { useCalculatorLogic } from './useCalculatorLogic';
+import { calculateCalibration } from "../domain/calculateCalibration";
+import { calibrationSchema } from "../domain/calibrationSchema";
+import { useCalculatorLogic } from "../../../hooks/useCalculatorLogic";
 
 export const useCalibration = () => {
   const logic = useCalculatorLogic({
     inputs: ['pesoDesejado', 'valorMaquina', 'pesoReal'],
     calculateFn: (pD, vM, pR) => calculateCalibration(pD, vM, pR),
-    validate: (_, __, pR) => pR !== 0,
+    validationSchema: calibrationSchema,
   });
 
   return {

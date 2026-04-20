@@ -1,11 +1,11 @@
 import { useRouter } from 'expo-router';
-import { CalculatorScreen } from '../src/screens/CalculatorScreen';
+import { IPUScreen } from '../src/features/ipu/screens/IPUScreen';
 
 export default function CalculatorPage() {
   const router = useRouter();
 
   return (
-    <CalculatorScreen 
+    <IPUScreen 
       goBack={() => router.push('/')}
       goToCalibration={() => router.push('/calibration')}
     />

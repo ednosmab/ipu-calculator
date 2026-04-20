@@ -4,7 +4,7 @@ module.exports = {
       displayName: 'unit',
       testMatch: [
         '<rootDir>/src/core/**/*.test.ts',
-        '<rootDir>/src/domain/**/*.test.ts'
+        '<rootDir>/src/features/**/domain/**/*.test.ts'
       ],
       testEnvironment: 'node',
       transform: {
@@ -16,12 +16,13 @@ module.exports = {
       displayName: 'integration',
       testMatch: [
         '<rootDir>/src/**/*.test.tsx',
-        '<rootDir>/src/hooks/**/__tests__/**/*.test.ts'
+        '<rootDir>/src/hooks/**/__tests__/**/*.test.ts',
+        '<rootDir>/src/features/**/hooks/**/*.test.ts'
       ],
       testPathIgnorePatterns: [
         '/node_modules/',
         '/src/core/',
-        '/src/domain/'
+        '/src/features/.*/domain/'
       ],
       transformIgnorePatterns: [
         'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)',

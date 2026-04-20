@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { CalibrationScreen } from '../src/screens/CalibrationScreen';
+import { CalibrationScreen } from '../src/features/calibration/screens/CalibrationScreen';
 
 export default function CalibrationPage() {
   const router = useRouter();

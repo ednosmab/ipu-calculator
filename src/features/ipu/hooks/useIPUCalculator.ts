@@ -1,10 +1,12 @@
-import { calculateIPU } from "../domain/ipu/calculateIPU";
-import { useCalculatorLogic } from "./useCalculatorLogic";
+import { calculateIPU } from "../domain/calculateIPU";
+import { ipuSchema } from "../domain/ipuSchema";
+import { useCalculatorLogic } from "../../../hooks/useCalculatorLogic";
 
-export const useCalculator = () => {
+export const useIPUCalculator = () => {
   const logic = useCalculatorLogic({
     inputs: ['iso', 'poliol'],
     calculateFn: (iso, poliol) => calculateIPU(iso, poliol),
+    validationSchema: ipuSchema,
   });
 
   return {

@@ -1,12 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Button } from '../components/Button';
-import { InputField } from '../components/InputField';
-import { ResultCard } from '../components/ResultCard';
-import { ScreenLayout } from '../components/ScreenLayout';
+import { Button } from '../../../components/Button';
+import { InputField } from '../../../components/InputField';
+import { ResultCard } from '../../../components/ResultCard';
+import { ScreenLayout } from '../../../components/ScreenLayout';
 import { useCalibration } from '../hooks/useCalibration';
-import { theme } from '../styles/theme';
+import { theme } from '../../../styles/theme';
 
 type Props = {
   goBack: () => void;
@@ -66,7 +66,7 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
         onChange={setPesoReal}
       />
 
-      {error && <Text style={styles.error}>Valores inválidos</Text>}
+      {error && <Text style={styles.error}>{error}</Text>}
 
       <View style={styles.buttonGroup}>
         <Button title="Calcular" onPress={calculate} />
@@ -81,6 +81,7 @@ const styles = StyleSheet.create({
   error: {
     color: theme.colors.error,
     marginBottom: 10,
+    textAlign: 'center',
   },
   buttonGroup: {
     marginTop: 8,

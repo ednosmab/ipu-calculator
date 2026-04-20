@@ -1,20 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Button } from '../components/Button';
-import { InputField } from '../components/InputField';
-import { ResultCard } from '../components/ResultCard';
-import { ScreenLayout } from '../components/ScreenLayout';
-import { useCalculator } from '../hooks/useCalculator';
-import { theme } from '../styles/theme';
+import { Button } from '../../../components/Button';
+import { InputField } from '../../../components/InputField';
+import { ResultCard } from '../../../components/ResultCard';
+import { ScreenLayout } from '../../../components/ScreenLayout';
+import { useIPUCalculator } from '../hooks/useIPUCalculator';
+import { theme } from '../../../styles/theme';
 
 type Props = {
   goBack: () => void;
   goToCalibration: () => void;
 };
 
-export const CalculatorScreen = ({ goBack, goToCalibration }: Props) => {
-  const { iso, poliol, setIso, setPoliol, result, error, calculate, clear } = useCalculator();
+export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
+  const { iso, poliol, setIso, setPoliol, result, error, calculate, clear } = useIPUCalculator();
 
   return (
     <ScreenLayout
@@ -50,7 +50,7 @@ export const CalculatorScreen = ({ goBack, goToCalibration }: Props) => {
         keyboardType="numeric"
       />
 
-      {error && <Text style={styles.error}>Valores inválidos</Text>}
+      {error && <Text style={styles.error}>{error}</Text>}
 
       <View style={styles.buttonGroup}>
         <Button title="Calcular" onPress={calculate} />
