@@ -1,86 +1,165 @@
-# 📱 IPU Calculator | Engenharia de Alta Precisão
+Sistema de Suporte ao Processo de Injeção (IPU)
 
-[![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactnative.dev/)
-[![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Zod](https://img.shields.io/badge/Zod-3068b7?style=for-the-badge&logo=zod&logoColor=white)](https://zod.dev/)
+Aplicação desenvolvida para padronizar e automatizar etapas do processo de injeção de materiais em assentos sanitários, disponível em web e mobile, com foco em precisão, consistência e eficiência operacional.
 
-**IPU Calculator** é um ecossistema de ferramentas de precisão para engenharia química e operacional, desenvolvido com os mais altos padrões de arquitetura de software mobile. O foco do projeto é converter fórmulas técnicas complexas em uma interface simples, resiliente e escalável.
+🔗 Web: https://ipu-calculator.vercel.app/
+📱 Mobile: em desenvolvimento com Expo
 
 ---
 
-## 💎 Diferenciais de Nível Pleno/Sênior
+📌 Sobre o projeto
 
-- **Arquitetura Baseada em Features**: Organização modular que separa responsabilidades por domínio de negócio (IPU, Calibragem).
-- **Validação Robusta com Zod**: Esquemas de validação técnica que garantem integridade total dos dados antes do processamento.
-- **International Standard**: Código 100% escrito em inglês, seguindo padrões globais de nomenclatura e documentação técnica.
-- **Assistente Inteligente**: Sistema de cálculo auxiliar para calibragem de vazão, reduzindo erros operacionais no campo.
-- **Design System Premium**: Interface em Dark Mode com tokens de design centralizados para consistência visual absoluta.
+Este sistema foi criado para resolver um problema real de operação: cálculos e ajustes críticos realizados manualmente durante o processo produtivo.
+
+Essas operações impactam diretamente:
+
+- qualidade do produto final
+- consumo de matéria-prima
+- estabilidade do processo
+
+A aplicação centraliza essas etapas em uma interface acessível (web e mobile), permitindo maior controle e padronização da execução.
 
 ---
 
-## 🏗️ Arquitetura do Projeto
+🚀 Funcionalidades
 
-O projeto segue os princípios de **Clean Architecture** e **SOLID**:
+🧪 Módulo de Tempo de Injeção
 
-```text
+Determina o tempo necessário para injeção do material em diferentes modelos.
+
+- utiliza:
+  - Isocianato
+  - Poliol
+- considera variação por modelo
+- melhora a repetibilidade do processo
+
+---
+
+⚙️ Módulo de Calibragem de Vazão
+
+Responsável por ajustar a quantidade de material injetada.
+
+- controle de fluxo
+- redução de desperdício
+- consistência entre ciclos
+
+---
+
+🔢 Tratamento de dados
+
+- parsing de valores
+- formatação padronizada
+- utilitários reutilizáveis
+
+---
+
+🧠 Arquitetura
+
+O sistema segue uma abordagem modular, preparada para múltiplas plataformas.
+
 src/
- ├── core/          # Lógica pura, constantes globais e utilitários agnósticos
- ├── components/    # UI de alta fidelidade e componentes reutilizáveis
- ├── features/      # Módulos de negócio independentes (IPU, Calibration)
- │    ├── domain/   # Regras de negócio puras e schemas Zod
- │    ├── hooks/    # Orquestração de estado e efeitos da feature
- │    └── screens/  # Telas de UI e estilos específicos
- ├── hooks/         # Hooks genéricos (ex: useCalculatorLogic)
- └── styles/        # Design System (Theme, Colors, Tokens)
-```
+ ┣ components/
+ ┣ features/
+ ┃ ┣ injection-time/
+ ┃ ┗ flow-calibration/
+ ┣ utils/
+ ┣ pages/        # Web (Next.js)
+ ┣ mobile/       # Mobile (Expo)
+
+Princípios:
+
+- separação entre lógica e interface
+- organização por domínio
+- reutilização de código
+- suporte a múltiplos clientes (web e mobile)
 
 ---
 
-## 🛠️ Tecnologias e Ferramentas
+🛠️ Tecnologias
 
-- **Core**: React Native + Expo (SDK 54)
-- **Roteamento**: Expo Router (File-based routing)
-- **Validação**: Zod (Schema-driven validation)
-- **Estilização**: StyleSheet com Design Tokens centralizados
-- **Testes**: Jest e React Native Testing Library (100% de cobertura na lógica de domínio)
+Web
+
+- React
+- Next.js
+
+Mobile
+
+- React Native
+- Expo
+
+Geral
+
+- TypeScript
+- Arquitetura modular
+
+Deploy
+
+- Vercel (web)
 
 ---
 
-## ⚙️ Instalação e Uso
+🎯 Objetivo técnico
 
-### 1. Clonar e Instalar
-```bash
+Demonstrar a capacidade de:
+
+- modelar processos industriais em software
+- estruturar aplicações escaláveis
+- construir soluções com impacto direto na operação
+
+---
+
+📈 Evolução do sistema
+
+O projeto está em evolução contínua, com foco em expansão funcional e maturidade arquitetural.
+
+Próximos passos:
+
+- testes automatizados
+- melhoria de experiência do usuário
+- novas funcionalidades operacionais
+
+---
+
+⚙️ Instalação e Uso
+
+1. Clonar e instalar
+
 git clone https://github.com/edsondevfrontend/calculadora-ipu.git
 cd calculadora-ipu
 npm install
-```
 
-### 2. Rodar em Desenvolvimento
-```bash
+---
+
+2. Rodar em desenvolvimento
+
 npx expo start
-```
 
-### 3. Executar Testes
-```bash
+---
+
+3. Executar testes
+
 npm test
-```
 
 ---
 
-## 📦 Builds e Distribuição
+📦 Builds e Distribuição
 
-Para gerar um APK instalável via **EAS Build**:
-```bash
+Para gerar um APK instalável via EAS Build:
+
 eas build -p android --profile preview
-```
 
 ---
 
-## 🎯 Visão Técnica
+💡 Impacto
 
-Este projeto não é apenas uma calculadora; é um demonstrador de **Engenharia de Software Mobile**. Ele prova como o desacoplamento de camadas, a inversão de dependência e a tipagem forte podem criar aplicações extremamente seguras contra falhas de runtime e fáceis de evoluir para novas plataformas (Web/Desktop).
+- redução de erros operacionais
+- padronização do processo
+- aumento de produtividade
+- acesso facilitado (desktop e mobile)
 
 ---
 
-**Desenvolvido com foco em resiliência por Antigravity AI.**
+👨‍💻 Autor
+
+Edson Garcia
+https://github.com/ednosmab
