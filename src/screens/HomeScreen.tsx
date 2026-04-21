@@ -11,9 +11,9 @@ type Props = {
 export const HomeScreen = ({ onGoToCalculator, onGoToCalibration }: Props) => {
   return (
     <ScreenLayout title="Calculadora IPU">
-      <Button title="Calcular IPU" onPress={onGoToCalculator} />
+      <Button title="Calcular Injeção" onPress={onGoToCalculator} />
       <View style={{ height: 16 }} />
-      <Button title="Calibragem" onPress={onGoToCalibration} />
+      <Button title="Calibrar Vazão" onPress={onGoToCalibration} />
     </ScreenLayout>
   );
 };
