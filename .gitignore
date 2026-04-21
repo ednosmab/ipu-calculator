@@ -41,8 +41,3 @@ app-example
 # generated native folders
 /ios
 /android
-
-# antigravity
-.antigravity/
-.agent/
-docs
