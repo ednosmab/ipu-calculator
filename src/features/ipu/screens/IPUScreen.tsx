@@ -15,7 +15,16 @@ type Props = {
 };
 
 export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
-  const { iso, poliol, setIso, setPoliol, result, error, calculate, clear } = useIPUCalculator();
+  const { 
+    isocyanate, 
+    polyol, 
+    setIsocyanate, 
+    setPolyol, 
+    result, 
+    error, 
+    calculate, 
+    clear 
+  } = useIPUCalculator();
 
   return (
     <ScreenLayout
@@ -40,14 +49,14 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
 
       <InputField
         label="Iso"
-        value={iso}
-        onChange={setIso}
+        value={isocyanate}
+        onChange={setIsocyanate}
         keyboardType="numeric"
       />
       <InputField
         label="Poliol"
-        value={poliol}
-        onChange={setPoliol}
+        value={polyol}
+        onChange={setPolyol}
         keyboardType="numeric"
       />
 

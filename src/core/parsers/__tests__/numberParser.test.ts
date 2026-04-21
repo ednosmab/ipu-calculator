@@ -1,7 +1,7 @@
 import { parseNumber } from "../numberParser";
 
 describe("parseNumber", () => {
-  // ✅ Casos válidos
+  // Valid cases
 
   it("should parse number with comma as decimal separator", () => {
     expect(parseNumber("10,5")).toBe(10.5);
@@ -15,7 +15,7 @@ describe("parseNumber", () => {
     expect(parseNumber("10")).toBe(10);
   });
 
-  // 🔸 Edge cases
+  // Edge cases
 
   it("should return 0 for empty string", () => {
     expect(parseNumber("")).toBe(0);
@@ -25,7 +25,7 @@ describe("parseNumber", () => {
     expect(parseNumber(undefined as unknown as string)).toBe(0);
   });
 
-  // ❌ Casos inválidos
+  // Invalid cases
 
   it("should return NaN for invalid string", () => {
     expect(parseNumber("abc")).toBeNaN();

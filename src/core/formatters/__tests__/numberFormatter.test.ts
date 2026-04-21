@@ -1,13 +1,13 @@
 import { formatToUserView } from "../numberFormatter";
 
 describe("formatToUserView", () => {
-  // ✅ Inteiros
+  // Integers
 
   it("should format integer using pt-BR locale", () => {
     expect(formatToUserView(1000)).toBe("1.000");
   });
 
-  // ✅ Decimais
+  // Decimals
 
   it("should format decimal numbers with minimum 2 fraction digits", () => {
     expect(formatToUserView(10.5)).toBe("10,50");
@@ -21,7 +21,7 @@ describe("formatToUserView", () => {
     expect(formatToUserView(2.1234)).toBe("2,1234");
   });
 
-  // 🔸 Casos de borda
+  // Edge cases
 
   it("should format zero correctly", () => {
     expect(formatToUserView(0)).toBe("0");
@@ -31,7 +31,7 @@ describe("formatToUserView", () => {
     expect(formatToUserView(-1234.5)).toBe("-1.234,50");
   });
 
-  // ❌ Comportamento inesperado (documentado)
+  // Unexpected behavior (documented)
 
   it("should return 'NaN' when input is NaN", () => {
     expect(formatToUserView(NaN)).toBe("NaN");

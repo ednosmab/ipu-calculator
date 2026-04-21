@@ -44,7 +44,7 @@ export const useCalculatorLogic = <T extends string>(config: CalculatorConfig<T>
       // Fallback for simple NaN check if no schema
       const hasNaN = Object.values(numericValues).some((val) => Number.isNaN(val));
       if (hasNaN) {
-        setError('Valores inválidos');
+        setError('Invalid values');
         setResult(null);
         return;
       }

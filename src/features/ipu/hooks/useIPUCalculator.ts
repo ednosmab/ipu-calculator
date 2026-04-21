@@ -4,16 +4,16 @@ import { useCalculatorLogic } from "../../../hooks/useCalculatorLogic";
 
 export const useIPUCalculator = () => {
   const logic = useCalculatorLogic({
-    inputs: ['iso', 'poliol'],
-    calculateFn: (iso, poliol) => calculateIPU(iso, poliol),
+    inputs: ['isocyanate', 'polyol'],
+    calculateFn: (isocyanate, polyol) => calculateIPU(isocyanate, polyol),
     validationSchema: ipuSchema,
   });
 
   return {
-    iso: logic.inputs.iso,
-    poliol: logic.inputs.poliol,
-    setIso: (val: string) => logic.setInputValue('iso', val),
-    setPoliol: (val: string) => logic.setInputValue('poliol', val),
+    isocyanate: logic.inputs.isocyanate,
+    polyol: logic.inputs.polyol,
+    setIsocyanate: (val: string) => logic.setInputValue('isocyanate', val),
+    setPolyol: (val: string) => logic.setInputValue('polyol', val),
     result: logic.result,
     error: logic.error,
     calculate: logic.calculate,

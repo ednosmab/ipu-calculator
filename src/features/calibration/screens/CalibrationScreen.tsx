@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Text, View, Switch } from 'react-native';
 import { Button } from '../../../components/Button';
 import { InputField } from '../../../components/InputField';
 import { ResultCard } from '../../../components/ResultCard';
@@ -21,11 +21,13 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
     actualWeight,
     extractedWeight,
     averageValue,
+    isHelperActive,
     setTargetWeight,
     setMachineValue,
     setActualWeight,
     setExtractedWeight,
     setAverageValue,
+    setIsHelperActive,
     result,
     error,
     calculate,
@@ -53,17 +55,30 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
     >
       {result !== null && <ResultCard result={result} />}
 
-      <InputField
-        label="Peso extraído"
-        value={extractedWeight}
-        onChange={setExtractedWeight}
-      />
+      <View style={styles.helperContainer}>
+        <Text style={styles.helperText}>Assistente de Peso Real</Text>
+        <Switch
+          value={isHelperActive}
+          onValueChange={setIsHelperActive}
+          trackColor={{ false: theme.colors.border, true: theme.colors.accent }}
+          thumbColor={theme.colors.white}
+        />
+      </View>
 
-      <InputField
-        label="Valor Média"
-        value={averageValue}
-        onChange={setAverageValue}
-      />
+      {isHelperActive && (
+        <View style={{ marginBottom: theme.spacing.md }}>
+          <InputField
+            label="Peso extraído"
+            value={extractedWeight}
+            onChange={setExtractedWeight}
+          />
+          <InputField
+            label="Valor Média"
+            value={averageValue}
+            onChange={setAverageValue}
+          />
+        </View>
+      )}
 
       <InputField
         label="Peso desejado"

@@ -13,9 +13,12 @@ export const useCalibration = () => {
 
   const [extractedWeight, setExtractedWeight] = useState('');
   const [averageValue, setAverageValue] = useState('');
+  const [isHelperActive, setIsHelperActive] = useState(false);
 
   // Auto-calculate actualWeight when extractedWeight or averageValue changes
   useEffect(() => {
+    if (!isHelperActive) return;
+
     const numExtracted = parseNumber(extractedWeight);
     const numAverage = parseNumber(averageValue);
 
@@ -23,7 +26,15 @@ export const useCalibration = () => {
       const result = numExtracted / numAverage;
       logic.setInputValue('actualWeight', result.toString());
     }
-  }, [extractedWeight, averageValue]);
+  }, [extractedWeight, averageValue, isHelperActive]);
+
+  const toggleHelper = (value: boolean) => {
+    setIsHelperActive(value);
+    if (!value) {
+      setExtractedWeight('');
+      setAverageValue('');
+    }
+  };
 
   return {
     targetWeight: logic.inputs.targetWeight,
@@ -31,11 +42,13 @@ export const useCalibration = () => {
     actualWeight: logic.inputs.actualWeight,
     extractedWeight,
     averageValue,
+    isHelperActive,
     setTargetWeight: (val: string) => logic.setInputValue('targetWeight', val),
     setMachineValue: (val: string) => logic.setInputValue('machineValue', val),
     setActualWeight: (val: string) => logic.setInputValue('actualWeight', val),
     setExtractedWeight,
     setAverageValue,
+    setIsHelperActive: toggleHelper,
     result: logic.result,
     error: logic.error,
     calculate: logic.calculate,
@@ -43,6 +56,7 @@ export const useCalibration = () => {
       logic.clear();
       setExtractedWeight('');
       setAverageValue('');
+      setIsHelperActive(false);
     },
   };
 };

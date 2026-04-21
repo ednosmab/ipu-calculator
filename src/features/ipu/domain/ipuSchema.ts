@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
 export const ipuSchema = z.object({
-  iso: z.number({ invalid_type_error: 'Iso deve ser um número' }).positive('Iso deve ser maior que zero'),
-  poliol: z.number({ invalid_type_error: 'Poliol deve ser um número' }).positive('Poliol deve ser maior que zero'),
+  isocyanate: z.number({ invalid_type_error: 'Isocyanate must be a number' }).positive('Isocyanate must be greater than zero'),
+  polyol: z.number({ invalid_type_error: 'Polyol must be a number' }).positive('Polyol must be greater than zero'),
 });
