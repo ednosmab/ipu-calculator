@@ -5,9 +5,9 @@ import { Button } from '../../../components/Button';
 import { InputField } from '../../../components/InputField';
 import { ResultCard } from '../../../components/ResultCard';
 import { ScreenLayout } from '../../../components/ScreenLayout';
+import { theme } from '../../../styles/theme';
 import { useCalibration } from '../hooks/useCalibration';
 import { styles } from './CalibrationScreen.styles';
-import { theme } from '../../../styles/theme';
 
 type Props = {
   goBack: () => void;
@@ -16,12 +16,16 @@ type Props = {
 
 export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
   const {
-    pesoDesejado,
-    valorMaquina,
-    pesoReal,
-    setPesoDesejado,
-    setValorMaquina,
-    setPesoReal,
+    targetWeight,
+    machineValue,
+    actualWeight,
+    extractedWeight,
+    averageValue,
+    setTargetWeight,
+    setMachineValue,
+    setActualWeight,
+    setExtractedWeight,
+    setAverageValue,
     result,
     error,
     calculate,
@@ -50,21 +54,33 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
       {result !== null && <ResultCard result={result} />}
 
       <InputField
+        label="Peso extraído"
+        value={extractedWeight}
+        onChange={setExtractedWeight}
+      />
+
+      <InputField
+        label="Valor Média"
+        value={averageValue}
+        onChange={setAverageValue}
+      />
+
+      <InputField
         label="Peso desejado"
-        value={pesoDesejado}
-        onChange={setPesoDesejado}
+        value={targetWeight}
+        onChange={setTargetWeight}
       />
 
       <InputField
         label="Valor da máquina"
-        value={valorMaquina}
-        onChange={setValorMaquina}
+        value={machineValue}
+        onChange={setMachineValue}
       />
 
       <InputField
         label="Peso real"
-        value={pesoReal}
-        onChange={setPesoReal}
+        value={actualWeight}
+        onChange={setActualWeight}
       />
 
       {error && <Text style={styles.error}>{error}</Text>}

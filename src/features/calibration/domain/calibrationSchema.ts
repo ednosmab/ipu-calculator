@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export const calibrationSchema = z.object({
-  pesoDesejado: z.number({ invalid_type_error: 'Peso desejado deve ser um número' }).positive('Peso desejado deve ser maior que zero'),
-  valorMaquina: z.number({ invalid_type_error: 'Valor da máquina deve ser um número' }).positive('Valor da máquina deve ser maior que zero'),
-  pesoReal: z.number({ invalid_type_error: 'Peso real deve ser um número' }).refine(val => val !== 0, {
-    message: 'Peso real não pode ser zero',
+  targetWeight: z.number({ invalid_type_error: 'Target weight must be a number' }).positive('Target weight must be greater than zero'),
+  machineValue: z.number({ invalid_type_error: 'Machine value must be a number' }).positive('Machine value must be greater than zero'),
+  actualWeight: z.number({ invalid_type_error: 'Actual weight must be a number' }).refine(val => val !== 0, {
+    message: 'Actual weight cannot be zero',
   }),
 });
