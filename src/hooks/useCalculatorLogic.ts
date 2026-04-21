@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { formatNumber } from '../utils/number/formatNumber';
-import { parseNumber } from '../utils/number/numberParser';
+import { z } from 'zod';
+import { formatToUserView } from '../core/formatters/numberFormatter';
+import { parseNumber } from '../core/parsers/numberParser';
 
 export type CalculatorConfig<T extends string> = {
   inputs: T[];
   calculateFn: (...args: number[]) => number;
-  validate?: (...args: number[]) => boolean;
+  validationSchema?: z.ZodObject<any>;
 };
 
 export const useCalculatorLogic = <T extends string>(config: CalculatorConfig<T>) => {
@@ -18,27 +19,41 @@ export const useCalculatorLogic = <T extends string>(config: CalculatorConfig<T>
   });
 
   const [result, setResult] = useState<string | null>(null);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const setInputValue = (key: T, value: string) => {
     setInputs((prev) => ({ ...prev, [key]: value }));
   };
 
   const calculate = () => {
-    const parsedValues = config.inputs.map((key) => parseNumber(inputs[key]));
+    // 1. Transform inputs to numbers for validation/calculation
+    const numericValues: Record<string, number> = {};
+    config.inputs.forEach((key) => {
+      numericValues[key] = parseNumber(inputs[key]);
+    });
 
-    const hasNaN = parsedValues.some((val) => Number.isNaN(val));
-    const isValid = !hasNaN && (config.validate ? config.validate(...parsedValues) : true);
-
-    if (!isValid) {
-      setError(true);
-      setResult(null);
-      return;
+    // 2. Validate using Zod schema if provided
+    if (config.validationSchema) {
+      const validation = config.validationSchema.safeParse(numericValues);
+      if (!validation.success) {
+        setError(validation.error.issues[0].message);
+        setResult(null);
+        return;
+      }
+    } else {
+      // Fallback for simple NaN check if no schema
+      const hasNaN = Object.values(numericValues).some((val) => Number.isNaN(val));
+      if (hasNaN) {
+        setError('Invalid values');
+        setResult(null);
+        return;
+      }
     }
 
-    setError(false);
-    const value = config.calculateFn(...parsedValues);
-    setResult(formatNumber(value));
+    setError(null);
+    const parsedArgs = config.inputs.map((key) => numericValues[key]);
+    const value = config.calculateFn(...parsedArgs);
+    setResult(formatToUserView(value));
   };
 
   const clear = () => {
@@ -50,7 +65,7 @@ export const useCalculatorLogic = <T extends string>(config: CalculatorConfig<T>
       return initial;
     });
     setResult(null);
-    setError(false);
+    setError(null);
   };
 
   return {
