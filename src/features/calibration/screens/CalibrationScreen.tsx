@@ -45,7 +45,7 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
             style={{ flex: 1 }}
           />
           <Button
-            title="Injeção"
+            title="Calcular Injeção"
             onPress={goToCalculator}
             style={{ flex: 1 }}
           />
