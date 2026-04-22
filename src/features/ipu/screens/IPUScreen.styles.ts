@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { theme } from '../../../styles/theme';
+import { theme } from '@/design-system';
 
 export const styles = StyleSheet.create({
   error: {

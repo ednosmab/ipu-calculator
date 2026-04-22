@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { calculateCalibration } from "../domain/calculateCalibration";
 import { calibrationSchema } from "../domain/calibrationSchema";
-import { useCalculatorLogic } from "../../../hooks/useCalculatorLogic";
-import { parseNumber } from "../../../core/parsers/numberParser";
+import { useCalculatorLogic } from "@/hooks/useCalculatorLogic";
+import { parseNumber } from "@/core/parsers/numberParser";
 
 export const useCalibration = () => {
   const logic = useCalculatorLogic({
@@ -51,6 +51,7 @@ export const useCalibration = () => {
     setIsHelperActive: toggleHelper,
     result: logic.result,
     error: logic.error,
+    fieldErrors: logic.fieldErrors,
     calculate: logic.calculate,
     clear: () => {
       logic.clear();

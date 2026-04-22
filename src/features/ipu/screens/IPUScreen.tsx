@@ -1,13 +1,9 @@
+import { Button, Input, Card, theme, HStack, VStack, Text } from '@/design-system';
+import { ResultCard } from '@/components/ResultCard';
+import { ScreenLayout } from '@/components/ScreenLayout';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { Text, View } from 'react-native';
-import { Button } from '../../../components/Button';
-import { InputField } from '../../../components/InputField';
-import { ResultCard } from '../../../components/ResultCard';
-import { ScreenLayout } from '../../../components/ScreenLayout';
 import { useIPUCalculator } from '../hooks/useIPUCalculator';
 import { styles } from './IPUScreen.styles';
-import { theme } from '../../../styles/theme';
 
 type Props = {
   goBack: () => void;
@@ -22,51 +18,60 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
     setPolyol, 
     result, 
     error, 
+    fieldErrors,
     calculate, 
     clear 
   } = useIPUCalculator();
 
   return (
     <ScreenLayout
-      title="Calculadora IPU"
+      title="Injeção"
       footer={
-        <>
+        <HStack>
           <Button
             title="Voltar"
             variant="secondary"
             onPress={goBack}
             icon={<Ionicons name="arrow-back" size={20} color={theme.colors.text} />}
-            style={{ flex: 1, marginRight: theme.spacing.sm }}
+            style={{ flex: 1 }}
           />
           <Button
             title="Calibrar Vazão"
             onPress={goToCalibration}
-            style={{ flex: 1, marginLeft: theme.spacing.sm }}
+            style={{ flex: 1 }}
           />
-        </>
+        </HStack>
       }
     >
-      {result !== null && <ResultCard result={result} />}
+      <VStack gap="lg">
+        {result !== null && <ResultCard result={result} />}
 
-      <InputField
-        label="Iso"
-        value={isocyanate}
-        onChange={setIsocyanate}
-        keyboardType="numeric"
-      />
-      <InputField
-        label="Poliol"
-        value={polyol}
-        onChange={setPolyol}
-        keyboardType="numeric"
-      />
+        <Card>
+          <VStack>
+            <Input
+              label="Isocianato"
+              value={isocyanate}
+              onChange={setIsocyanate}
+              error={fieldErrors.isocyanate ?? undefined}
+              keyboardType="numeric"
+            />
+            <Input
+              label="Poliol"
+              value={polyol}
+              onChange={setPolyol}
+              error={fieldErrors.polyol ?? undefined}
+              keyboardType="numeric"
+            />
+          </VStack>
+        </Card>
 
-      {error && <Text style={styles.error}>{error}</Text>}
+        {error && <Text variant="error" style={styles.error}>{error}</Text>}
 
-      <View style={styles.buttonGroup}>
-        <Button title="Calcular" onPress={calculate} />
-        <Button title="Limpar" variant="secondary" onPress={clear} />
-      </View>
+        <VStack gap="sm">
+          <Button title="Calcular Injeção" onPress={calculate} />
+          <Button title="Limpar" variant="secondary" onPress={clear} />
+        </VStack>
+      </VStack>
     </ScreenLayout>
   );
 };

@@ -1,6 +1,6 @@
 import { calculateIPU } from "../domain/calculateIPU";
 import { ipuSchema } from "../domain/ipuSchema";
-import { useCalculatorLogic } from "../../../hooks/useCalculatorLogic";
+import { useCalculatorLogic } from "@/hooks/useCalculatorLogic";
 
 export const useIPUCalculator = () => {
   const logic = useCalculatorLogic({
@@ -16,6 +16,7 @@ export const useIPUCalculator = () => {
     setPolyol: (val: string) => logic.setInputValue('polyol', val),
     result: logic.result,
     error: logic.error,
+    fieldErrors: logic.fieldErrors,
     calculate: logic.calculate,
     clear: logic.clear,
   };

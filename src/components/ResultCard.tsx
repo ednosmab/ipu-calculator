@@ -1,42 +1,42 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { theme } from '../styles/theme';
+import { StyleSheet, View } from 'react-native';
+import { theme, Card, Text } from '@/design-system';
 
 type Props = {
   result: string;
 };
 
 export const ResultCard = ({ result }: Props) => (
-  <View style={styles.card}>
-    <Text style={styles.label}>Resultado</Text>
+  <Card style={styles.card}>
+    <Text variant="label" style={{ textTransform: 'uppercase', letterSpacing: 1 }}>Resultado</Text>
     <View style={styles.valueContainer}>
-      <Text style={styles.value}>{result}</Text>
+      <Text variant="body" weight="bold" style={{ fontSize: theme.typography.sizes.xl }}>{result}</Text>
     </View>
-  </View>
+  </Card>
 );
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(148, 166, 132, 0.08)', // Tinted with Success (Sage)
-    padding: 20,
+    backgroundColor: theme.colors.successBg,
+    padding: theme.spacing.lg,
     borderRadius: theme.roundness.md,
-    marginTop: 16,
-    marginBottom: 24,
-    borderWidth: 1,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
+    borderWidth: theme.borderWidth.thin,
     borderColor: theme.colors.success,
   },
   label: {
     color: theme.colors.textSecondary,
-    marginBottom: 4,
+    marginBottom: theme.spacing.xs,
     fontSize: theme.typography.sizes.sm,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   valueContainer: {
-    marginTop: 4,
+    marginTop: theme.spacing.xs,
   },
   value: {
     fontSize: theme.typography.sizes.xl,
     color: theme.colors.text,
-    fontWeight: theme.typography.weights.bold as any,
+    fontWeight: theme.typography.weights.bold,
   }
 });

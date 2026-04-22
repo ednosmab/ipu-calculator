@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { KeyboardTypeOptions, StyleSheet, Text, TextInput, View } from 'react-native';
-import { theme } from '../styles/theme';
+import { KeyboardTypeOptions, StyleSheet, TextInput, View } from 'react-native';
+import { theme } from '../theme';
+import { Text } from './Text';
 
 type Props = {
   label: string;
@@ -9,47 +10,54 @@ type Props = {
   keyboardType?: KeyboardTypeOptions;
 };
 
-export const InputField = ({ label, value, onChange, keyboardType = "numeric" }: Props) => {
+export const Input = ({ 
+  label, 
+  value, 
+  onChange, 
+  keyboardType = "numeric",
+  error,
+  helperText
+}: Props) => {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
+      <Text variant="label" weight="medium">{label}</Text>
       <TextInput
         value={value}
         onChangeText={onChange}
         keyboardType={keyboardType}
         placeholder="0.00"
-        placeholderTextColor={theme.colors.textSecondary}
+        placeholderTextColor={theme.colors.inputPlaceholder}
         style={[
           styles.input,
-          isFocused && styles.inputFocused
+          isFocused && styles.inputFocused,
+          !!error && styles.inputError
         ]}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
       />
+      {!!error && <Text variant="error" weight="medium">{error}</Text>}
+      {!!helperText && !error && <Text variant="helper">{helperText}</Text>}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { marginBottom: 16 },
-  label: { 
-    color: theme.colors.textSecondary, 
-    marginBottom: 8,
-    fontSize: theme.typography.sizes.sm,
-    fontWeight: theme.typography.weights.medium as any,
-  },
+  container: { marginBottom: theme.spacing.md, gap: theme.spacing.xs },
   input: {
     backgroundColor: theme.colors.input,
     borderColor: theme.colors.border,
-    borderWidth: 1.5,
+    borderWidth: theme.borderWidth.medium,
     borderRadius: theme.roundness.md,
-    padding: 14,
+    padding: theme.spacing.md,
     color: theme.colors.text,
     fontSize: theme.typography.sizes.md,
   },
   inputFocused: {
     borderColor: theme.colors.primary,
+  },
+  inputError: {
+    borderColor: theme.colors.error,
   }
 });
