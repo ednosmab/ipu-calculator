@@ -33,8 +33,9 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
         <>
           <Button
             title="Voltar"
+            variant="secondary"
             onPress={goBack}
-            icon={<Ionicons name="arrow-back" size={20} color={theme.colors.black} />}
+            icon={<Ionicons name="arrow-back" size={20} color={theme.colors.text} />}
             style={{ flex: 1, marginRight: theme.spacing.sm }}
           />
           <Button
@@ -64,8 +65,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
 
       <View style={styles.buttonGroup}>
         <Button title="Calcular" onPress={calculate} />
-        <View style={styles.spacer} />
-        <Button title="Limpar" onPress={clear} />
+        <Button title="Limpar" variant="secondary" onPress={clear} />
       </View>
     </ScreenLayout>
   );

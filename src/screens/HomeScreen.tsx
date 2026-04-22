@@ -12,8 +12,7 @@ export const HomeScreen = ({ onGoToCalculator, onGoToCalibration }: Props) => {
   return (
     <ScreenLayout title="Calculadora IPU">
       <Button title="Calcular IPU" onPress={onGoToCalculator} />
-      <View style={{ height: 16 }} />
-      <Button title="Calibragem" onPress={onGoToCalibration} />
+      <Button title="Calibragem" variant="secondary" onPress={onGoToCalibration} />
     </ScreenLayout>
   );
 };

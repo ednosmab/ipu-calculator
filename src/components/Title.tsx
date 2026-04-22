@@ -12,11 +12,11 @@ export const Title = ({ children, style, ...props }: TextProps) => {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 28,
+    fontSize: theme.typography.sizes.xl,
     color: theme.colors.text,
-    marginTop: 24,
-    marginBottom: 24,
+    marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
     textAlign: 'center',
-    fontWeight: 'bold',
+    fontWeight: theme.typography.weights.bold as any,
   },
 });

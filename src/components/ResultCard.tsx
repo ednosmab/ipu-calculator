@@ -8,23 +8,35 @@ type Props = {
 export const ResultCard = ({ result }: Props) => (
   <View style={styles.card}>
     <Text style={styles.label}>Resultado</Text>
-    <Text style={styles.value}>{result}</Text>
+    <View style={styles.valueContainer}>
+      <Text style={styles.value}>{result}</Text>
+    </View>
   </View>
 );
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: theme.colors.card,
+    backgroundColor: 'rgba(148, 166, 132, 0.08)', // Tinted with Success (Sage)
     padding: 20,
-    borderRadius: 16,
-    marginTop: 16
+    borderRadius: theme.roundness.md,
+    marginTop: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: theme.colors.success,
   },
   label: {
-    color: theme.colors.muted,
-    marginBottom: 8
+    color: theme.colors.textSecondary,
+    marginBottom: 4,
+    fontSize: theme.typography.sizes.sm,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  valueContainer: {
+    marginTop: 4,
   },
   value: {
-    fontSize: 32,
-    color: theme.colors.accent
+    fontSize: theme.typography.sizes.xl,
+    color: theme.colors.text,
+    fontWeight: theme.typography.weights.bold as any,
   }
 });
