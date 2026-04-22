@@ -1,4 +1,4 @@
-import { IPU_CONSTANTS } from "../../../core/constants/ipuConstants";
+import { IPU_CONSTANTS } from "@/core/constants/ipuConstants";
 
 /**
  * Domain rule: IPU (Index of Polyurethane Units) calculation.

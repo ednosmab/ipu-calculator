@@ -1,10 +1,10 @@
 import React from 'react';
-import { StyleSheet, Text, TextProps } from 'react-native';
-import { theme } from '../styles/theme';
+import { StyleSheet, TextProps } from 'react-native';
+import { theme, Text } from '@/design-system';
 
 export const Title = ({ children, style, ...props }: TextProps) => {
   return (
-    <Text style={[styles.title, style]} {...props}>
+    <Text weight="bold" style={[styles.title, style]} {...props}>
       {children}
     </Text>
   );
@@ -12,11 +12,11 @@ export const Title = ({ children, style, ...props }: TextProps) => {
 
 const styles = StyleSheet.create({
   title: {
-    fontSize: 28,
+    fontSize: theme.typography.sizes.xl,
     color: theme.colors.text,
-    marginTop: 24,
-    marginBottom: 24,
+    marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
     textAlign: 'center',
-    fontWeight: 'bold',
+    fontWeight: theme.typography.weights.bold,
   },
 });

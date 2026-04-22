@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { theme } from '../../../styles/theme';
+import { theme } from '@/design-system';
 
 export const styles = StyleSheet.create({
   error: {
@@ -14,16 +14,11 @@ export const styles = StyleSheet.create({
   spacer: {
     height: theme.spacing.sm,
   },
-  helperContainer: {
+  helperCard: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: theme.colors.card,
-    padding: theme.spacing.md,
-    borderRadius: theme.roundness.md,
+    alignItems: 'center',
     marginBottom: theme.spacing.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
   },
   helperText: {
     color: theme.colors.text,
