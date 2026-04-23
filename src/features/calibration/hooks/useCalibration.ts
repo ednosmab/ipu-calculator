@@ -24,7 +24,7 @@ export const useCalibration = () => {
 
     if (numExtracted > 0 && numAverage > 0) {
       const result = numExtracted / numAverage;
-      logic.setInputValue('actualWeight', result.toString());
+      logic.setInputValue('actualWeight', result.toFixed(3));
     }
   }, [extractedWeight, averageValue, isHelperActive, logic]);
 
