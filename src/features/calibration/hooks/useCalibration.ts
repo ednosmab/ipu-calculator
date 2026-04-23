@@ -19,7 +19,7 @@ export const useCalibration = () => {
   useEffect(() => {
     if (!isHelperActive) return;
 
-    const numExtracted = parseNumber(extractedWeight);
+    const numExtracted = parseNumber(extractedWeight) / 100; // Divide by 100
     const numAverage = parseNumber(averageValue);
 
     if (numExtracted > 0 && numAverage > 0) {

@@ -10,24 +10,36 @@ type Props = {
 
 export const ResultCard = ({ result, style }: Props) => (
   <View style={[styles.container, style]}>
-    <Text variant="label">Resultado</Text>
-    <Text style={styles.value}>{result.toFixed(2)}</Text>
+    <Text variant="label" style={styles.label}>Valor Calculado</Text>
+    <Text style={styles.value}>{result.toFixed(3)}</Text>
+    <Text style={styles.unit}>unidades</Text>
   </View>
 );
 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: theme.colors.successBg,
-    borderRadius: theme.roundness.md,
-    padding: theme.spacing.lg,
-    borderWidth: theme.borderWidth.medium,
+    borderRadius: theme.roundness.lg,
+    padding: theme.spacing.xl,
+    borderWidth: theme.borderWidth.thick,
     borderColor: theme.colors.success,
     alignItems: 'center',
   },
+  label: {
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
   value: {
-    fontSize: theme.typography.sizes.xl,
+    fontSize: 36,
     fontWeight: theme.typography.weights.bold,
     color: theme.colors.success,
+    marginTop: theme.spacing.xs,
+  },
+  unit: {
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.textSecondary,
     marginTop: theme.spacing.xs,
   },
 });
