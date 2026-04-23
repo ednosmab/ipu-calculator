@@ -1,125 +1,104 @@
 # IPU Calculator
 
-Sistema de suporte ao processo de injeção de materiais em assentos sanitários.
+📚 **Overview**
 
-🔗 **Web:** https://ipu-calculator.vercel.app/
-📱 **Mobile:** Expo (em desenvolvimento)
+IPU Calculator is a mobile and web application built with React Native and Expo, designed to standardize and automate calculations in the injection process of sanitary seats.
 
----
+The project focuses on clean architecture, scalability, and maintainability, making it suitable for real-world industrial scenarios.
 
-## 🚀 Funcionalidades
+🚀 **Features**
 
-### Calcular Injeção (IPU)
+- IPU calculation
+- Calibration flow
+- Modular architecture (feature-based)
+- Design System
+- Internationalization (i18n) - PT/EN
+- Error handling with global ErrorBoundary
+- Cross-platform (Android, iOS, Web)
+- Auto-scroll to result after calculation
 
-Calcula o índice de unidades de politano (IPU) baseado na soma de isocyanate + polyol.
+🧩 **Architecture**
 
-- Formula: `IPU = (isocyanate + polyol) / 0.14`
-- Validação: valores positivos
-
-### Calibrar Vazão
-
-Ajusta o fluxo de material usando a Regra de Three.
-
-- Formula: `correctedValue = (targetWeight * machineValue) / actualWeight`
-- Proteção contra divisão por zero
-- Helper: cálculo automático de actualWeight
-
----
-
-## 🏗️ Arquitetura
+The project follows a modular and scalable structure:
 
 ```
 src/
-├── core/                      # Módulos compartilhados
-│   ├── calculations/         # Funções matemáticas genéricas
-│   ├── constants/          # Constantes (IPU_CONSTANTS)
-│   ├── formatters/        # numberFormatter (pt-BR)
-│   ├── parsers/           # numberParser
-│   ├── types.ts          # Tipos compartilhados
-│   └── validators.ts     # Validações utilitárias
-│
-├── design-system/            # Design System
-│   ├── components/       # Button, Input, Card, Text, etc.
-│   └── theme.ts          # Tokens: colors, spacing, typography
-│
-├── features/              # Funcionalidades por domínio
+├── core/              # Shared logic (calculations, parsers, validators)
+├── features/          # Business features (ipu, calibration)
 │   ├── ipu/
-│   │   ├── domain/       # calculateIPU, ipuSchema
-│   │   ├── hooks/       # useIPUCalculator
-│   │   └── screens/     # IPUScreen
-│   │
+│   │   ├── domain/    # calculateIPU, ipuSchema
+│   │   ├── hooks/     # useIPUCalculator
+│   │   └── screens/   # IPUScreen
 │   └── calibration/
-│       ├── domain/       # calculateCalibration, calibrationSchema
-│       ├── hooks/       # useCalibration
-│       └── screens/     # CalibrationScreen
-│
-└── hooks/
-    └── useCalculatorLogic.ts  # Hook genérico de cálculo
+│       ├── domain/    # calculateCalibration, calibrationSchema
+│       ├── hooks/      # useCalibration
+│       └── screens/    # CalibrationScreen
+├── hooks/             # Custom hooks (useCalculatorLogic)
+├── design-system/      # UI components and tokens
+└── i18n/              # Translations (PT/EN)
 ```
 
-### Padrão: Hook Genérico + Hook Específico
+**Principles**
+- Separation of concerns (UI ↔ Business Logic)
+- Domain-driven structure
+- Reusable Design System components
+- Typed with TypeScript + Zod
 
-1. **Domínio** - Função pura de cálculo (`domain/calculate*.ts`)
-2. **Schema** - Validação Zod (`domain/*Schema.ts`)
-3. **Hook Específico** - Configura useCalculatorLogic (`hooks/use*Calculator.ts`)
-4. **Screen** - UI que consome hook específico
+📖 **Testing**
 
-Fluxo: `Screen → Hook Específico → useCalculatorLogic → Domínio`
+The project uses Jest with two strategies:
 
----
+- Unit tests → business logic
+- Integration tests → components and hooks
 
-## 🛠️ Tech Stack
-
-- **Framework:** Expo + React Native
-- **Linguagem:** TypeScript
-- **Validação:** Zod
-- **Testes:** Jest
-- **Deploy Web:** Vercel
-
----
-
-## ⚙️ Instalação e Uso
+Run tests:
 
 ```bash
-# Clonar
-git clone https://github.com/ednosmab/calculadora-ipu.git
-cd calculadora-ipu
-
-# Instalar dependências
-npm install
-
-# Rodar desenvolvimento
-npx expo start
-
-# Executar testes
 npm test
+```
 
-# Verificar lint
-npm run lint
+🛠️ **Tech Stack**
 
-# Build web
+- React Native
+- Expo
+- TypeScript
+- Expo Router
+- Jest
+- Zod
+- React Context (i18n)
+
+📦 **Installation**
+
+```bash
+npm install
+```
+
+🚀 **Running the project**
+
+```bash
+npm run start
+```
+
+**Platforms**
+- Android: `npm run android`
+- iOS: `npm run ios`
+- Web: `npm run web`
+
+🏗️ **Build**
+
+```bash
 npm run build
 ```
 
----
+📈 **Future Improvements**
 
-## 🧪 Testes
+- Increase test coverage
+- CI/CD pipeline
+- Performance optimization
+- Advanced accessibility
+- Local persistence (history)
+- Offline-first support
 
-```
-Test Suites: 5 passed
-Tests:       25 passing
-Cobertura:   funções de domínio, parsers, formatters
-```
+👨‍💻 **Author**
 
----
-
-## 📋 Regras de Nomenclatura
-
-- **Código técnico:** English Only (`calculateIPU`, `totalValue`)
-- **Mensagens ao usuário:** Português Brasil (`"Informe um número válido"`)
-
----
-
-## 👨‍💻 Autor
-
-Edson Garcia - https://github.com/ednosmab
+Edson Garcia
