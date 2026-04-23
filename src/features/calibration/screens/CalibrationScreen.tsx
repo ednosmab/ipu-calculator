@@ -4,6 +4,7 @@ import { ScreenLayout, ScreenLayoutRef } from '@/components/ScreenLayout';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useRef } from 'react';
 import { useCalibration } from '../hooks/useCalibration';
+import { useTranslation } from '@/i18n/TranslationContext';
 import { styles } from './CalibrationScreen.styles';
 
 type Props = {
@@ -13,6 +14,7 @@ type Props = {
 
 export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
   const screenRef = useRef<ScreenLayoutRef>(null);
+  const { t } = useTranslation();
   const {
     targetWeight,
     machineValue,
@@ -41,18 +43,18 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
   return (
     <ScreenLayout
       ref={screenRef}
-      title="Ajuste de Vazão"
+      title={t('calibrateFlow')}
       footer={
         <HStack>
           <Button
-            title="Voltar"
+            title={t('back')}
             variant="secondary"
             onPress={goBack}
             icon={<Ionicons name="arrow-back" size={20} color={theme.colors.text} />}
             style={{ flex: 1 }}
           />
           <Button
-            title="Calcular Injeção"
+            title={t('goToCalculator')}
             onPress={goToCalculator}
             style={{ flex: 1 }}
           />
@@ -63,7 +65,7 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
         {result !== null && <ResultCard result={result} />}
 
         <Card style={styles.helperCard}>
-          <Text weight="medium">Assistente de Peso Real</Text>
+          <Text weight="medium">{t('weightHelper')}</Text>
           <Toggle
             value={isHelperActive}
             onChange={setIsHelperActive}
@@ -74,12 +76,12 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
           <Card>
             <VStack>
               <Input
-                label="Peso extraído"
+                label={t('extractedWeight')}
                 value={extractedWeight}
                 onChange={setExtractedWeight}
               />
               <Input
-                label="Valor Média"
+                label={t('averageValue')}
                 value={averageValue}
                 onChange={setAverageValue}
               />
@@ -90,21 +92,21 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
         <Card>
           <VStack>
             <Input
-              label="Peso desejado"
+              label={t('targetWeight')}
               value={targetWeight}
               onChange={setTargetWeight}
               error={fieldErrors.targetWeight ?? undefined}
             />
 
             <Input
-              label="Valor da máquina"
+              label={t('machineValue')}
               value={machineValue}
               onChange={setMachineValue}
               error={fieldErrors.machineValue ?? undefined}
             />
 
             <Input
-              label="Peso real"
+              label={t('actualWeight')}
               value={actualWeight}
               onChange={setActualWeight}
               error={fieldErrors.actualWeight ?? undefined}
@@ -115,8 +117,8 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
         {error && <Text variant="error" style={styles.error}>{error}</Text>}
 
         <VStack gap="sm">
-          <Button title="Calcular Ajuste" onPress={handleCalculate} />
-          <Button title="Limpar" variant="secondary" onPress={clear} />
+          <Button title={t('calculateAdjustment')} onPress={handleCalculate} />
+          <Button title={t('clear')} variant="secondary" onPress={clear} />
         </VStack>
       </VStack>
     </ScreenLayout>

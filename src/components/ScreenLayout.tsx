@@ -14,10 +14,11 @@ type Props = {
   footer?: ReactNode;
   centered?: boolean;
   scrollable?: boolean;
+  rightHeader?: ReactNode;
 };
 
 const ScreenLayout = forwardRef<ScreenLayoutRef, Props>(function ScreenLayout(
-  { title, children, footer, centered = false, scrollable = true },
+  { title, children, footer, centered = false, scrollable = true, rightHeader },
   ref
 ) {
   const scrollViewRef = useRef<ScrollView>(null);
@@ -33,7 +34,13 @@ const ScreenLayout = forwardRef<ScreenLayoutRef, Props>(function ScreenLayout(
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
-        <Title>{title}</Title>
+        <View style={styles.header}>
+          <View style={styles.headerPlaceholder} />
+          <Title>{title}</Title>
+          <View style={styles.headerRight}>
+            {rightHeader}
+          </View>
+        </View>
         <ContentWrapper
           ref={scrollable ? scrollViewRef : null}
           style={!scrollable && { flex: 1 }}
@@ -73,6 +80,19 @@ const styles = StyleSheet.create({
   innerContainer: {
     flex: 1,
     paddingHorizontal: theme.spacing.lg,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: theme.spacing.md,
+  },
+  headerPlaceholder: {
+    width: 60,
+  },
+  headerRight: {
+    width: 60,
+    alignItems: 'flex-end',
   },
   scrollContent: {
     flexGrow: 1,

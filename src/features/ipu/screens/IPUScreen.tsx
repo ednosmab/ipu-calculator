@@ -1,9 +1,11 @@
 import { Button, Input, Card, theme, HStack, VStack, Text } from '@/design-system';
 import { ResultCard } from '@/components/ResultCard';
-import { ScreenLayout } from '@/components/ScreenLayout';
+import { ScreenLayout, ScreenLayoutRef } from '@/components/ScreenLayout';
 import { Ionicons } from '@expo/vector-icons';
 import { useIPUCalculator } from '../hooks/useIPUCalculator';
+import { useTranslation } from '@/i18n/TranslationContext';
 import { styles } from './IPUScreen.styles';
+import { useRef } from 'react';
 
 type Props = {
   goBack: () => void;
@@ -11,6 +13,8 @@ type Props = {
 };
 
 export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
+  const screenRef = useRef<ScreenLayoutRef>(null);
+  const { t } = useTranslation();
   const { 
     isocyanate, 
     polyol, 
@@ -23,20 +27,26 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
     clear 
   } = useIPUCalculator();
 
+  const handleCalculate = () => {
+    calculate();
+    setTimeout(() => screenRef.current?.scrollToTop(), 150);
+  };
+
   return (
     <ScreenLayout
-      title="Injeção"
+      ref={screenRef}
+      title={t('calculateInjection')}
       footer={
         <HStack>
           <Button
-            title="Voltar"
+            title={t('back')}
             variant="secondary"
             onPress={goBack}
             icon={<Ionicons name="arrow-back" size={20} color={theme.colors.text} />}
             style={{ flex: 1 }}
           />
           <Button
-            title="Calibrar Vazão"
+            title={t('goToCalibration')}
             onPress={goToCalibration}
             style={{ flex: 1 }}
           />
@@ -49,14 +59,14 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
         <Card>
           <VStack>
             <Input
-              label="Isocianato"
+              label={t('isocyanate')}
               value={isocyanate}
               onChange={setIsocyanate}
               error={fieldErrors.isocyanate ?? undefined}
               keyboardType="numeric"
             />
             <Input
-              label="Poliol"
+              label={t('polyol')}
               value={polyol}
               onChange={setPolyol}
               error={fieldErrors.polyol ?? undefined}
@@ -68,8 +78,8 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
         {error && <Text variant="error" style={styles.error}>{error}</Text>}
 
         <VStack gap="sm">
-          <Button title="Calcular Injeção" onPress={calculate} />
-          <Button title="Limpar" variant="secondary" onPress={clear} />
+          <Button title={t('calculateInjection')} onPress={handleCalculate} />
+          <Button title={t('clear')} variant="secondary" onPress={clear} />
         </VStack>
       </VStack>
     </ScreenLayout>
