@@ -16,44 +16,49 @@ type Props = {
   scrollable?: boolean;
 };
 
-const ScreenLayout = forwardRef<ScreenLayoutRef, Props>(
-  function ScreenLayout({ title, children, footer, centered = false, scrollable = true }, ref) {
-    const scrollViewRef = useRef<ScrollView>(null);
+const ScreenLayout = forwardRef<ScreenLayoutRef, Props>(function ScreenLayout(
+  { title, children, footer, centered = false, scrollable = true },
+  ref
+) {
+  const scrollViewRef = useRef<ScrollView>(null);
 
-    useImperativeHandle(ref, useCallback(() => ({
-      scrollToTop: () => {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-      },
-    }), []));
+  useImperativeHandle(ref, useCallback(() => ({
+    scrollToTop: () => {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    },
+  }), []));
 
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.innerContainer}>
-          <Title>{title}</Title>
-          {scrollable ? (
-            <ScrollView
-              ref={scrollViewRef}
-              style={{ flex: 1 }}
-              contentContainerStyle={centered ? styles.centered : styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-            >
-              {children}
-            </ScrollView>
-          ) : (
-            <View style={[styles.viewContent, centered && styles.centered]}>
-              {children}
-            </View>
-          )}
-          {footer && (
-            <View style={styles.bottomMenu}>
-              {footer}
-            </View>
-          )}
-        </View>
-      </SafeAreaView>
-    );
-  }
-);
+  const ContentWrapper = scrollable ? ScrollView : View;
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.innerContainer}>
+        <Title>{title}</Title>
+        <ContentWrapper
+          ref={scrollable ? scrollViewRef : null}
+          style={!scrollable && { flex: 1 }}
+          contentContainerStyle={scrollable ? [
+            styles.scrollContent,
+            centered && styles.centered
+          ] : undefined}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={[
+            !scrollable && styles.viewContent,
+            !scrollable && centered && styles.centered
+          ]}>
+            {children}
+          </View>
+        </ContentWrapper>
+        {footer && (
+          <View style={styles.bottomMenu}>
+            {footer}
+          </View>
+        )}
+      </View>
+    </SafeAreaView>
+  );
+});
 
 ScreenLayout.displayName = 'ScreenLayout';
 
