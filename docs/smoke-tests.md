@@ -86,3 +86,37 @@ Execute estes testes em cada nova versão:
 - [ ] Troca de idioma funciona
 - [ ] Build Android gera APK
 - [ ] Build Web funciona
+
+---
+
+## Testes Visuais (Manuais)
+
+### Design System
+
+| Componente | Verificação | Status |
+|-----------|-------------|--------|
+| **Button Primary** | Cor primária #649991 | ☐ |
+| **Button Secondary** | Cor secundária #313943 | ☐ |
+| **Button Ghost** | Sem fundo, cor primária | ☐ |
+| **Input Default** | Borda #313943 | ☐ |
+| **Input Focus** | Borda #649991 | ☐ |
+| **Input Error** | Borda #E57373, texto erro vermelho | ☐ |
+| **Card** | Background #1C1F26, border radius | ☐ |
+| **ResultCard** | Fonte 36px, cor #94A684, alinhado à esquerda | ☐ |
+| **Text Label** | Maiúsculas, letter-spacing 1px | ☐ |
+
+### Telas
+
+| Tela | Verificação | Status |
+|------|-------------|--------|
+| **HomeScreen** | Título centralizado, botões PT/EN no canto direito | ☐ |
+| **IPU Screen** | Labels Isocianato/Poliol, resultado scroll | ☐ |
+| **Calibration Screen** | Assistente toggle, labels corretos | ☐ |
+
+---
+
+## Pendente
+
+| Item | Prioridade | Status |
+|------|-----------|--------|
+| Snapshot Tests (Design System) | Média | ⏳ Pendente |

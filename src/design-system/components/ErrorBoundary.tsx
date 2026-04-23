@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { theme } from '../theme';
+import { logService } from '@/core/logging/LogService';
 
 type FallbackProps = {
   error: Error;
@@ -27,7 +28,9 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught:', error, errorInfo);
+    logService.error('ErrorBoundary caught an error', error, {
+      componentStack: errorInfo.componentStack,
+    });
   }
 
   render() {
