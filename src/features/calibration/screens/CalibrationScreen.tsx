@@ -1,8 +1,8 @@
 import { Button, Input, Card, theme, Toggle, HStack, VStack, Text } from '@/design-system';
 import { ResultCard } from '@/components/ResultCard';
-import { ScreenLayout } from '@/components/ScreenLayout';
+import { ScreenLayout, ScreenLayoutRef } from '@/components/ScreenLayout';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useRef } from 'react';
 import { useCalibration } from '../hooks/useCalibration';
 import { styles } from './CalibrationScreen.styles';
 
@@ -12,6 +12,7 @@ type Props = {
 };
 
 export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
+  const screenRef = useRef<ScreenLayoutRef>(null);
   const {
     targetWeight,
     machineValue,
@@ -32,8 +33,14 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
     clear,
   } = useCalibration();
 
+  const handleCalculate = () => {
+    calculate();
+    setTimeout(() => screenRef.current?.scrollToTop(), 150);
+  };
+
   return (
     <ScreenLayout
+      ref={screenRef}
       title="Ajuste de Vazão"
       footer={
         <HStack>
@@ -108,7 +115,7 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
         {error && <Text variant="error" style={styles.error}>{error}</Text>}
 
         <VStack gap="sm">
-          <Button title="Calcular Ajuste" onPress={calculate} />
+          <Button title="Calcular Ajuste" onPress={handleCalculate} />
           <Button title="Limpar" variant="secondary" onPress={clear} />
         </VStack>
       </VStack>

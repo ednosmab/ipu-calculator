@@ -1,57 +1,80 @@
 # Guia Técnico: useCalculatorLogic
 
-Este documento descreve o funcionamento e as diretrizes do hook genérico `useCalculatorLogic`, o motor central de cálculos deste projeto.
+Hook genérico que orquestra todo o fluxo de cálculo do projeto.
 
 ## 🎯 Objetivo
-Prover uma abstração reutilizável e tipada que separa a orquestração de cálculos (estado, parse, validação e formatação) da interface do usuário (UI), garantindo consistência e aderência aos princípios **SRP** (Single Responsibility Principle) e **DRY** (Don't Repeat Yourself).
+Prover abstração reutilizável que separa orquestração (estado, parse, validação, formatação) da UI, garantindo **SRP** e **DRY**.
 
 ## 🏗️ Estrutura da Configuração
-O hook recebe um objeto `CalculatorConfig<T>` com os seguintes campos:
 
-- **`inputs`**: Array de chaves (strings) que definem os campos de entrada.
-- **`calculateFn`**: Função pura que recebe os números parseados e retorna o resultado numérico.
-- **`validate`** (Opcional): Função que recebe os números e retorna um booleano para autorizar o cálculo.
-
-## 🔄 Fluxo de Dados
-```mermaid
-graph TD
-    A[Input UI - String] -->|setInputValue| B(Estado Interno)
-    B --> C{Botão Calcular}
-    C --> D[parseNumber - Normalização]
-    D --> E{Validação?}
-    E -->|Falha| F[Estado de Erro]
-    E -->|Sucesso| G[calculateFn - Lógica Pura]
-    G --> H[formatNumber - pt-BR]
-    H --> I[Estado de Resultado]
-```
-
-## 📝 Exemplos de Implementação
-
-### 1. Calculadora de IPU
 ```typescript
-const config = {
-  inputs: ['iso', 'poliol'],
-  calculateFn: (iso, poliol) => (iso + poliol) / 0.14,
-  validate: (iso, poliol) => iso > 0 && poliol > 0
+type CalculatorConfig<T extends string> = {
+  inputs: T[];                           // chaves dos campos
+  calculateFn: (...args: number[]) => number;  // função pura
+  validationSchema?: z.ZodObject<any>;  // schema Zod (opcional)
 };
 ```
 
-### 2. Calculadora de Calibragem
+## 🔄 Fluxo de Dados
+
+```
+InputUI (String) → setInputValue → Estado Interno
+        ↓
+   Botão Calcular
+        ↓
+  parseNumber (string → number)
+        ↓
+  Validação (Zod schema)
+        ↓
+  calculateFn (lógica pura)
+        ↓
+  formatToUserView (number → string)
+        ↓
+  Resultado UI
+```
+
+## 📝 Exemplo: Calculadora de IPU
+
 ```typescript
-const config = {
-  inputs: ['pesoDesejado', 'valorMaquina', 'pesoReal'],
-  calculateFn: (desejado, maquina, real) => (desejado * maquina) / real,
-  validate: (_, __, real) => real !== 0 // Evita divisão por zero
+// src/features/ipu/hooks/useIPUCalculator.ts
+export const useIPUCalculator = () => {
+  const logic = useCalculatorLogic({
+    inputs: ['isocyanate', 'polyol'],
+    calculateFn: (isocyanate, polyol) => calculateIPU(isocyanate, polyol),
+    validationSchema: ipuSchema,
+  });
+
+  return {
+    isocyanate: logic.inputs.isocyanate,
+    polyol: logic.inputs.polyol,
+    setIsocyanate: (val) => logic.setInputValue('isocyanate', val),
+    setPolyol: (val) => logic.setInputValue('polyol', val),
+    result: logic.result,
+    error: logic.error,
+    fieldErrors: logic.fieldErrors,
+    calculate: logic.calculate,
+    clear: logic.clear,
+  };
 };
 ```
 
 ## ⚠️ Boas Práticas
-1.  **Ordem dos Inputs:** A ordem no array `inputs` deve ser rigorosamente a mesma esperada pelos argumentos da `calculateFn`.
-2.  **Lógica Pura:** Nunca coloque lógica de UI ou efeitos colaterais dentro da `calculateFn`. Ela deve ser uma função matemática pura.
-3.  **Tratamento de Erros:** O hook já gerencia erros de parsing (NaN). Use o campo `validate` para regras de negócio específicas (ex: valores negativos ou zero).
 
-## 📐 Arquitetura do Fluxo
-**UI Component** (Exibe) → **Hook Específico** (Configura) → **useCalculatorLogic** (Orquestra) → **Services/Utils** (Processam)
+1. **Ordem dos Inputs:** Deve corresponder aos argumentos de `calculateFn`
+2. **Função Pura:** Nunca usar UI ou efeitos colaterais dentro de `calculateFn`
+3. **Validação:** Usar schema Zod para regras de negócio
+4. **Mensagens:** Erros para usuário em Português, código em Inglês
+
+## 🧩 Arquitetura em Camadas
+
+```
+Screen (UI) → Hook Específico → useCalculatorLogic → Domínio
+```
 
 ---
-*Documentação gerada para garantir a escalabilidade do projeto IPU Calculator.*
+
+## 📌 dependências Internas
+
+- `src/core/parsers/numberParser.ts` - parse string → number
+- `src/core/formatters/numberFormatter.ts` - format number → string
+- `src/core/validators.ts` - validações utilitárias

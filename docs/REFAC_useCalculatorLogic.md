@@ -1,42 +1,57 @@
 # Resumo de Refatoração: Engine de Cálculo Genérica
 
 ## 📋 Contexto
-Antes desta refatoração, cada tela de cálculo (`CalculatorScreen` e `CalibrationScreen`) possuía seu próprio hook especializado (`useCalculator` e `useCalibration`). Isso gerava duplicação de lógica de estado, tratamento de erros e formatação.
 
-## 🎯 Mudanças Implementadas
+Antes da refatoração, cada tela possuía lógica de estado, parsing, validação e formatação duplicadas.
 
-### 1. Centralização com `useCalculatorLogic`
-Criamos um hook genérico que orquestra todo o fluxo:
-**Input (String) → Parse (Número) → Validação → Cálculo → Formatação → UI.**
+## 🎯 Resultado Atual
 
-### 2. Desativação de Hooks Específicos
-- **Deletado:** `src/hooks/useCalculator.ts`
-- **Deletado:** `src/hooks/useCalibration.ts`
+### Arquitetura em Camadas
 
-### 3. Implementação nas Telas
-
-#### Calculadora de IPU
-```typescript
-const { inputs, setInputValue, calculate, result, error, clear } = useCalculatorLogic({
-  inputs: ['iso', 'poliol'],
-  calculateFn: (iso, poliol) => (iso + poliol) / 0.14,
-});
+```
+┌─────────────────────────────────────┐
+│         Screen (UI)                 │  src/features/*/screens/*.tsx
+└─────────────────────────────────────┘
+                ↓
+┌─────────────────────────────────────┐
+│      Hook Específico (Config)       │  src/features/*/hooks/use*.ts
+│  - useIPUCalculator                │
+│  - useCalibration                  │
+└─────────────────────────────────────┘
+                ↓
+┌─────────────────────────────────────┐
+│   Hook Genérico (Orquestração)        │  src/hooks/useCalculatorLogic.ts
+│  - Estados, parse, validation, calc  │
+└─────────────────────────────────────┘
+                ↓
+┌─────────────────────────────────────┐
+│      Domínio (Lógica Pura)          │  src/features/*/domain/calculate*.ts
+└─────────────────────────────────────┘
 ```
 
-#### Calculadora de Calibragem
-```typescript
-const { inputs, setInputValue, calculate, result, error, clear } = useCalculatorLogic({
-  inputs: ['pesoDesejado', 'valorMaquina', 'pesoReal'],
-  calculateFn: (pDesejado, vMaquina, pReal) => (pDesejado * vMaquina) / pReal,
-  validate: (_, __, pReal) => pReal !== 0, // Proteção contra divisão por zero
-});
-```
+### Arquivos Atuais
 
-## 🚀 Benefícios Alcançados
-- **DRY (Don't Repeat Yourself):** Redução de ~60% no código de gerenciamento de estado das calculadoras.
-- **DIP (Dependency Inversion):** As telas agora dependem de uma abstração de cálculo, não de uma implementação rígida.
-- **Escalabilidade:** Para adicionar uma nova calculadora (ex: Consumo de CO2), basta configurar o hook na nova tela.
-- **Testabilidade:** O motor de cálculo agora é testado via testes de integração isolados.
+| Camada | Arquivo |
+|--------|--------|
+| UI | `IPUScreen.tsx`, `CalibrationScreen.tsx` |
+| Hook Específico | `useIPUCalculator.ts`, `useCalibration.ts` |
+| Hook Genérico | `useCalculatorLogic.ts` |
+| Domínio | `calculateIPU.ts`, `calculateCalibration.ts` |
 
-## ✅ Conclusão
-O projeto IPU Calculator agora possui uma base sólida e modular, pronta para receber novas funcionalidades (como o CRUD de Assentos) sem degradar a qualidade do código.
+## ✅ Benefícios Alcançados
+
+- **DRY:** Lógica de estado, parse, validação e formatação centralizadas
+- **SRP:** Cada camada tem responsabilidade única
+- **DIP:** Telas dependem de abstração (hooks específicos), não de implementação
+- **Escalabilidade:** Nova calculadora = novo hook específico + schema + função de domínio
+- **Testabilidade:** Testes unitários em hooks genéricos e funções de domínio
+
+---
+
+## 🔧 Adicionar Nova Calculadora
+
+1. **Criar função de domínio** em `src/features/[nome]/domain/calculate[Nome].ts`
+2. **Criar schema Zod** em `src/features/[nome]/domain/[nome]Schema.ts`
+3. **Criar hook específico** em `src/features/[nome]/hooks/use[Nome]Calculator.ts`
+4. **Criar tela** em `src/features/[nome]/screens/[Nome]Screen.tsx`
+5. **Adicionar rota** em `app/_layout.tsx`

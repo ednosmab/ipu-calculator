@@ -1,10 +1,10 @@
 // @ts-ignore - Mock for Expo 54 winter runtime bug in Jest
+import { renderHook, act } from '@testing-library/react-native';
+import { useCalculatorLogic, CalculatorConfig } from '../useCalculatorLogic';
+
 global.__ExpoImportMetaRegistry = global.__ExpoImportMetaRegistry || {};
 // @ts-ignore - Mock for structuredClone missing in some node environments
 global.structuredClone = global.structuredClone || ((val: any) => JSON.parse(JSON.stringify(val)));
-
-import { renderHook, act } from '@testing-library/react-native';
-import { useCalculatorLogic, CalculatorConfig } from '../useCalculatorLogic';
 
 describe('useCalculatorLogic Integration Test', () => {
   const mockConfig: CalculatorConfig<'val1' | 'val2'> = {

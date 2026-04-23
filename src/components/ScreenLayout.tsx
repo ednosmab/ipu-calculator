@@ -1,8 +1,12 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useRef, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '@/design-system';
 import { Title } from '@/components/Title';
+
+export type ScreenLayoutRef = {
+  scrollToTop: () => void;
+};
 
 type Props = {
   title: string;
@@ -12,20 +16,26 @@ type Props = {
   scrollable?: boolean;
 };
 
-export const ScreenLayout = ({ 
-  title, 
-  children, 
-  footer, 
-  centered = false, 
-  scrollable = true 
-}: Props) => {
+const ScreenLayout = forwardRef<ScreenLayoutRef, Props>(function ScreenLayout(
+  { title, children, footer, centered = false, scrollable = true },
+  ref
+) {
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  useImperativeHandle(ref, useCallback(() => ({
+    scrollToTop: () => {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    },
+  }), []));
+
   const ContentWrapper = scrollable ? ScrollView : View;
-  
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
         <Title>{title}</Title>
         <ContentWrapper
+          ref={scrollable ? scrollViewRef : null}
           style={!scrollable && { flex: 1 }}
           contentContainerStyle={scrollable ? [
             styles.scrollContent,
@@ -48,7 +58,11 @@ export const ScreenLayout = ({
       </View>
     </SafeAreaView>
   );
-};
+});
+
+ScreenLayout.displayName = 'ScreenLayout';
+
+export { ScreenLayout };
 
 const styles = StyleSheet.create({
   container: {

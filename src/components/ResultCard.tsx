@@ -7,21 +7,22 @@ type Props = {
 
 export const ResultCard = ({ result }: Props) => (
   <Card style={styles.card}>
-    <Text variant="label" style={{ textTransform: 'uppercase', letterSpacing: 1 }}>Resultado</Text>
+    <Text variant="label" style={styles.label}>Valor Calculado</Text>
     <View style={styles.valueContainer}>
-      <Text variant="body" weight="bold" style={{ fontSize: theme.typography.sizes.xl }}>{result}</Text>
+      <Text variant="body" weight="bold" style={styles.value}>{result}</Text>
     </View>
+    <Text style={styles.unit}>unidades</Text>
   </Card>
 );
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: theme.colors.successBg,
-    padding: theme.spacing.lg,
-    borderRadius: theme.roundness.md,
+    padding: theme.spacing.xl,
+    borderRadius: theme.roundness.lg,
     marginTop: theme.spacing.md,
     marginBottom: theme.spacing.lg,
-    borderWidth: theme.borderWidth.thin,
+    borderWidth: theme.borderWidth.thick,
     borderColor: theme.colors.success,
   },
   label: {
@@ -35,8 +36,13 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xs,
   },
   value: {
-    fontSize: theme.typography.sizes.xl,
-    color: theme.colors.text,
+    fontSize: 36,
+    color: theme.colors.success,
     fontWeight: theme.typography.weights.bold,
-  }
+  },
+  unit: {
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.textSecondary,
+    marginTop: theme.spacing.xs,
+  },
 });
