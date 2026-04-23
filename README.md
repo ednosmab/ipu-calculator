@@ -1,5 +1,8 @@
 # IPU Calculator
 
+[![CI](https://github.com/ednosmab/ipu-calculator/actions/workflows/ci.yml/badge.svg)](https://github.com/ednosmab/ipu-calculator/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-98.94%25-brightgreen)](https://github.com/ednosmab/ipu-calculator)
+
 📚 **Overview**
 
 IPU Calculator is a mobile and web application built with React Native and Expo, designed to standardize and automate calculations in the injection process of sanitary seats.
@@ -13,9 +16,9 @@ The project focuses on clean architecture, scalability, and maintainability, mak
 - Modular architecture (feature-based)
 - Design System
 - Internationalization (i18n) - PT/EN
-- Error handling with global ErrorBoundary
-- Cross-platform (Android, iOS, Web)
+- Error handling with global ErrorBoundary + LogService
 - Auto-scroll to result after calculation
+- Cross-platform (Android, iOS, Web)
 
 🧩 **Architecture**
 
@@ -23,7 +26,7 @@ The project follows a modular and scalable structure:
 
 ```
 src/
-├── core/              # Shared logic (calculations, parsers, validators)
+├── core/              # Shared logic (calculations, parsers, validators, logging)
 ├── features/          # Business features (ipu, calibration)
 │   ├── ipu/
 │   │   ├── domain/    # calculateIPU, ipuSchema
@@ -31,10 +34,10 @@ src/
 │   │   └── screens/   # IPUScreen
 │   └── calibration/
 │       ├── domain/    # calculateCalibration, calibrationSchema
-│       ├── hooks/      # useCalibration
-│       └── screens/    # CalibrationScreen
+│       ├── hooks/     # useCalibration
+│       └── screens/   # CalibrationScreen
 ├── hooks/             # Custom hooks (useCalculatorLogic)
-├── design-system/      # UI components and tokens
+├── design-system/     # UI components and tokens
 └── i18n/              # Translations (PT/EN)
 ```
 
@@ -50,6 +53,12 @@ The project uses Jest with two strategies:
 
 - Unit tests → business logic
 - Integration tests → components and hooks
+
+| Metric | Status |
+|--------|--------|
+| Coverage | **98.94%** |
+| Tests | **31 passing** |
+| Lint | **0 errors** |
 
 Run tests:
 
@@ -90,15 +99,20 @@ npm run start
 npm run build
 ```
 
+🛡️ **Quality Assurance**
+
+- CI/CD with GitHub Actions
+- ESLint for code quality
+- Jest for automated testing
+- ErrorBoundary + LogService for error monitoring
+
 📈 **Future Improvements**
 
-- Increase test coverage
-- CI/CD pipeline
-- Performance optimization
-- Advanced accessibility
+- Advanced accessibility (a11y)
 - Local persistence (history)
+- Snapshot tests for Design System
 - Offline-first support
 
 👨‍💻 **Author**
 
-Edson Garcia
+Edson Garcia - [GitHub](https://github.com/ednosmab)
