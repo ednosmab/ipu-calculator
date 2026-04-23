@@ -1,36 +1,77 @@
-🛠️ Skill: Arquiteto Clean Code & International Standard
+# 🛠️ Skill: Arquiteto Clean Code & International Standard
+
 🎯 Objetivo
-Garantir que a evolução do projeto IPU Calculator mantenha a excelência técnica através da Arquitetura Limpa e da padronização internacional. Esta skill atua como um filtro rigoroso: nada é codificado sem o devido isolamento de camadas e sem que a nomenclatura esteja 100% em Inglês.
+Garantir que a evolução do projeto IPU Calculator mantenha a excelência técnica através da Arquitetura Limpa e da padronização internacional. Esta skill atua como um filtro rigoroso: nada é codificado sem o devido isolamento de camadas.
 
-🌍 Regra de Ouro: Nomenclatura (English Only)
-Para garantir que o projeto siga padrões globais de engenharia de software:
+---
 
-Idioma: Todas as variáveis, funções, classes, arquivos e comentários de código devem ser em Inglês.
+## ✅ Status das Refatorações (Abril 2026)
 
-Proibição: É terminantemente proibido o uso de termos em português (ex: valorTotal, calcularIpu) no corpo técnico do código.
+### Concluído
+
+- [x] Consolidar lógica de cálculo (`useCalculatorLogic` centralizado)
+- [x] Arquitetura de pastas (`src/features/ipu`, `src/features/calibration`)
+- [x] Separação UI ↔ lógica
+- [x] Cobertura de testes
+- [x] English Only (código, variáveis, funções)
+- [x] Mensagens de erro localization (Português Brasil para usuário)
+- [x] Tipos compartilhados (`src/core/types.ts`)
+- [x] Validações centralizadas (`src/core/validators.ts`)
+- [x] Dependências auditadas
+
+---
+
+## 🌍 Regra de Ouro: Nomenclatura
+
+### Código Fonte (English Only)
+
+Variáveis, funções, classes, arquivos e comentários técnicos devem ser em Inglês:
+
+```typescript
+// ✅ CORRETO
+const totalValue = calculateIPU(isocyanate, polyol);
+const result = useCalculatorLogic();
+
+// ❌ ERRADO
+const valorTotal = calcularIPU(isocianato, poliol);
+```
+
+### Interface com Usuário (Português Brasil)
+
+Mensagens de erro, labels e textos exibidos ao usuário devem ser em Português:
+
+```typescript
+// ✅ CORRETO - erro exibido ao usuário
+z.number({ message: 'Informe um número válido' })
+z.positive({ message: 'Peso desejado deve ser maior que zero' })
+
+// ❌ ERRADO - código técnico
+message: 'Invalid number'
+```
 
 Padrões:
 
-camelCase para variáveis e funções (finalResult, calculateIpu).
+- camelCase para variáveis e funções (finalResult, calculateIpu)
+- PascalCase para Componentes e Classes (IpuCalculator, UserRepo)
+- kebab-case para nomes de arquivos (calc-service.ts)
 
-PascalCase para Componentes e Classes (IpuCalculator, UserRepo).
+---
 
-kebab-case para nomes de arquivos (calc-service.ts).
+## 🏗️ Arquitetura Limpa (Clean Architecture)
 
-🏗️ Reforço de Arquitetura Limpa (Clean Architecture)
 Baseado na separação já existente no useCalculatorLogic:
 
-Entidades e Lógica Pura: Funções matemáticas (como a calculateFn) devem ser puras e isoladas de qualquer biblioteca de UI (React/Expo).
+- **Entidades e Lógica Pura**: Funções matemáticas devem ser puras e isoladas de UI
+- **Inversão de Dependência (DIP)**: Telas dependem do hook genérico, nunca de cálculos inline
+- **Single Responsibility (SRP)**: Cada arquivo resolve apenas um problema técnico
 
-Inversão de Dependência (DIP): As telas de UI devem depender da abstração do hook genérico, nunca de cálculos "hardcoded" dentro do componente.
+---
 
-Single Responsibility (SRP): Cada arquivo na pasta docs/skills ou src/services deve resolver apenas um problema técnico.
+## 🚦 Protocolo de Validação
 
-🚦 Protocolo de Validação
-Antes de sugerir qualquer código, esta skill deve validar:
+Antes de sugerir código, validar:
 
-A variável está em Inglês? (Se não, traduzir automaticamente).
-
-A lógica está separada da UI? (Se não, sugerir a criação de um Service ou Hook).
-
-O código é o mínimo necessário (YAGNI)?.
+- Código técnico em Inglês? (variáveis, funções, comentários)
+- Mensagens para usuário em Português?
+- Lógica separada da UI?
+- YAGNI (mínimo necessário)?

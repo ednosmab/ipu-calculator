@@ -1,165 +1,125 @@
-Sistema de Suporte ao Processo de Injeção (IPU)
+# IPU Calculator
 
-Aplicação desenvolvida para padronizar e automatizar etapas do processo de injeção de materiais em assentos sanitários, disponível em web e mobile, com foco em precisão, consistência e eficiência operacional.
+Sistema de suporte ao processo de injeção de materiais em assentos sanitários.
 
-🔗 Web: https://ipu-calculator.vercel.app/
-📱 Mobile: em desenvolvimento com Expo
-
----
-
-📌 Sobre o projeto
-
-Este sistema foi criado para resolver um problema real de operação: cálculos e ajustes críticos realizados manualmente durante o processo produtivo.
-
-Essas operações impactam diretamente:
-
-- qualidade do produto final
-- consumo de matéria-prima
-- estabilidade do processo
-
-A aplicação centraliza essas etapas em uma interface acessível (web e mobile), permitindo maior controle e padronização da execução.
+🔗 **Web:** https://ipu-calculator.vercel.app/
+📱 **Mobile:** Expo (em desenvolvimento)
 
 ---
 
-🚀 Funcionalidades
+## 🚀 Funcionalidades
 
-🧪 Módulo de Tempo de Injeção
+### Calcular Injeção (IPU)
 
-Determina o tempo necessário para injeção do material em diferentes modelos.
+Calcula o índice de unidades de politano (IPU) baseado na soma de isocyanate + polyol.
 
-- utiliza:
-  - Isocianato
-  - Poliol
-- considera variação por modelo
-- melhora a repetibilidade do processo
+- Formula: `IPU = (isocyanate + polyol) / 0.14`
+- Validação: valores positivos
 
----
+### Calibrar Vazão
 
-⚙️ Módulo de Calibragem de Vazão
+Ajusta o fluxo de material usando a Regra de Three.
 
-Responsável por ajustar a quantidade de material injetada.
-
-- controle de fluxo
-- redução de desperdício
-- consistência entre ciclos
+- Formula: `correctedValue = (targetWeight * machineValue) / actualWeight`
+- Proteção contra divisão por zero
+- Helper: cálculo automático de actualWeight
 
 ---
 
-🔢 Tratamento de dados
+## 🏗️ Arquitetura
 
-- parsing de valores
-- formatação padronizada
-- utilitários reutilizáveis
-
----
-
-🧠 Arquitetura
-
-O sistema segue uma abordagem modular, preparada para múltiplas plataformas.
-
+```
 src/
- ┣ components/
- ┣ features/
- ┃ ┣ injection-time/
- ┃ ┗ flow-calibration/
- ┣ utils/
- ┣ pages/        # Web (Next.js)
- ┣ mobile/       # Mobile (Expo)
+├── core/                      # Módulos compartilhados
+│   ├── calculations/         # Funções matemáticas genéricas
+│   ├── constants/          # Constantes (IPU_CONSTANTS)
+│   ├── formatters/        # numberFormatter (pt-BR)
+│   ├── parsers/           # numberParser
+│   ├── types.ts          # Tipos compartilhados
+│   └── validators.ts     # Validações utilitárias
+│
+├── design-system/            # Design System
+│   ├── components/       # Button, Input, Card, Text, etc.
+│   └── theme.ts          # Tokens: colors, spacing, typography
+│
+├── features/              # Funcionalidades por domínio
+│   ├── ipu/
+│   │   ├── domain/       # calculateIPU, ipuSchema
+│   │   ├── hooks/       # useIPUCalculator
+│   │   └── screens/     # IPUScreen
+│   │
+│   └── calibration/
+│       ├── domain/       # calculateCalibration, calibrationSchema
+│       ├── hooks/       # useCalibration
+│       └── screens/     # CalibrationScreen
+│
+└── hooks/
+    └── useCalculatorLogic.ts  # Hook genérico de cálculo
+```
 
-Princípios:
+### Padrão: Hook Genérico + Hook Específico
 
-- separação entre lógica e interface
-- organização por domínio
-- reutilização de código
-- suporte a múltiplos clientes (web e mobile)
+1. **Domínio** - Função pura de cálculo (`domain/calculate*.ts`)
+2. **Schema** - Validação Zod (`domain/*Schema.ts`)
+3. **Hook Específico** - Configura useCalculatorLogic (`hooks/use*Calculator.ts`)
+4. **Screen** - UI que consome hook específico
 
----
-
-🛠️ Tecnologias
-
-Web
-
-- React
-- Next.js
-
-Mobile
-
-- React Native
-- Expo
-
-Geral
-
-- TypeScript
-- Arquitetura modular
-
-Deploy
-
-- Vercel (web)
+Fluxo: `Screen → Hook Específico → useCalculatorLogic → Domínio`
 
 ---
 
-🎯 Objetivo técnico
+## 🛠️ Tech Stack
 
-Demonstrar a capacidade de:
-
-- modelar processos industriais em software
-- estruturar aplicações escaláveis
-- construir soluções com impacto direto na operação
-
----
-
-📈 Evolução do sistema
-
-O projeto está em evolução contínua, com foco em expansão funcional e maturidade arquitetural.
-
-Próximos passos:
-
-- testes automatizados
-- melhoria de experiência do usuário
-- novas funcionalidades operacionais
+- **Framework:** Expo + React Native
+- **Linguagem:** TypeScript
+- **Validação:** Zod
+- **Testes:** Jest
+- **Deploy Web:** Vercel
 
 ---
 
-⚙️ Instalação e Uso
+## ⚙️ Instalação e Uso
 
-1. Clonar e instalar
-
-git clone https://github.com/edsondevfrontend/calculadora-ipu.git
+```bash
+# Clonar
+git clone https://github.com/ednosmab/calculadora-ipu.git
 cd calculadora-ipu
+
+# Instalar dependências
 npm install
 
----
-
-2. Rodar em desenvolvimento
-
+# Rodar desenvolvimento
 npx expo start
 
----
-
-3. Executar testes
-
+# Executar testes
 npm test
 
----
+# Verificar lint
+npm run lint
 
-📦 Builds e Distribuição
-
-Para gerar um APK instalável via EAS Build:
-
-eas build -p android --profile preview
-
----
-
-💡 Impacto
-
-- redução de erros operacionais
-- padronização do processo
-- aumento de produtividade
-- acesso facilitado (desktop e mobile)
+# Build web
+npm run build
+```
 
 ---
 
-👨‍💻 Autor
+## 🧪 Testes
 
-Edson Garcia
-https://github.com/ednosmab
+```
+Test Suites: 5 passed
+Tests:       25 passing
+Cobertura:   funções de domínio, parsers, formatters
+```
+
+---
+
+## 📋 Regras de Nomenclatura
+
+- **Código técnico:** English Only (`calculateIPU`, `totalValue`)
+- **Mensagens ao usuário:** Português Brasil (`"Informe um número válido"`)
+
+---
+
+## 👨‍💻 Autor
+
+Edson Garcia - https://github.com/ednosmab

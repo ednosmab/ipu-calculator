@@ -1,5 +1,4 @@
 import React from 'react';
-import { View } from 'react-native';
 import { Button, VStack } from '@/design-system';
 import { ScreenLayout } from '@/components/ScreenLayout';
 

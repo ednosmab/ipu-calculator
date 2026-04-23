@@ -26,7 +26,7 @@ export const useCalibration = () => {
       const result = numExtracted / numAverage;
       logic.setInputValue('actualWeight', result.toString());
     }
-  }, [extractedWeight, averageValue, isHelperActive]);
+  }, [extractedWeight, averageValue, isHelperActive, logic]);
 
   const toggleHelper = (value: boolean) => {
     setIsHelperActive(value);
