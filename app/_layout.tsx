@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import { ErrorBoundary, theme, View, Text } from '@/design-system';
+import { TranslationProvider } from '@/i18n/TranslationContext';
 
 function Fallback({ error }: { error: Error }) {
   return (
@@ -16,8 +17,10 @@ function Fallback({ error }: { error: Error }) {
 
 export default function RootLayout() {
   return (
-    <ErrorBoundary fallback={({ error }: { error: Error }) => <Fallback error={error} />}>
-      <Stack screenOptions={{ headerShown: false }} />
-    </ErrorBoundary>
+    <TranslationProvider>
+      <ErrorBoundary fallback={({ error }: { error: Error }) => <Fallback error={error} />}>
+        <Stack screenOptions={{ headerShown: false }} />
+      </ErrorBoundary>
+    </TranslationProvider>
   );
 }

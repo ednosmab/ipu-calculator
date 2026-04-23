@@ -1,6 +1,8 @@
 import React from 'react';
-import { Button, VStack } from '@/design-system';
+import { Button, VStack, Text } from '@/design-system';
+import { theme } from '@/design-system/theme';
 import { ScreenLayout } from '@/components/ScreenLayout';
+import { useTranslation } from '@/i18n/TranslationContext';
 
 type Props = {
   onGoToCalculator: () => void;
@@ -8,11 +10,26 @@ type Props = {
 };
 
 export const HomeScreen = ({ onGoToCalculator, onGoToCalibration }: Props) => {
+  const { language, toggleLanguage, t } = useTranslation();
+
+  const LanguageToggle = (
+    <Text
+      onPress={toggleLanguage}
+      style={{
+        color: theme.colors.primary,
+        fontSize: theme.typography.sizes.md,
+        fontWeight: theme.typography.weights.bold,
+      }}
+    >
+      {language.toUpperCase()}
+    </Text>
+  );
+
   return (
-    <ScreenLayout title="Calculadora IPU" centered>
+    <ScreenLayout title={t('appTitle')} centered rightHeader={LanguageToggle}>
       <VStack gap="md">
-        <Button title="Calcular Injeção" onPress={onGoToCalculator} />
-        <Button title="Calibrar Vazão" variant="secondary" onPress={onGoToCalibration} />
+        <Button title={t('calculateInjection')} onPress={onGoToCalculator} />
+        <Button title={t('calibrateFlow')} variant="secondary" onPress={onGoToCalibration} />
       </VStack>
     </ScreenLayout>
   );
