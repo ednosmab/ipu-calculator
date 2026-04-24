@@ -1,3 +1,4 @@
+import { logService } from '@/core/logging/LogService';
 import { Button, Input, Card, theme, Toggle, HStack, VStack, Text } from '@/design-system';
 import { ResultCard } from '@/components/ResultCard';
 import { ScreenLayout, ScreenLayoutRef } from '@/components/ScreenLayout';
@@ -36,6 +37,10 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
   } = useCalibration();
 
   const handleCalculate = () => {
+    logService.info('Calibration calculation started', { targetWeight, machineValue, actualWeight });
+    if (fieldErrors.targetWeight || fieldErrors.machineValue || fieldErrors.actualWeight) {
+      logService.warn('Validation failed', { fieldErrors });
+    }
     calculate();
     setTimeout(() => screenRef.current?.scrollToTop(), 150);
   };

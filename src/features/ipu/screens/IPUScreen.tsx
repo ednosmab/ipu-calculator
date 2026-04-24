@@ -1,3 +1,4 @@
+import { logService } from '@/core/logging/LogService';
 import { Button, Input, Card, theme, HStack, VStack, Text } from '@/design-system';
 import { ResultCard } from '@/components/ResultCard';
 import { ScreenLayout, ScreenLayoutRef } from '@/components/ScreenLayout';
@@ -28,6 +29,10 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
   } = useIPUCalculator();
 
   const handleCalculate = () => {
+    logService.info('IPU calculation started', { isocyanate, polyol });
+    if (fieldErrors.polyol || fieldErrors.isocyanate) {
+      logService.warn('Validation failed', { fieldErrors });
+    }
     calculate();
     setTimeout(() => screenRef.current?.scrollToTop(), 150);
   };
