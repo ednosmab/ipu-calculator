@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Card Snapshot Tests renders card with custom style correctly 1`] = `
+<View
+  style={
+    [
+      {
+        "backgroundColor": "#1C1F26",
+        "borderColor": "#313943",
+        "borderRadius": 12,
+        "borderWidth": 1,
+        "padding": 24,
+      },
+      {
+        "padding": 20,
+      },
+    ]
+  }
+>
+  Card com estilo
+</View>
+`;
+
+exports[`Card Snapshot Tests renders default card correctly 1`] = `
+<View
+  style={
+    [
+      {
+        "backgroundColor": "#1C1F26",
+        "borderColor": "#313943",
+        "borderRadius": 12,
+        "borderWidth": 1,
+        "padding": 24,
+      },
+      undefined,
+    ]
+  }
+>
+  Conteúdo do card
+</View>
+`;

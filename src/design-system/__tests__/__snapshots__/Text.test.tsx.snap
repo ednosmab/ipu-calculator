@@ -1,0 +1,137 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Text Snapshot Tests renders body text correctly 1`] = `
+<Text
+  style={
+    [
+      {
+        "color": "#C5C9D1",
+        "fontSize": 16,
+      },
+      {
+        "fontSize": 16,
+      },
+      {
+        "fontWeight": "400",
+      },
+      undefined,
+    ]
+  }
+>
+  Corpo texto
+</Text>
+`;
+
+exports[`Text Snapshot Tests renders bold text correctly 1`] = `
+<Text
+  style={
+    [
+      {
+        "color": "#C5C9D1",
+        "fontSize": 16,
+      },
+      {
+        "fontSize": 16,
+      },
+      {
+        "fontWeight": "700",
+      },
+      undefined,
+    ]
+  }
+>
+  Texto negrito
+</Text>
+`;
+
+exports[`Text Snapshot Tests renders error text correctly 1`] = `
+<Text
+  color="error"
+  style={
+    [
+      {
+        "color": "#C5C9D1",
+        "fontSize": 16,
+      },
+      {
+        "fontSize": 16,
+      },
+      {
+        "fontWeight": "400",
+      },
+      undefined,
+    ]
+  }
+>
+  Texto erro
+</Text>
+`;
+
+exports[`Text Snapshot Tests renders large text correctly 1`] = `
+<Text
+  size="lg"
+  style={
+    [
+      {
+        "color": "#C5C9D1",
+        "fontSize": 16,
+      },
+      {
+        "fontSize": 16,
+      },
+      {
+        "fontWeight": "400",
+      },
+      undefined,
+    ]
+  }
+>
+  Texto grande
+</Text>
+`;
+
+exports[`Text Snapshot Tests renders muted text correctly 1`] = `
+<Text
+  muted={true}
+  style={
+    [
+      {
+        "color": "#C5C9D1",
+        "fontSize": 16,
+      },
+      {
+        "fontSize": 16,
+      },
+      {
+        "fontWeight": "400",
+      },
+      undefined,
+    ]
+  }
+>
+  Texto muted
+</Text>
+`;
+
+exports[`Text Snapshot Tests renders small text correctly 1`] = `
+<Text
+  size="sm"
+  style={
+    [
+      {
+        "color": "#C5C9D1",
+        "fontSize": 16,
+      },
+      {
+        "fontSize": 16,
+      },
+      {
+        "fontWeight": "400",
+      },
+      undefined,
+    ]
+  }
+>
+  Texto pequeno
+</Text>
+`;

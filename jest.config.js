@@ -20,7 +20,8 @@ module.exports = {
       testMatch: [
         '<rootDir>/src/**/*.test.tsx',
         '<rootDir>/src/hooks/**/__tests__/**/*.test.ts',
-        '<rootDir>/src/features/**/hooks/**/*.test.ts'
+        '<rootDir>/src/features/**/hooks/**/*.test.ts',
+        '<rootDir>/src/design-system/__tests__/**/*.test.tsx'
       ],
       testPathIgnorePatterns: [
         '/node_modules/',
