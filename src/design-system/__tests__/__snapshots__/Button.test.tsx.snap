@@ -1,0 +1,439 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Button Snapshot Tests renders disabled button correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": true,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "borderColor": "transparent",
+        "borderRadius": 12,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "marginVertical": 8,
+      },
+      {
+        "padding": 14,
+      },
+      {
+        "backgroundColor": "#649991",
+      },
+      {
+        "opacity": 0.5,
+      },
+      false,
+      undefined,
+    ]
+  }
+>
+  <Text
+    style={
+      [
+        {
+          "fontWeight": "600",
+        },
+        {
+          "fontSize": 16,
+        },
+        {
+          "color": "#0F1115",
+        },
+        {},
+      ]
+    }
+  >
+    Disabled
+  </Text>
+</View>
+`;
+
+exports[`Button Snapshot Tests renders large button correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": false,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "borderColor": "transparent",
+        "borderRadius": 12,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "marginVertical": 8,
+      },
+      {
+        "padding": 18,
+      },
+      {
+        "backgroundColor": "#649991",
+      },
+      false,
+      false,
+      undefined,
+    ]
+  }
+>
+  <Text
+    style={
+      [
+        {
+          "fontWeight": "600",
+        },
+        {
+          "fontSize": 20,
+        },
+        {
+          "color": "#0F1115",
+        },
+        {},
+      ]
+    }
+  >
+    Large
+  </Text>
+</View>
+`;
+
+exports[`Button Snapshot Tests renders loading button correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": true,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "borderColor": "transparent",
+        "borderRadius": 12,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "marginVertical": 8,
+      },
+      {
+        "padding": 14,
+      },
+      {
+        "backgroundColor": "#649991",
+      },
+      false,
+      false,
+      undefined,
+    ]
+  }
+>
+  <ActivityIndicator
+    color="#0F1115"
+  />
+</View>
+`;
+
+exports[`Button Snapshot Tests renders primary button correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": false,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "borderColor": "transparent",
+        "borderRadius": 12,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "marginVertical": 8,
+      },
+      {
+        "padding": 14,
+      },
+      {
+        "backgroundColor": "#649991",
+      },
+      false,
+      false,
+      undefined,
+    ]
+  }
+>
+  <Text
+    style={
+      [
+        {
+          "fontWeight": "600",
+        },
+        {
+          "fontSize": 16,
+        },
+        {
+          "color": "#0F1115",
+        },
+        {},
+      ]
+    }
+  >
+    Calcular
+  </Text>
+</View>
+`;
+
+exports[`Button Snapshot Tests renders secondary button correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": false,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "borderColor": "transparent",
+        "borderRadius": 12,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "marginVertical": 8,
+      },
+      {
+        "padding": 14,
+      },
+      {
+        "backgroundColor": "transparent",
+        "borderColor": "#313943",
+      },
+      false,
+      false,
+      undefined,
+    ]
+  }
+>
+  <Text
+    style={
+      [
+        {
+          "fontWeight": "600",
+        },
+        {
+          "fontSize": 16,
+        },
+        {
+          "color": "#C5C9D1",
+        },
+        {},
+      ]
+    }
+  >
+    Cancelar
+  </Text>
+</View>
+`;
+
+exports[`Button Snapshot Tests renders small button correctly 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": false,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  style={
+    [
+      {
+        "alignItems": "center",
+        "borderColor": "transparent",
+        "borderRadius": 12,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "marginVertical": 8,
+      },
+      {
+        "padding": 10,
+      },
+      {
+        "backgroundColor": "#649991",
+      },
+      false,
+      false,
+      undefined,
+    ]
+  }
+>
+  <Text
+    style={
+      [
+        {
+          "fontWeight": "600",
+        },
+        {
+          "fontSize": 14,
+        },
+        {
+          "color": "#0F1115",
+        },
+        {},
+      ]
+    }
+  >
+    Small
+  </Text>
+</View>
+`;
