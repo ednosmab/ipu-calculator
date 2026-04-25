@@ -24,8 +24,10 @@ export const translations = {
     goToCalculator: 'Calcular Injeção',
     calculateAdjustment: 'Calcular Ajuste',
     isocyanate: 'Isocianato',
-    polyol: 'Poliol',
+polyol: 'Poliol',
     language: 'Idioma',
+    models: 'Listar Modelos',
+    createModel: 'Criar Novo',
   },
   en: {
     appTitle: 'IPU Calculator',
@@ -52,6 +54,8 @@ export const translations = {
     isocyanate: 'Isocyanate',
     polyol: 'Polyol',
     language: 'Language',
+    models: 'List Models',
+    createModel: 'Create New',
   },
 } as const;
 

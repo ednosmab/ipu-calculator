@@ -1,8 +1,9 @@
 import React, { ReactNode, useRef, useImperativeHandle, forwardRef, useCallback } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '@/design-system';
 import { Title } from '@/components/Title';
+import { Ionicons } from '@expo/vector-icons';
 
 export type ScreenLayoutRef = {
   scrollToTop: () => void;
@@ -15,10 +16,11 @@ type Props = {
   centered?: boolean;
   scrollable?: boolean;
   rightHeader?: ReactNode;
+  onBack?: () => void;
 };
 
 const ScreenLayout = forwardRef<ScreenLayoutRef, Props>(function ScreenLayout(
-  { title, children, footer, centered = false, scrollable = true, rightHeader },
+  { title, children, footer, centered = false, scrollable = true, rightHeader, onBack },
   ref
 ) {
   const scrollViewRef = useRef<ScrollView>(null);
@@ -35,7 +37,13 @@ const ScreenLayout = forwardRef<ScreenLayoutRef, Props>(function ScreenLayout(
     <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
         <View style={styles.header}>
-          <View style={styles.headerPlaceholder} />
+          <View style={styles.headerLeft}>
+            {onBack && (
+              <Pressable onPress={onBack}>
+                <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+              </Pressable>
+            )}
+          </View>
           <Title>{title}</Title>
           <View style={styles.headerRight}>
             {rightHeader}
@@ -87,6 +95,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: theme.spacing.md,
   },
+  headerLeft: {
+    width: 60,
+  },
   headerPlaceholder: {
     width: 60,
   },
@@ -107,7 +118,8 @@ const styles = StyleSheet.create({
   },
   bottomMenu: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
     marginTop: theme.spacing.md,
   },
 });

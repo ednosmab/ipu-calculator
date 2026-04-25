@@ -8,6 +8,8 @@ type Props = {
   value: string;
   onChange: (text: string) => void;
   keyboardType?: KeyboardTypeOptions;
+  placeholder?: string;
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
 };
 
 export const Input = ({ 
@@ -15,6 +17,8 @@ export const Input = ({
   value, 
   onChange, 
   keyboardType = "numeric",
+  placeholder = "0.00",
+  autoCapitalize,
   error,
   helperText
 }: Props) => {
@@ -27,8 +31,9 @@ export const Input = ({
         value={value}
         onChangeText={onChange}
         keyboardType={keyboardType}
-        placeholder="0.00"
+        placeholder={placeholder}
         placeholderTextColor={theme.colors.inputPlaceholder}
+        autoCapitalize={autoCapitalize}
         style={[
           styles.input,
           isFocused && styles.inputFocused,
