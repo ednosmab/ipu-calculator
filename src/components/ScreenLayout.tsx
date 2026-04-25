@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '@/design-system';
 import { Title } from '@/components/Title';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 export type ScreenLayoutRef = {
   scrollToTop: () => void;
@@ -24,6 +25,7 @@ const ScreenLayout = forwardRef<ScreenLayoutRef, Props>(function ScreenLayout(
   ref
 ) {
   const scrollViewRef = useRef<ScrollView>(null);
+  const isConnected = useNetworkStatus();
 
   useImperativeHandle(ref, useCallback(() => ({
     scrollToTop: () => {
@@ -47,6 +49,9 @@ const ScreenLayout = forwardRef<ScreenLayoutRef, Props>(function ScreenLayout(
           <Title>{title}</Title>
           <View style={styles.headerRight}>
             {rightHeader}
+            {isConnected === false && (
+              <FontAwesome5 name="wifi" size={16} color={theme.colors.error} />
+            )}
           </View>
         </View>
         <ContentWrapper

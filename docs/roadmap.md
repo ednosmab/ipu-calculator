@@ -103,6 +103,8 @@
 6. **Offline First**
    - Strategy de cache offline
    - Funcionar sem internet
+   - Nota: Em web (localhost), `isInternetReachable` retorna `null` inicialmente
+     - Testar em produção para validar detecção de rede
 
 ---
 
