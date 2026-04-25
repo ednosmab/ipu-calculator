@@ -5,7 +5,7 @@ exports[`Text Snapshot Tests renders body text correctly 1`] = `
   style={
     [
       {
-        "color": "#C5C9D1",
+        "color": "#FFFFFF",
         "fontSize": 16,
       },
       {
@@ -27,7 +27,7 @@ exports[`Text Snapshot Tests renders bold text correctly 1`] = `
   style={
     [
       {
-        "color": "#C5C9D1",
+        "color": "#FFFFFF",
         "fontSize": 16,
       },
       {
@@ -50,7 +50,7 @@ exports[`Text Snapshot Tests renders error text correctly 1`] = `
   style={
     [
       {
-        "color": "#C5C9D1",
+        "color": "#FFFFFF",
         "fontSize": 16,
       },
       {
@@ -73,7 +73,7 @@ exports[`Text Snapshot Tests renders large text correctly 1`] = `
   style={
     [
       {
-        "color": "#C5C9D1",
+        "color": "#FFFFFF",
         "fontSize": 16,
       },
       {
@@ -96,7 +96,7 @@ exports[`Text Snapshot Tests renders muted text correctly 1`] = `
   style={
     [
       {
-        "color": "#C5C9D1",
+        "color": "#FFFFFF",
         "fontSize": 16,
       },
       {
@@ -119,7 +119,7 @@ exports[`Text Snapshot Tests renders small text correctly 1`] = `
   style={
     [
       {
-        "color": "#C5C9D1",
+        "color": "#FFFFFF",
         "fontSize": 16,
       },
       {
