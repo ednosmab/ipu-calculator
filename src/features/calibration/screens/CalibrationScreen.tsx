@@ -3,7 +3,7 @@ import { Button, Input, Card, theme, Toggle, HStack, VStack, Text } from '@/desi
 import { ResultCard } from '@/components/ResultCard';
 import { HistoryList } from '@/components/HistoryList';
 import { ScreenLayout, ScreenLayoutRef } from '@/components/ScreenLayout';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import React, { useRef } from 'react';
 import { useCalibration } from '../hooks/useCalibration';
 import { useTranslation } from '@/i18n/TranslationContext';
@@ -59,12 +59,13 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
             title={t('back')}
             variant="secondary"
             onPress={goBack}
-            icon={<Ionicons name="arrow-back" size={20} color={theme.colors.text} />}
+            icon={<FontAwesome5 name="arrow-left" size={20} color={theme.colors.text} />}
             style={{ flex: 1 }}
           />
           <Button
             title={t('goToCalculator')}
             onPress={goToCalculator}
+            icon={<FontAwesome5 name="calculator" size={20} color={theme.colors.bg} />}
             style={{ flex: 1 }}
           />
         </HStack>
@@ -126,8 +127,8 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
         {error && <Text variant="error" style={styles.error}>{error}</Text>}
 
         <VStack gap="sm">
-          <Button title={t('calculateAdjustment')} onPress={handleCalculate} />
-          <Button title={t('clear')} variant="secondary" onPress={clear} />
+          <Button title={t('calculateAdjustment')} onPress={handleCalculate} icon={<FontAwesome5 name="cog" size={20} color={theme.colors.bg} />} />
+          <Button title={t('clear')} variant="secondary" onPress={clear} icon={<FontAwesome5 name="eraser" size={20} color={theme.colors.textSecondary} />} />
         </VStack>
 
         <HistoryList history={history} onItemPress={fillFromHistory} onClear={clearHistory} />

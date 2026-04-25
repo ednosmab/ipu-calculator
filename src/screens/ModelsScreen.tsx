@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, Modal as RNModal, TouchableOpacity, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { Button, Text, Card, theme } from '@/design-system';
 import { Input } from '@/design-system/components/Input';
 import { ScreenLayout } from '@/components/ScreenLayout';
@@ -161,7 +161,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
                 style={styles.iconBtn}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Ionicons name="pencil" size={20} color={theme.colors.textSecondary} />
+                <FontAwesome5 name="pen" size={20} color={theme.colors.textSecondary} />
               </TouchableOpacity>
               <TouchableOpacity 
                 onPress={(e) => {
@@ -171,7 +171,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
                 style={styles.iconBtn}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Ionicons name="trash-outline" size={20} color={theme.colors.error} />
+                <FontAwesome5 name="trash-alt" size={20} color={theme.colors.error} />
               </TouchableOpacity>
             </View>
           </Card>
@@ -184,7 +184,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
 
   const fab = (
     <View style={styles.fabWrapper}>
-      <Button title={t('createModel')} onPress={openCreate} style={styles.fabButton} />
+      <Button title={t('createModel')} onPress={openCreate} style={styles.fabButton} icon={<FontAwesome5 name="plus" size={20} color={theme.colors.bg} />} />
     </View>
   );
 
@@ -244,8 +244,9 @@ const openDeleteConfirm = (model: CalculationModel) => {
                   title="Cancelar"
                   variant="secondary"
                   onPress={handleModalClose}
+icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />}
                 />
-                <Button title="Salvar" onPress={handleSave} />
+                <Button title="Salvar" onPress={handleSave} icon={<FontAwesome5 name="check" size={20} color={theme.colors.bg} />} />
               </View>
             </View>
           </View>
@@ -260,8 +261,8 @@ const openDeleteConfirm = (model: CalculationModel) => {
                 Deseja excluir o modelo &quot;{deleteModel?.name}&quot;?
               </Text>
             <View style={styles.modalButtons}>
-              <Button title="Cancelar" variant="secondary" onPress={handleCancelDelete} />
-              <Button title="Excluir" onPress={handleConfirmDelete} />
+              <Button title="Cancelar" variant="secondary" onPress={handleCancelDelete} icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />} />
+              <Button title="Excluir" onPress={handleConfirmDelete} icon={<FontAwesome5 name="trash" size={20} color={theme.colors.bg} />} />
             </View>
           </View>
         </View>

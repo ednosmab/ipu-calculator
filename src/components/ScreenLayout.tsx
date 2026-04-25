@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '@/design-system';
 import { Title } from '@/components/Title';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 
 export type ScreenLayoutRef = {
   scrollToTop: () => void;
@@ -40,7 +40,7 @@ const ScreenLayout = forwardRef<ScreenLayoutRef, Props>(function ScreenLayout(
           <View style={styles.headerLeft}>
             {onBack && (
               <Pressable onPress={onBack}>
-                <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+                <FontAwesome5 name="arrow-left" size={24} color={theme.colors.text} />
               </Pressable>
             )}
           </View>

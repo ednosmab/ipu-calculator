@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Pressable } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { Button, VStack, Text } from '@/design-system';
 import { theme } from '@/design-system/theme';
 import { ScreenLayout } from '@/components/ScreenLayout';
@@ -31,12 +32,12 @@ export const HomeScreen = ({ onGoToCalculator, onGoToCalibration, onGoToModels }
   return (
     <ScreenLayout title={t('appTitle')} centered rightHeader={LanguageToggle}>
       <VStack gap="md">
-        <Button title={t('calculateInjection')} onPress={onGoToCalculator} />
-        <Button title={t('calibrateFlow')} variant="secondary" onPress={onGoToCalibration} />
+        <Button title={t('calculateInjection')} onPress={onGoToCalculator} icon={<FontAwesome5 name="calculator" size={20} color={theme.colors.bg} />} />
+        <Button title={t('calibrateFlow')} variant="secondary" onPress={onGoToCalibration} icon={<FontAwesome5 name="tint" size={20} color={theme.colors.textSecondary} />} />
         
         <View style={styles.divider} />
         
-        <Button title={t('models')} variant="ghost" onPress={onGoToModels} />
+        <Button title={t('models')} variant="ghost" onPress={onGoToModels} icon={<FontAwesome5 name="list" size={20} color={theme.colors.black} />} />
       </VStack>
     </ScreenLayout>
   );

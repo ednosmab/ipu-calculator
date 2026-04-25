@@ -1,4 +1,5 @@
 import { StyleSheet, View, Pressable } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { theme, Text, Card, HStack } from '@/design-system';
 import { CalculationHistory } from '@/features/history/domain/calculationHistory';
 
@@ -64,7 +65,10 @@ export const HistoryList = ({ history, labels, onItemPress, onClear }: Props) =>
         <Text style={styles.title}>CÁLCULOS RECENTES</Text>
         {onClear && (
           <Pressable onPress={onClear}>
-            <Text style={styles.clearBtn}>Limpar</Text>
+            <HStack gap="xs">
+              <FontAwesome5 name="eraser" size={14} color={theme.colors.textSecondary} />
+              <Text style={styles.clearBtn}>Limpar</Text>
+            </HStack>
           </Pressable>
         )}
       </HStack>

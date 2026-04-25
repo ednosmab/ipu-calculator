@@ -7,7 +7,7 @@ import { Button, Input, Card, theme, HStack, VStack, Text } from '@/design-syste
 import { ResultCard } from '@/components/ResultCard';
 import { HistoryList } from '@/components/HistoryList';
 import { ScreenLayout, ScreenLayoutRef } from '@/components/ScreenLayout';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useIPUCalculator } from '../hooks/useIPUCalculator';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { styles } from './IPUScreen.styles';
@@ -98,12 +98,13 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
             title={t('back')}
             variant="secondary"
             onPress={goBack}
-            icon={<Ionicons name="arrow-back" size={20} color={theme.colors.text} />}
+            icon={<FontAwesome5 name="arrow-left" size={20} color={theme.colors.text} />}
             style={{ flex: 1 }}
           />
           <Button
             title={t('goToCalibration')}
             onPress={goToCalibration}
+            icon={<FontAwesome5 name="tint" size={20} color={theme.colors.bg} />}
             style={{ flex: 1 }}
           />
         </HStack>
@@ -117,7 +118,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
             title={t('saveAsModel')} 
             variant="secondary"
             onPress={handleOpenSaveModal}
-            icon={<Ionicons name="save-outline" size={20} color={theme.colors.textSecondary} />}
+            icon={<FontAwesome5 name="save" size={20} color={theme.colors.textSecondary} />}
           />
         )}
 
@@ -143,8 +144,8 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
         {error && <Text variant="error" style={styles.error}>{error}</Text>}
 
         <VStack gap="sm">
-          <Button title={t('calculateInjection')} onPress={handleCalculate} />
-          <Button title={t('clear')} variant="secondary" onPress={clear} />
+          <Button title={t('calculateInjection')} onPress={handleCalculate} icon={<FontAwesome5 name="calculator" size={20} color={theme.colors.bg} />} />
+          <Button title={t('clear')} variant="secondary" onPress={clear} icon={<FontAwesome5 name="eraser" size={20} color={theme.colors.textSecondary} />} />
         </VStack>
 
         <HistoryList history={history} onItemPress={fillFromHistory} onClear={clearHistory} />
@@ -167,8 +168,8 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
               </Text>
             )}
             <HStack>
-              <Button title={t('cancel')} variant="secondary" onPress={handleCloseSaveModal} style={{ flex: 1 }} />
-              <Button title={existingModel ? t('overwrite') : t('save')} onPress={handleSaveModel} style={{ flex: 1 }} />
+              <Button title={t('cancel')} variant="secondary" onPress={handleCloseSaveModal} style={{ flex: 1 }} icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />} />
+              <Button title={existingModel ? t('overwrite') : t('save')} onPress={handleSaveModel} style={{ flex: 1 }} icon={<FontAwesome5 name="check" size={20} color={theme.colors.bg} />} />
             </HStack>
           </View>
         </View>
