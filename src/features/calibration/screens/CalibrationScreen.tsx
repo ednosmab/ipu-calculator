@@ -1,6 +1,7 @@
 import { logService } from '@/core/logging/LogService';
 import { Button, Input, Card, theme, Toggle, HStack, VStack, Text } from '@/design-system';
 import { ResultCard } from '@/components/ResultCard';
+import { HistoryList } from '@/components/HistoryList';
 import { ScreenLayout, ScreenLayoutRef } from '@/components/ScreenLayout';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useRef } from 'react';
@@ -34,6 +35,9 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
     fieldErrors,
     calculate,
     clear,
+    history,
+    clearHistory,
+    fillFromHistory,
   } = useCalibration();
 
   const handleCalculate = () => {
@@ -67,7 +71,7 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
       }
     >
       <VStack gap="lg">
-        {result !== null && <ResultCard result={result} />}
+        <ResultCard result={result} />
 
         <Card style={styles.helperCard}>
           <Text weight="medium">{t('weightHelper')}</Text>
@@ -125,6 +129,8 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
           <Button title={t('calculateAdjustment')} onPress={handleCalculate} />
           <Button title={t('clear')} variant="secondary" onPress={clear} />
         </VStack>
+
+        <HistoryList history={history} onItemPress={fillFromHistory} onClear={clearHistory} />
       </VStack>
     </ScreenLayout>
   );

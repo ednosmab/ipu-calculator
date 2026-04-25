@@ -3,17 +3,43 @@ import { calculateCalibration } from "../domain/calculateCalibration";
 import { calibrationSchema } from "../domain/calibrationSchema";
 import { useCalculatorLogic } from "@/hooks/useCalculatorLogic";
 import { parseNumber } from "@/core/parsers/numberParser";
+import { saveCalculationUseCase } from "@/features/history/application/saveCalculationUseCase";
+import { historyRepository } from "@/features/history/infra/historyRepository";
+import { CalculationHistory } from "@/features/history/domain/calculationHistory";
 
 export const useCalibration = () => {
+  const [history, setHistory] = useState<CalculationHistory[]>([]);
+  const [extractedWeight, setExtractedWeight] = useState('');
+  const [averageValue, setAverageValue] = useState('');
+  const [isHelperActive, setIsHelperActive] = useState(false);
+
+  const loadHistory = async () => {
+    const data = await historyRepository.getAll();
+    setHistory(data.filter(h => h.type === 'calibration'));
+  };
+
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
   const logic = useCalculatorLogic({
     inputs: ['targetWeight', 'machineValue', 'actualWeight'],
     calculateFn: (tW, mV, aW) => calculateCalibration(tW, mV, aW),
     validationSchema: calibrationSchema,
+    onSuccess: async (inputs, result) => {
+      const historyInputs = {
+        ...inputs,
+        extractedWeight: parseNumber(extractedWeight),
+        averageValue: parseNumber(averageValue),
+      };
+      await saveCalculationUseCase({
+        type: 'calibration',
+        inputs: historyInputs,
+        result,
+      });
+      await loadHistory();
+    },
   });
-
-  const [extractedWeight, setExtractedWeight] = useState('');
-  const [averageValue, setAverageValue] = useState('');
-  const [isHelperActive, setIsHelperActive] = useState(false);
 
   // Auto-calculate actualWeight when extractedWeight or averageValue changes
   useEffect(() => {
@@ -34,6 +60,23 @@ export const useCalibration = () => {
       setExtractedWeight('');
       setAverageValue('');
     }
+  };
+
+  const clearHistory = async () => {
+    await historyRepository.clear();
+    await loadHistory();
+  };
+
+  const fillFromHistory = (item: CalculationHistory) => {
+    logic.setInputValue('targetWeight', item.inputs.targetWeight?.toString() ?? '');
+    logic.setInputValue('machineValue', item.inputs.machineValue?.toString() ?? '');
+    logic.setInputValue('actualWeight', item.inputs.actualWeight?.toString() ?? '');
+    setExtractedWeight(item.inputs.extractedWeight?.toString() ?? '');
+    setAverageValue(item.inputs.averageValue?.toString() ?? '');
+    if (item.inputs.extractedWeight && item.inputs.averageValue) {
+      setIsHelperActive(true);
+    }
+    logic.calculate();
   };
 
   return {
@@ -59,5 +102,8 @@ export const useCalibration = () => {
       setAverageValue('');
       setIsHelperActive(false);
     },
+    history,
+    clearHistory,
+    fillFromHistory,
   };
 };

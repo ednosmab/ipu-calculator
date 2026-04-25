@@ -1,6 +1,7 @@
 import { logService } from '@/core/logging/LogService';
 import { Button, Input, Card, theme, HStack, VStack, Text } from '@/design-system';
 import { ResultCard } from '@/components/ResultCard';
+import { HistoryList } from '@/components/HistoryList';
 import { ScreenLayout, ScreenLayoutRef } from '@/components/ScreenLayout';
 import { Ionicons } from '@expo/vector-icons';
 import { useIPUCalculator } from '../hooks/useIPUCalculator';
@@ -25,7 +26,10 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
     error, 
     fieldErrors,
     calculate, 
-    clear 
+    clear,
+    history,
+    clearHistory,
+    fillFromHistory 
   } = useIPUCalculator();
 
   const handleCalculate = () => {
@@ -86,6 +90,8 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
           <Button title={t('calculateInjection')} onPress={handleCalculate} />
           <Button title={t('clear')} variant="secondary" onPress={clear} />
         </VStack>
+
+        <HistoryList history={history} onItemPress={fillFromHistory} onClear={clearHistory} />
       </VStack>
     </ScreenLayout>
   );

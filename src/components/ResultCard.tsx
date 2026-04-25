@@ -3,15 +3,16 @@ import { theme, Card, Text } from '@/design-system';
 
 type Props = {
   result: string | null;
+  unit?: string;
 };
 
-export const ResultCard = ({ result }: Props) => (
+export const ResultCard = ({ result, unit = 'g' }: Props) => (
   <Card style={styles.card}>
     <Text variant="label" style={styles.label}>Valor Calculado</Text>
     <View style={styles.valueContainer}>
       <Text variant="body" weight="bold" style={styles.value}>{result ?? '—'}</Text>
+      {result !== null && <Text style={styles.unit}>{unit}</Text>}
     </View>
-    {result !== null && <Text style={styles.unit}>unidades</Text>}
   </Card>
 );
 

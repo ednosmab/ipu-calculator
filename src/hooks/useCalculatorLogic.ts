@@ -7,6 +7,7 @@ export type CalculatorConfig<T extends string> = {
   inputs: T[];
   calculateFn: (...args: number[]) => number;
   validationSchema?: z.ZodObject<any>;
+  onSuccess?: (inputs: Record<string, number>, result: number) => void | Promise<void>;
 };
 
 export const useCalculatorLogic = <T extends string>(config: CalculatorConfig<T>) => {
@@ -80,6 +81,10 @@ export const useCalculatorLogic = <T extends string>(config: CalculatorConfig<T>
     const parsedArgs = config.inputs.map((key) => numericValues[key]);
     const value = config.calculateFn(...parsedArgs);
     setResult(formatToUserView(value));
+
+    if (config.onSuccess) {
+      config.onSuccess(numericValues, value);
+    }
   };
 
   const clear = () => {
