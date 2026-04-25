@@ -59,7 +59,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
       }
     >
       <VStack gap="lg">
-        {result !== null && <ResultCard result={result} />}
+        <ResultCard result={result} />
 
         <Card>
           <VStack>

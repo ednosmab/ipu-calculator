@@ -2,16 +2,16 @@ import { StyleSheet, View } from 'react-native';
 import { theme, Card, Text } from '@/design-system';
 
 type Props = {
-  result: string;
+  result: string | null;
 };
 
 export const ResultCard = ({ result }: Props) => (
   <Card style={styles.card}>
     <Text variant="label" style={styles.label}>Valor Calculado</Text>
     <View style={styles.valueContainer}>
-      <Text variant="body" weight="bold" style={styles.value}>{result}</Text>
+      <Text variant="body" weight="bold" style={styles.value}>{result ?? '—'}</Text>
     </View>
-    <Text style={styles.unit}>unidades</Text>
+    {result !== null && <Text style={styles.unit}>unidades</Text>}
   </Card>
 );
 
