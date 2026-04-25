@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, Modal as RNModal, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Text, Card, theme } from '@/design-system';
@@ -22,6 +22,7 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [isTimeOnly, setIsTimeOnly] = useState(false);
   const [deleteModel, setDeleteModel] = useState<CalculationModel | null>(null);
+  const lastDeleteTime = useRef(0);
   const [editingModel, setEditingModel] = useState<CalculationModel | null>(null);
   const [modelName, setModelName] = useState('');
   const [injectionTime, setInjectionTime] = useState('');
@@ -61,11 +62,15 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
   };
 
 const openDeleteConfirm = (model: CalculationModel) => {
+    const now = Date.now();
+    if (now - lastDeleteTime.current < 500) return;
+    lastDeleteTime.current = now;
     setDeleteModel(model);
   };
 
   const handleCancelDelete = () => {
     setDeleteModel(null);
+    lastDeleteTime.current = 0;
   };
 
   const handleConfirmDelete = async () => {
@@ -73,6 +78,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
       await deleteModelUseCase(deleteModel.id);
       await loadModels();
       setDeleteModel(null);
+      lastDeleteTime.current = 0;
     }
   };
 
@@ -125,35 +131,43 @@ const openDeleteConfirm = (model: CalculationModel) => {
           {type === 'ipu' ? 'Injeção' : 'Calibração'}
         </Text>
         {filtered.map((model) => (
-          <Card key={model.id} style={styles.modelCard}>
+<Card key={model.id} style={styles.modelCard}>
             <View style={styles.row}>
-<TouchableOpacity 
-                onPress={() => onSelectModel(model)} 
-                style={{ flex: 1 }}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.modelName}>{model.name}</Text>
-                <View style={styles.timeRow}>
-                  <TouchableOpacity 
-                    onPress={() => openEditTime(model)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.timeRow}>
-                      <Text style={styles.timeLabel}>Tempo:</Text>
-                      <Text style={styles.timeValue}>{model.inputs.injectionTime}s</Text>
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                onPress={() => openEdit(model)} 
+              <View style={{ flex: 1 }}>
+                <TouchableOpacity 
+                  onPress={() => onSelectModel(model)} 
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.modelName}>{model.name}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    openEditTime(model);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.timeRow}>
+                    <Text style={styles.timeLabel}>Tempo:</Text>
+                    <Text style={styles.timeValue}>{model.inputs.injectionTime}s</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                onPress={(e) => {
+                  e.stopPropagation();
+                  openEdit(model);
+                }}
                 style={styles.iconBtn}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
                 <Ionicons name="pencil" size={20} color={theme.colors.textSecondary} />
               </TouchableOpacity>
               <TouchableOpacity 
-                onPress={() => openDeleteConfirm(model)}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  openDeleteConfirm(model);
+                }}
                 style={styles.iconBtn}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
@@ -238,7 +252,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
         </View>
       </RNModal>
 
-      <RNModal visible={!!deleteModel} animationType="fade" transparent>
+      <RNModal visible={!!deleteModel} transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Excluir Modelo</Text>
