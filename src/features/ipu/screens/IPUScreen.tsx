@@ -1,4 +1,8 @@
+import { useRef, useState } from 'react';
+import { Modal as RNModal, View } from 'react-native';
 import { logService } from '@/core/logging/LogService';
+import { CalculationModel } from '@/features/models/domain/calculationModel';
+import { createModelUseCase, getModelsByTypeUseCase, updateModelUseCase } from '@/features/models/application/modelUseCases';
 import { Button, Input, Card, theme, HStack, VStack, Text } from '@/design-system';
 import { ResultCard } from '@/components/ResultCard';
 import { HistoryList } from '@/components/HistoryList';
@@ -7,7 +11,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useIPUCalculator } from '../hooks/useIPUCalculator';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { styles } from './IPUScreen.styles';
-import { useRef } from 'react';
 
 type Props = {
   goBack: () => void;
@@ -17,6 +20,10 @@ type Props = {
 export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
   const screenRef = useRef<ScreenLayoutRef>(null);
   const { t } = useTranslation();
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [modelName, setModelName] = useState('');
+  const [existingModel, setExistingModel] = useState<CalculationModel | null>(null);
+  
   const { 
     isocyanate, 
     polyol, 
@@ -39,6 +46,46 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
     }
     calculate();
     setTimeout(() => screenRef.current?.scrollToTop(), 150);
+  };
+
+  const handleOpenSaveModal = async () => {
+    setModelName('');
+    const nameUpper = (result || '').toUpperCase();
+    const models = await getModelsByTypeUseCase('ipu');
+    const found = models.find(m => m.name.toUpperCase() === nameUpper);
+    setExistingModel(found || null);
+    setShowSaveModal(true);
+  };
+
+  const handleSaveModel = async () => {
+    if (!modelName.trim()) return;
+    const nameUpper = modelName.trim().toUpperCase();
+    const timeNum = parseFloat(result ?? '') || 0;
+    const models = await getModelsByTypeUseCase('ipu');
+    const existing = models.find(m => m.name.toUpperCase() === nameUpper);
+    
+    if (existing) {
+      await updateModelUseCase({
+        ...existing,
+        name: nameUpper,
+        inputs: { injectionTime: timeNum },
+      });
+    } else {
+      await createModelUseCase({
+        name: nameUpper,
+        type: 'ipu',
+        inputs: { injectionTime: timeNum },
+      });
+    }
+    setShowSaveModal(false);
+    setModelName('');
+    setExistingModel(null);
+  };
+
+  const handleCloseSaveModal = () => {
+    setShowSaveModal(false);
+    setModelName('');
+    setExistingModel(null);
   };
 
   return (
@@ -64,6 +111,15 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
     >
       <VStack gap="lg">
         <ResultCard result={result} />
+
+        {result && (
+          <Button 
+            title={t('saveAsModel')} 
+            variant="secondary"
+            onPress={handleOpenSaveModal}
+            icon={<Ionicons name="save-outline" size={20} color={theme.colors.textSecondary} />}
+          />
+        )}
 
         <Card>
           <VStack>
@@ -93,6 +149,30 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
 
         <HistoryList history={history} onItemPress={fillFromHistory} onClear={clearHistory} />
       </VStack>
+
+      <RNModal visible={showSaveModal} transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{t('saveAsModel')}</Text>
+            <Input
+              label={t('modelName')}
+              value={modelName}
+              onChange={setModelName}
+              placeholder={t('modelNamePlaceholder')}
+            />
+            <Text style={styles.modalText}>Tempo: {result}s</Text>
+            {existingModel && (
+              <Text style={styles.modalText}>
+                {t('existingModel')}: {existingModel.inputs.injectionTime}s ({t('willBeOverwritten')})
+              </Text>
+            )}
+            <HStack>
+              <Button title={t('cancel')} variant="secondary" onPress={handleCloseSaveModal} style={{ flex: 1 }} />
+              <Button title={existingModel ? t('overwrite') : t('save')} onPress={handleSaveModel} style={{ flex: 1 }} />
+            </HStack>
+          </View>
+        </View>
+      </RNModal>
     </ScreenLayout>
   );
 };
