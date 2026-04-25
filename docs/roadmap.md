@@ -1,149 +1,133 @@
 # 🚀 Roadmap de Evolução: IPU Calculator
 
+## Status Geral (Abril 2026)
+
+✅ = Concluído | 🔄 = Em progresso | ❌ = Pendente
+
+---
+
 ## Fase 1: Estabilização e Qualidade (Curto Prazo)
 
-O foco aqui é garantir que o que já existe seja inquebrável.
-
-- Validação Rigorosa: Implementar o IPUInputSchema com Zod para todos os cálculos, garantindo que o valor de $y = 0,1506$ seja uma constante imutável no domínio.
-- Cobertura de Testes:
-  - Subir a cobertura de testes unitários para 80% na pasta src/core.
-  - Implementar Snapshot Tests nos componentes do design-system para evitar regressões visuais.
-- Observabilidade: Finalizar a integração do ErrorBoundary com o LogService para capturar falhas em produção.
+| Item | Status | Observação |
+|------|--------|------------|
+| Validação Rigorosa (Zod) | 🔄 | Schema existe mas não fixa 0,1506 |
+| Cobertura de Testes 80% | ✅ | ~99% atual |
+| Snapshot Tests | ✅ | 14 snapshots implementados |
+| ErrorBoundary + LogService | ✅ | Integrado |
 
 ## Fase 2: Arquitetura e DX (Developer Experience)
 
-Melhorar a estrutura para suportar novas funcionalidades sem criar "código espaguete".
-
-- Clean Architecture Deep Dive:
-  - Mover toda a lógica de cálculo para UseCases puros.
-  - Garantir que a UI (screens) não conheça as regras de negócio, apenas as chame.
-- Local Persistence: Implementar AsyncStorage ou Expo SQLite para salvar históricos de cálculos de IPU e calibrações anteriores.
-- Performance: Utilizar FlashList (da Shopify) em vez de FlatList se houver listagem de histórico.
+| Item | Status | Observação |
+|------|--------|------------|
+| Clean Architecture | ✅ | Hook genérico + específico |
+| UI ↔ Domínio separado | ✅ | Screens chamam hooks |
+| Local Persistence | ❌ | Não implementado |
+| FlashList | ❌ | Não aplicável (sem listas) |
 
 ## Fase 3: Automação e DevOps (Médio Prazo)
 
-Agilizar o processo de entrega e garantir confiança no deploy.
-
-- Pipeline CI/CD:
-  - Finalizar o workflow do GitHub Actions.
-  - Configurar EAS Update para enviar correções críticas (hotfixes) para os usuários sem precisará pasar pela aprovação da Apple/Google.
-- Ambientes de Staging: Configurar o eas.json para gerar builds de "Internal Preview" (APK/IPA) automaticamente via branch develop.
+| Item | Status | Observação |
+|------|--------|------------|
+| CI (GitHub Actions) | ✅ | lint + test |
+| EAS Update (hotfixes) | ❌ | Não configurado |
+| eas.json preview | ✅ | Configurado |
+| Build automatico develop | 🔄 | Pending configuração |
 
 ## Fase 4: Especialização e Produto (Longo Prazo)
 
-Diferenciais que colocam você no nível Pleno+.
-
-- Offline First: Garantir que o app funcione 100% em chão de fábrica sem internet (comum em ambientes industriais).
-- Internacionalização (i18n): Implementar i18next para suportar Inglês/Português.
-- Acessibilidade: Implementar accessibilityLabel/Hint nativos do React Native para leitores de tela e contraste adequado para ambientes com muita iluminação.
-
----
-
-## 🛠️ Sugestão de Backlog Imediato (Next Sprints)
-
-| Prioridade | Task | Objetivo |
-|------------|------|----------|
-| Alta | Fixar constante $y = 0,1506$ no Zod | Precisão matemática. |
-| Alta | Ativar Workflow de CI no GitHub | Segurança no código. |
-| Média | Criar LogService no ErrorBoundary | Monitoramento de crashes. |
-| Média | Testes de integração no IPUScreen | Validar fluxo do usuário. |
+| Item | Status | Observação |
+|------|--------|------------|
+| Offline First | ❌ | Não implementado |
+| i18n (PT/EN) | ✅ | Implementado |
+| Acessibilidade | ❌ | Não implementado |
 
 ---
 
-## Roadmap de Refatoração e Implementação
+## 🛠️ Backlog Imediato
 
-### 🔴 Fase 1 — Fundamentos (impacto imediato)
-
-1. **Documentação (CRÍTICO)**
-   - Criar README profissional
-   - Adicionar:
-     - prints da aplicação
-     - GIF de uso
-     - explicação do problema real (injeção/IPU)
-
-2. **Testes (CRÍTICO)**
-   - Corrigir coverage (hoje está 0%)
-   - Priorizar:
-     1. Regras de negócio (core/domain)
-     2. Hooks críticos
-     3. Fluxos principais
-   - Meta: 50% (mínimo) / 70% (ideal)
-
-3. **Navegação (ajuste técnico)**
-   - Refatorar `router.push('/')` para `router.back()` ou `router.replace('/')`
-
-### 🟠 Fase 2 — Qualitéde de código
-
-4. **Padronização de arquitetura**
-   ```
-   features/
-     ipu/
-       domain/
-       application/
-       infrastructure/
-       presentation/
-   ```
-
-5. **Design System (evoluir)**
-   - Documentar tokens: cores, espaçamentos, tipografia
-   - Garantir consistência: padding padrão, grid, estados (loading, error)
-
-6. **Error Handling (nível sênior)**
-   - Categorizar erros: domínio, UI
-   - Preparar integração futura com logs (ex: Sentry)
-
-### 🟡 Fase 3 — Dev Experience
-
-7. **CI/CD (MUITO importante)**
-   - Adicionar GitHub Actions: lint, test, build
-
-8. **Scripts melhores**
-   ```json
-   "scripts": {
-     "test:coverage": "jest --coverage",
-     "test:watch": "jest --watch",
-     "lint:fix": "expo lint --fix"
-   }
-   ```
-
-9. **Simplificar Jest config**
-   - Reduzir complexidade do transformIgnorePatterns
-   - Garantir isolamento entre unit/integration
-
-### 🔵 Fase 4 — Diferencial de mercado
-
-10. **Performance**
-    - Memoization (React.memo, useMemo)
-    - Evitar re-renders desnecessários
-
-11. **Acessibilidade (implementação manual)**
-    - accessibilityLabel em inputs
-    - accessibilityHint para instruções
-    - Contraste adequado
-    - Navegação por screen reader (nativo RN)
-
-12. **Internacionalização (já começou bem)**
-    - Expandir idiomas (en/es)
-    - Fallback correto
-
-### 🟢 Fase 5 — Produto (nível empresa)
-
-13. **Observabilidade**
-    - Logs estruturados
-    - Tracking de erros
-
-14. **Deploy completo**
-    - Já tem: ✅ EAS, ✅ Vercel
-    - Falta: pipeline automatizado
+| Prioridade | Task | Status |
+|------------|------|--------|
+| Alta | Fixar constante 0,1506 no Zod | ❌ |
+| Alta | Testes de integração IPUScreen | ❌ |
+| Média | EAS Update para hotfixes | ❌ |
+| Média | Local Persistence (histórico) | ❌ |
+| Baixa | Acessibilidade (accessibilityLabel) | ❌ |
+| Baixa | Offline First | ❌ |
 
 ---
 
-## 🧠 Ordem ideal de execução
+## ✅ Itens Concluídos
 
-1. README
-2. Testes + coverage
-3. Navegação
-4. CI
-5. Arquitetura refinada
-6. Design system
-7. Performance + Acessibilidade manual
+- [x] Arquitetura Hook Genérico + Específico
+- [x] Schema Zod (ipuSchema, calibrationSchema)
+- [x] Domínio puro (calculateIPU, calculateCalibration)
+- [x] ErrorBoundary + LogService
+- [x] i18n PT/EN
+- [x] Design System completo
+- [x] CI GitHub Actions
+- [x] Testes unitários (~99%)
+- [x] eas.json (preview/production)
+- [x] Snapshot Tests
+
+---
+
+## ❌ Pendente de Implementação
+
+### Priority Alta
+
+1. **Fixar constante 0,1506 no Zod**
+   - O schema atual (`ipuSchema.ts`) não usa a constante como valor fixo
+   - Necessário: adicionar validação que exige poliol = 0,1506
+
+2. **Testes de integração no IPUScreen**
+   - Não existe teste de fluxo completo
+   - Necessary: testar usuário preenchendo → calculando → resultado
+
+### Prioridade Média
+
+3. **EAS Update para hotfixes**
+   - Configurar `eas.json` com `updates`
+   - Permitir推送 sem Apple/Google review
+
+4. **Local Persistence**
+   - AsyncStorage ou Expo SQLite
+   - Salvar históricos de IPU e calibrações
+
+### Prioridade Baixa
+
+5. **Acessibilidade**
+   - accessibilityLabel em inputs
+   - accessibilityHint para instruções
+   - Contraste adequado
+
+6. **Offline First**
+   - Strategy de cache offline
+   - Funcionar sem internet
+
+---
+
+## 📋 Ordem de Implementação Sugerida
+
+1. Fixar constante 0,1506 no Zod (blokada precisão)
+2. Testes de integração (validação de fluxo)
+3. EAS Update (rapidez em hotfixes)
+4. Local Persistence (histórico de cálculos)
+5. Acessibilidade (mercado)
+6. Offline First (ambiente industrial)
+
+---
+
+## Referência: Estrutura Atual
+
+```
+src/
+├── components/       # Componentes globais
+├── core/           # Constantes, parsers, formatters, validators, logging
+├── design-system/  # Button, Input, Card, Text, etc
+├── features/
+│   ├── ipu/       # domain, hooks, screens
+│   └── calibration/
+├── hooks/          # useCalculatorLogic
+├── i18n/           # translations
+└── screens/       # Telas legacy
+```
