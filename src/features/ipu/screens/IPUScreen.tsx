@@ -4,6 +4,7 @@ import { logService } from '@/core/logging/LogService';
 import { CalculationModel } from '@/features/models/domain/calculationModel';
 import { createModelUseCase, getModelsByTypeUseCase, updateModelUseCase } from '@/features/models/application/modelUseCases';
 import { Button, Input, Card, theme, HStack, VStack, Text } from '@/design-system';
+import { InputRef } from '@/design-system/components/Input';
 import { ResultCard } from '@/components/ResultCard';
 import { HistoryList } from '@/components/HistoryList';
 import { ScreenLayout, ScreenLayoutRef } from '@/components/ScreenLayout';
@@ -19,6 +20,8 @@ type Props = {
 
 export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
   const screenRef = useRef<ScreenLayoutRef>(null);
+  const isoRef = useRef<InputRef>({ focus: () => {}, current: null });
+  const polyolRef = useRef<InputRef>({ focus: () => {}, current: null });
   const { t } = useTranslation();
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [modelName, setModelName] = useState('');
@@ -41,11 +44,19 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
 
   const handleCalculate = () => {
     logService.info('IPU calculation started', { isocyanate, polyol });
-    if (fieldErrors.polyol || fieldErrors.isocyanate) {
-      logService.warn('Validation failed', { fieldErrors });
+    
+    const calcResult = calculate();
+    
+    if (calcResult.hasErrors) {
+      logService.warn('Validation failed', { fieldErrors: calcResult.fieldErrors });
+      if (calcResult.fieldErrors.isocyanate) {
+        isoRef.current?.focus();
+      } else if (calcResult.fieldErrors.polyol) {
+        polyolRef.current?.focus();
+      }
+    } else {
+      setTimeout(() => screenRef.current?.scrollToTop(), 150);
     }
-    calculate();
-    setTimeout(() => screenRef.current?.scrollToTop(), 150);
   };
 
   const handleOpenSaveModal = async () => {
@@ -123,6 +134,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
         <Card>
           <VStack>
             <Input
+              ref={isoRef}
               label={t('isocyanate')}
               value={isocyanate}
               onChange={setIsocyanate}
@@ -130,6 +142,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
               keyboardType="numeric"
             />
             <Input
+              ref={polyolRef}
               label={t('polyol')}
               value={polyol}
               onChange={setPolyol}

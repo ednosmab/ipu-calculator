@@ -7,6 +7,7 @@ export const theme = {
   colors: {
     bg: '#0B0C0F',
     surface: '#121418',
+    input: '#1C1F26',
     primary: '#00F5D4',
     primaryDim: 'rgba(0, 245, 212, 0.1)',
     primaryDark: '#00B89C',

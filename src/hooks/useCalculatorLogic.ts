@@ -35,7 +35,7 @@ export const useCalculatorLogic = <T extends string>(config: CalculatorConfig<T>
     setFieldErrors((prev) => ({ ...prev, [key]: null }));
   };
 
-  const calculate = () => {
+  const calculate = (): { hasErrors: boolean; fieldErrors: Record<T, string | null> } => {
     // 1. Transform inputs to numbers for validation/calculation
     const numericValues: Record<string, number> = {};
     config.inputs.forEach((key) => {
@@ -66,7 +66,7 @@ export const useCalculatorLogic = <T extends string>(config: CalculatorConfig<T>
         // Show first error as global error for fallback
         setError(validation.error.issues[0].message);
         setResult(null);
-        return;
+        return { hasErrors: true, fieldErrors: newFieldErrors };
       }
     } else {
       // Fallback for simple NaN check if no schema
@@ -74,7 +74,7 @@ export const useCalculatorLogic = <T extends string>(config: CalculatorConfig<T>
       if (hasNaN) {
         setError('Valores inválidos');
         setResult(null);
-        return;
+        return { hasErrors: true, fieldErrors: initialFieldErrors };
       }
     }
 
@@ -85,6 +85,8 @@ export const useCalculatorLogic = <T extends string>(config: CalculatorConfig<T>
     if (config.onSuccess) {
       config.onSuccess(numericValues, value);
     }
+
+    return { hasErrors: false, fieldErrors: initialFieldErrors };
   };
 
   const clear = () => {

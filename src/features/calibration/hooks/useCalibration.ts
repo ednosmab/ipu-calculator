@@ -23,7 +23,7 @@ export const useCalibration = () => {
   }, []);
 
   const logic = useCalculatorLogic({
-    inputs: ['targetWeight', 'machineValue', 'actualWeight'],
+    inputs: ['targetWeight', 'machineValue', 'actualWeight', 'extractedWeight', 'averageValue'],
     calculateFn: (tW, mV, aW) => calculateCalibration(tW, mV, aW),
     validationSchema: calibrationSchema,
     onSuccess: async (inputs, result) => {

@@ -1,12 +1,15 @@
-import { useState, useImperativeHandle, forwardRef, useRef } from 'react';
-import { KeyboardTypeOptions, StyleSheet, TextInput, View, TextInputProps } from 'react-native';
+import { useState, forwardRef, useRef, useImperativeHandle } from 'react';
+import { KeyboardTypeOptions, StyleSheet, TextInput, View } from 'react-native';
 import { theme } from '../theme';
 import { Text } from './Text';
 
-export type InputRef = React.RefObject<TextInput>;
+export type InputRef = {
+  focus: () => void;
+  current: TextInput | null;
+} | null;
 
-type Props = Omit<TextInputProps, 'style'> & {
-  label: string;
+type Props = {
+  label?: string;
   value: string;
   onChange: (text: string) => void;
   keyboardType?: KeyboardTypeOptions;
@@ -16,10 +19,10 @@ type Props = Omit<TextInputProps, 'style'> & {
   helperText?: string;
 };
 
-export const Input = forwardRef<InputRef, Props>(({ 
-  label, 
-  value, 
-  onChange, 
+export const Input = forwardRef<InputRef, Props>(({
+  label,
+  value,
+  onChange,
   keyboardType = "decimal-pad",
   placeholder = "0.00",
   autoCapitalize,
@@ -29,11 +32,14 @@ export const Input = forwardRef<InputRef, Props>(({
   const [isFocused, setIsFocused] = useState(false);
   const internalRef = useRef<TextInput>(null);
 
-  useImperativeHandle(ref, () => internalRef.current);
+  useImperativeHandle(ref, () => ({
+    focus: () => internalRef.current?.focus(),
+    current: internalRef.current
+  }));
 
   return (
     <View style={styles.container}>
-      <Text variant="label" weight="medium">{label}</Text>
+      {label && <Text variant="label" weight="medium">{label}</Text>}
       <TextInput
         ref={internalRef}
         value={value}

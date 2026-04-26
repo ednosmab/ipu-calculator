@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Modal as RNModal, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { StyleSheet, View, Modal as RNModal, TouchableOpacity, Alert } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Button, Text, Card, theme } from '@/design-system';
-import { Input } from '@/design-system/components/Input';
+import { Input, InputRef } from '@/design-system/components/Input';
 import { ScreenLayout } from '@/components/ScreenLayout';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { CalculationModel, ModelType } from '@/features/models/domain/calculationModel';
@@ -27,7 +27,7 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
   const [modelName, setModelName] = useState('');
   const [injectionTime, setInjectionTime] = useState('');
   const [timeError, setTimeError] = useState('');
-  const timeInputRef = useRef<TextInput>(null);
+  const timeInputRef = useRef<InputRef>({ focus: () => {}, current: null });
 
   const loadModels = async () => {
     const ipu = await getModelsByTypeUseCase('ipu');
