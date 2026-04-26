@@ -9,6 +9,7 @@ export interface CalculationModel {
   inputs: Record<string, number>;
   createdAt: number;
   updatedAt: number;
+  syncStatus: 'synced' | 'pending';
 }
 
 export const modelSchema = z.object({
@@ -18,6 +19,7 @@ export const modelSchema = z.object({
   inputs: z.record(z.string(), z.number()),
   createdAt: z.number(),
   updatedAt: z.number(),
+  syncStatus: z.enum(['synced', 'pending']),
 });
 
 export const createModelId = (): string => {

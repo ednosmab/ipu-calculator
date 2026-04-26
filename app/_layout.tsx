@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { ErrorBoundary, theme, Text } from '@/design-system';
 import { View } from 'react-native';
 import { TranslationProvider } from '@/i18n/TranslationContext';
+import { useSyncEngine } from '@/hooks/useSyncEngine';
 
 function Fallback({ error }: { error: Error }) {
   return (
@@ -17,6 +18,8 @@ function Fallback({ error }: { error: Error }) {
 }
 
 export default function RootLayout() {
+  useSyncEngine();
+  
   return (
     <TranslationProvider>
       <ErrorBoundary fallback={({ error }: { error: Error }) => <Fallback error={error} />}>
