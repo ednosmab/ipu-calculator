@@ -28,6 +28,7 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
   const [modelName, setModelName] = useState('');
   const [injectionTime, setInjectionTime] = useState('');
   const [timeError, setTimeError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const timeInputRef = useRef<InputRef>({ focus: () => {}, current: null });
 
   const loadModels = async () => {
@@ -101,23 +102,30 @@ const openDeleteConfirm = (model: CalculationModel) => {
     
     setTimeError('');
     
-    if (editingModel) {
-      await updateModelUseCase({
-        ...editingModel,
-        name: nameUpper,
-        inputs: { injectionTime: timeNum },
-        updatedAt: Date.now(),
-      });
-    } else {
-      await createModelUseCase({
-        name: nameUpper,
-        type: 'ipu',
-        inputs: { injectionTime: timeNum },
-      });
+    setIsSaving(true);
+    try {
+      if (editingModel) {
+        await updateModelUseCase({
+          ...editingModel,
+          name: nameUpper,
+          inputs: { injectionTime: timeNum },
+          updatedAt: Date.now(),
+        });
+      } else {
+        await createModelUseCase({
+          name: nameUpper,
+          type: 'ipu',
+          inputs: { injectionTime: timeNum },
+        });
+      }
+      
+      setModalVisible(false);
+      await loadModels();
+    } catch (e) {
+      Alert.alert('Erro', 'Não foi possível salvar o modelo');
+    } finally {
+      setIsSaving(false);
     }
-    
-    setModalVisible(false);
-    await loadModels();
   };
 
   const handleModalClose = () => {
@@ -147,8 +155,15 @@ const openDeleteConfirm = (model: CalculationModel) => {
                 <TouchableOpacity 
                   onPress={() => onSelectModel(model)} 
                   activeOpacity={0.7}
+                  style={styles.nameContainer}
                 >
                   <Text style={styles.modelName}>{model.name}</Text>
+                  <FontAwesome5 
+                    name={model.syncStatus === 'synced' ? "check-circle" : "cloud-upload-alt"} 
+                    size={14} 
+                    color={model.syncStatus === 'synced' ? theme.colors.success : theme.colors.textSecondary} 
+                    style={styles.syncIcon}
+                  />
                 </TouchableOpacity>
                 <TouchableOpacity 
                   onPress={(e) => {
@@ -259,9 +274,10 @@ const openDeleteConfirm = (model: CalculationModel) => {
                   title="Cancelar"
                   variant="secondary"
                   onPress={handleModalClose}
-icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />}
+                  disabled={isSaving}
+                  icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />}
                 />
-                <Button title="Salvar" onPress={handleSave} icon={<FontAwesome5 name="check" size={20} color={theme.colors.bg} />} />
+                <Button title="Salvar" onPress={handleSave} loading={isSaving} icon={<FontAwesome5 name="check" size={20} color={theme.colors.bg} />} />
               </View>
             </View>
           </View>
@@ -310,6 +326,14 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     fontSize: theme.typography.sizes.md,
     fontWeight: theme.typography.weights.medium,
+  },
+  nameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  syncIcon: {
+    marginLeft: theme.spacing.sm,
+    opacity: 0.8,
   },
   modelInputs: {
     color: theme.colors.textSecondary,
