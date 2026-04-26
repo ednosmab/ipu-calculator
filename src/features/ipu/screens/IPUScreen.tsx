@@ -11,6 +11,7 @@ import { ScreenLayout, ScreenLayoutRef } from '@/components/ScreenLayout';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useIPUCalculator } from '../hooks/useIPUCalculator';
 import { useTranslation } from '@/i18n/TranslationContext';
+import { parseNumber } from '@/core/parsers/numberParser';
 import { styles } from './IPUScreen.styles';
 
 type Props = {
@@ -71,7 +72,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
   const handleSaveModel = async () => {
     if (!modelName.trim()) return;
     const nameUpper = modelName.trim().toUpperCase();
-    const timeNum = parseFloat(result ?? '') || 0;
+    const timeNum = parseNumber(result ?? '');
     const models = await getModelsByTypeUseCase('ipu');
     const existing = models.find(m => m.name.toUpperCase() === nameUpper);
     
@@ -175,7 +176,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
             <Text style={styles.modalText}>Tempo: {result}s</Text>
             {existingModel && (
               <Text style={styles.modalText}>
-                {t('existingModel')}: {existingModel.inputs.injectionTime}s ({t('willBeOverwritten')})
+                {t('existingModel')}: {existingModel.inputs.injectionTime.toFixed(2).replace('.', ',')}s ({t('willBeOverwritten')})
               </Text>
             )}
             <HStack>

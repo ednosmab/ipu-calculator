@@ -7,6 +7,7 @@ import { ScreenLayout } from '@/components/ScreenLayout';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { CalculationModel, ModelType } from '@/features/models/domain/calculationModel';
 import { getModelsByTypeUseCase, deleteModelUseCase, updateModelUseCase, createModelUseCase } from '@/features/models/application/modelUseCases';
+import { parseNumber } from '@/core/parsers/numberParser';
 
 type Props = {
   onGoBack: () => void;
@@ -91,7 +92,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
       return;
     }
     
-    const timeNum = parseFloat(injectionTime.replace(',', '.'));
+    const timeNum = parseNumber(injectionTime);
     if (isNaN(timeNum) || timeNum <= 0) {
       setTimeError('Tempo deve ser maior que zero');
       timeInputRef.current?.focus();
@@ -158,7 +159,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
                 >
                   <View style={styles.timeRow}>
                     <Text style={styles.timeLabel}>Tempo:</Text>
-                    <Text style={styles.timeValue}>{model.inputs.injectionTime}s</Text>
+                    <Text style={styles.timeValue}>{model.inputs.injectionTime.toFixed(2).replace('.', ',')}s</Text>
                   </View>
                 </TouchableOpacity>
               </View>
