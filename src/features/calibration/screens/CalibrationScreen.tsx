@@ -17,12 +17,11 @@ type Props = {
 
 export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
   const screenRef = useRef<ScreenLayoutRef>(null);
-  const extractedWeightRef = useRef<InputRef>(null);
-  const averageValueRef = useRef<InputRef>(null);
-  const divisorRef = useRef<InputRef>(null);
-  const targetWeightRef = useRef<InputRef>(null);
-  const machineValueRef = useRef<InputRef>(null);
-  const actualWeightRef = useRef<InputRef>(null);
+  const extractedWeightRef = useRef<InputRef>({ focus: () => {}, current: null });
+  const averageValueRef = useRef<InputRef>({ focus: () => {}, current: null });
+  const targetWeightRef = useRef<InputRef>({ focus: () => {}, current: null });
+  const machineValueRef = useRef<InputRef>({ focus: () => {}, current: null });
+  const actualWeightRef = useRef<InputRef>({ focus: () => {}, current: null });
   const { t } = useTranslation();
   const {
     targetWeight,
@@ -54,16 +53,25 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
     
     if (calcResult.hasErrors) {
       logService.warn('Validation failed', { fieldErrors: calcResult.fieldErrors });
+      
+      // Prioritize focus based on what's visible and wrong
+      if (isHelperActive) {
+        if (calcResult.fieldErrors.extractedWeight) {
+          extractedWeightRef.current?.focus();
+          return;
+        }
+        if (calcResult.fieldErrors.averageValue) {
+          averageValueRef.current?.focus();
+          return;
+        }
+      }
+
       if (calcResult.fieldErrors.targetWeight) {
         targetWeightRef.current?.focus();
       } else if (calcResult.fieldErrors.machineValue) {
         machineValueRef.current?.focus();
       } else if (calcResult.fieldErrors.actualWeight) {
         actualWeightRef.current?.focus();
-      } else if (calcResult.fieldErrors.extractedWeight) {
-        extractedWeightRef.current?.focus();
-      } else if (calcResult.fieldErrors.averageValue) {
-        averageValueRef.current?.focus();
       }
     } else {
       setTimeout(() => screenRef.current?.scrollToTop(), 150);
@@ -109,12 +117,14 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
                 label={t('extractedWeight')}
                 value={extractedWeight}
                 onChange={setExtractedWeight}
+                error={fieldErrors.extractedWeight ?? undefined}
               />
               <Input
                 ref={averageValueRef}
                 label={t('averageValue')}
                 value={averageValue}
                 onChange={setAverageValue}
+                error={fieldErrors.averageValue ?? undefined}
               />
             </VStack>
           </Card>
