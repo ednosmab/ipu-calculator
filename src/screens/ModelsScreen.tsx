@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   },
   fabWrapper: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
     paddingHorizontal: theme.spacing.lg,
   },
   fabButton: {

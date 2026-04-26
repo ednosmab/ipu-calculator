@@ -54,19 +54,17 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
       ref={screenRef}
       title={t('calibrateFlow')}
       footer={
-        <HStack>
+        <HStack gap="sm">
           <Button
             title={t('back')}
             variant="secondary"
             onPress={goBack}
             icon={<FontAwesome5 name="arrow-left" size={20} color={theme.colors.text} />}
-            style={{ flex: 1 }}
           />
           <Button
             title={t('goToCalculator')}
             onPress={goToCalculator}
             icon={<FontAwesome5 name="calculator" size={20} color={theme.colors.bg} />}
-            style={{ flex: 1 }}
           />
         </HStack>
       }

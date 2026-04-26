@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   },
   bottomMenu: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     marginTop: theme.spacing.md,
   },
