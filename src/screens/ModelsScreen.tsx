@@ -7,6 +7,7 @@ import { ScreenLayout } from '@/components/ScreenLayout';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { CalculationModel, ModelType } from '@/features/models/domain/calculationModel';
 import { getModelsByTypeUseCase, deleteModelUseCase, updateModelUseCase, createModelUseCase } from '@/features/models/application/modelUseCases';
+import { modelRepository } from '@/features/models/infra/modelRepository';
 import { parseNumber } from '@/core/parsers/numberParser';
 
 type Props = {
@@ -40,6 +41,13 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
 
   useEffect(() => {
     loadModels();
+
+    // Se inscreve para atualizações (ex: quando o sync de background termina)
+    const unsubscribe = modelRepository.subscribe(() => {
+      loadModels();
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const openCreate = () => {
