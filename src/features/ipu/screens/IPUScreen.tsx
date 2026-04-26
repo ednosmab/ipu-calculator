@@ -27,6 +27,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [modelName, setModelName] = useState('');
   const [existingModel, setExistingModel] = useState<CalculationModel | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   
   const { 
     isocyanate, 
@@ -71,27 +72,34 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
 
   const handleSaveModel = async () => {
     if (!modelName.trim()) return;
-    const nameUpper = modelName.trim().toUpperCase();
-    const timeNum = parseNumber(result ?? '');
-    const models = await getModelsByTypeUseCase('ipu');
-    const existing = models.find(m => m.name.toUpperCase() === nameUpper);
-    
-    if (existing) {
-      await updateModelUseCase({
-        ...existing,
-        name: nameUpper,
-        inputs: { injectionTime: timeNum },
-      });
-    } else {
-      await createModelUseCase({
-        name: nameUpper,
-        type: 'ipu',
-        inputs: { injectionTime: timeNum },
-      });
+    setIsSaving(true);
+    try {
+      const nameUpper = modelName.trim().toUpperCase();
+      const timeNum = parseNumber(result ?? '');
+      const models = await getModelsByTypeUseCase('ipu');
+      const existing = models.find(m => m.name.toUpperCase() === nameUpper);
+      
+      if (existing) {
+        await updateModelUseCase({
+          ...existing,
+          name: nameUpper,
+          inputs: { injectionTime: timeNum },
+        });
+      } else {
+        await createModelUseCase({
+          name: nameUpper,
+          type: 'ipu',
+          inputs: { injectionTime: timeNum },
+        });
+      }
+      setShowSaveModal(false);
+      setModelName('');
+      setExistingModel(null);
+    } catch (e) {
+      logService.error('Failed to save model', e);
+    } finally {
+      setIsSaving(false);
     }
-    setShowSaveModal(false);
-    setModelName('');
-    setExistingModel(null);
   };
 
   const handleCloseSaveModal = () => {
@@ -180,8 +188,8 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
               </Text>
             )}
             <HStack>
-              <Button title={t('cancel')} variant="secondary" onPress={handleCloseSaveModal} style={{ flex: 1 }} icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />} />
-              <Button title={existingModel ? t('overwrite') : t('save')} onPress={handleSaveModel} style={{ flex: 1 }} icon={<FontAwesome5 name="check" size={20} color={theme.colors.bg} />} />
+              <Button title={t('cancel')} variant="secondary" onPress={handleCloseSaveModal} style={{ flex: 1 }} disabled={isSaving} icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />} />
+              <Button title={existingModel ? t('overwrite') : t('save')} onPress={handleSaveModel} style={{ flex: 1 }} loading={isSaving} icon={<FontAwesome5 name="check" size={20} color={theme.colors.bg} />} />
             </HStack>
           </View>
         </View>
