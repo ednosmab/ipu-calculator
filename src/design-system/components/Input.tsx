@@ -1,33 +1,41 @@
-import { useState } from 'react';
-import { KeyboardTypeOptions, StyleSheet, TextInput, View } from 'react-native';
+import { useState, useImperativeHandle, forwardRef, useRef } from 'react';
+import { KeyboardTypeOptions, StyleSheet, TextInput, View, TextInputProps } from 'react-native';
 import { theme } from '../theme';
 import { Text } from './Text';
 
-type Props = {
+export type InputRef = React.RefObject<TextInput>;
+
+type Props = Omit<TextInputProps, 'style'> & {
   label: string;
   value: string;
   onChange: (text: string) => void;
   keyboardType?: KeyboardTypeOptions;
   placeholder?: string;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  error?: string;
+  helperText?: string;
 };
 
-export const Input = ({ 
+export const Input = forwardRef<InputRef, Props>(({ 
   label, 
   value, 
   onChange, 
-  keyboardType = "numeric",
+  keyboardType = "decimal-pad",
   placeholder = "0.00",
   autoCapitalize,
   error,
   helperText
-}: Props) => {
+}, ref) => {
   const [isFocused, setIsFocused] = useState(false);
+  const internalRef = useRef<TextInput>(null);
+
+  useImperativeHandle(ref, () => internalRef.current);
 
   return (
     <View style={styles.container}>
       <Text variant="label" weight="medium">{label}</Text>
       <TextInput
+        ref={internalRef}
         value={value}
         onChangeText={onChange}
         keyboardType={keyboardType}
@@ -46,7 +54,9 @@ export const Input = ({
       {!!helperText && !error && <Text variant="helper">{helperText}</Text>}
     </View>
   );
-};
+});
+
+Input.displayName = 'Input';
 
 const styles = StyleSheet.create({
   container: { marginBottom: theme.spacing.md, gap: theme.spacing.xs },

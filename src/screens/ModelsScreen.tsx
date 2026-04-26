@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Modal as RNModal, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, View, Modal as RNModal, TouchableOpacity, Alert, TextInput } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Button, Text, Card, theme } from '@/design-system';
 import { Input } from '@/design-system/components/Input';
@@ -26,6 +26,8 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
   const [editingModel, setEditingModel] = useState<CalculationModel | null>(null);
   const [modelName, setModelName] = useState('');
   const [injectionTime, setInjectionTime] = useState('');
+  const [timeError, setTimeError] = useState('');
+  const timeInputRef = useRef<TextInput>(null);
 
   const loadModels = async () => {
     const ipu = await getModelsByTypeUseCase('ipu');
@@ -89,7 +91,14 @@ const openDeleteConfirm = (model: CalculationModel) => {
       return;
     }
     
-    const timeNum = parseFloat(injectionTime) || 0;
+    const timeNum = parseFloat(injectionTime.replace(',', '.'));
+    if (isNaN(timeNum) || timeNum <= 0) {
+      setTimeError('Tempo deve ser maior que zero');
+      timeInputRef.current?.focus();
+      return;
+    }
+    
+    setTimeError('');
     
     if (editingModel) {
       await updateModelUseCase({
@@ -232,11 +241,16 @@ const openDeleteConfirm = (model: CalculationModel) => {
                 />
               )}
               <Input
+                ref={timeInputRef}
                 label="Tempo de Injeção (segundos)"
                 value={injectionTime}
-                onChange={setInjectionTime}
+                onChange={(val) => {
+                  setInjectionTime(val);
+                  setTimeError('');
+                }}
                 placeholder="0.00"
-                keyboardType="numeric"
+                keyboardType="decimal-pad"
+                error={timeError}
               />
               
               <View style={styles.modalButtons}>
