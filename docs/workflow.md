@@ -50,4 +50,23 @@ git push origin main
 - **Conflitos**: Se houver conflito no merge, o VS Code avisará. Resolva os conflitos, salve os arquivos e complete o commit.
 
 ---
+
+## 📝 Commit Standard (Conventional Commits)
+
+All commit messages must be in **English** following the Conventional Commits pattern:
+
+| Type | Description |
+| :--- | :--- |
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `docs` | Documentation changes |
+| `style` | Formatting, missing semi colons, etc; no code change |
+| `refactor` | Refactoring production code |
+| `test` | Adding missing tests, refactoring tests |
+| `chore` | Updating build tasks, package manager configs, etc |
+
+**Format**: `type(scope): description`
+**Example**: `feat(sync): implement real-time event system`
+
+---
 *Dica: Você pode me pedir para realizar qualquer um desses passos de merge por você!*
