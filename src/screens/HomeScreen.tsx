@@ -37,7 +37,7 @@ export const HomeScreen = ({ onGoToCalculator, onGoToCalibration, onGoToModels }
         
         <View style={styles.divider} />
         
-        <Button title={t('models')} variant="ghost" onPress={onGoToModels} icon={<FontAwesome5 name="list" size={20} color={theme.colors.black} />} />
+        <Button title={t('models')} variant="secondary" onPress={onGoToModels} icon={<FontAwesome5 name="list" size={20} color={theme.colors.black} />} />
       </VStack>
     </ScreenLayout>
   );

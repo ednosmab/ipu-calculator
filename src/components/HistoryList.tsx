@@ -25,7 +25,7 @@ export const HistoryList = ({ history, labels, onItemPress, onClear }: Props) =>
         actualWeight: 'Peso real',
       };
 
-  const displayLabels = labels ?? defaultLabels;
+  const displayLabels: Record<string, string> = (labels ?? defaultLabels) as Record<string, string>;
 
   const formatInputs = (inputs: Record<string, number>) => {
     const keys = Object.keys(inputs);

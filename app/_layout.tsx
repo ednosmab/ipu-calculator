@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
-import { ErrorBoundary, theme, View, Text } from '@/design-system';
+import { ErrorBoundary, theme, Text } from '@/design-system';
+import { View } from 'react-native';
 import { TranslationProvider } from '@/i18n/TranslationContext';
 
 function Fallback({ error }: { error: Error }) {

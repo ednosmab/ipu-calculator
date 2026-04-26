@@ -46,7 +46,6 @@ exports[`Text Snapshot Tests renders bold text correctly 1`] = `
 
 exports[`Text Snapshot Tests renders error text correctly 1`] = `
 <Text
-  color="error"
   style={
     [
       {
@@ -54,7 +53,8 @@ exports[`Text Snapshot Tests renders error text correctly 1`] = `
         "fontSize": 16,
       },
       {
-        "fontSize": 16,
+        "color": "#FF3B30",
+        "fontSize": 12,
       },
       {
         "fontWeight": "400",
@@ -67,9 +67,8 @@ exports[`Text Snapshot Tests renders error text correctly 1`] = `
 </Text>
 `;
 
-exports[`Text Snapshot Tests renders large text correctly 1`] = `
+exports[`Text Snapshot Tests renders large weight text correctly 1`] = `
 <Text
-  size="lg"
   style={
     [
       {
@@ -80,19 +79,18 @@ exports[`Text Snapshot Tests renders large text correctly 1`] = `
         "fontSize": 16,
       },
       {
-        "fontWeight": "400",
+        "fontWeight": "700",
       },
       undefined,
     ]
   }
 >
-  Texto grande
+  Texto em negrito
 </Text>
 `;
 
 exports[`Text Snapshot Tests renders muted text correctly 1`] = `
 <Text
-  muted={true}
   style={
     [
       {
@@ -100,7 +98,8 @@ exports[`Text Snapshot Tests renders muted text correctly 1`] = `
         "fontSize": 16,
       },
       {
-        "fontSize": 16,
+        "color": "#9BA1A6",
+        "fontSize": 12,
       },
       {
         "fontWeight": "400",
@@ -109,13 +108,12 @@ exports[`Text Snapshot Tests renders muted text correctly 1`] = `
     ]
   }
 >
-  Texto muted
+  Texto de ajuda
 </Text>
 `;
 
-exports[`Text Snapshot Tests renders small text correctly 1`] = `
+exports[`Text Snapshot Tests renders small variant text correctly 1`] = `
 <Text
-  size="sm"
   style={
     [
       {
@@ -123,7 +121,8 @@ exports[`Text Snapshot Tests renders small text correctly 1`] = `
         "fontSize": 16,
       },
       {
-        "fontSize": 16,
+        "color": "#9BA1A6",
+        "fontSize": 14,
       },
       {
         "fontWeight": "400",
@@ -132,6 +131,6 @@ exports[`Text Snapshot Tests renders small text correctly 1`] = `
     ]
   }
 >
-  Texto pequeno
+  Texto de rótulo
 </Text>
 `;

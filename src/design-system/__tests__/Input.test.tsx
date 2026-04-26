@@ -3,8 +3,8 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { Input, InputRef } from '../components/Input';
 import { TextInput } from 'react-native';
 
-global.__ExpoImportMetaRegistry = global.__ExpoImportMetaRegistry || {};
-global.structuredClone = global.structuredClone || ((val: any) => JSON.parse(JSON.stringify(val)));
+(global as any).__ExpoImportMetaRegistry = (global as any).__ExpoImportMetaRegistry || {};
+(global as any).structuredClone = (global as any).structuredClone || ((val: any) => JSON.parse(JSON.stringify(val)));
 
 describe('Input Component', () => {
   it('renders correctly with label and placeholder', () => {

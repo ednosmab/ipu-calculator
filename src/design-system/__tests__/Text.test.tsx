@@ -1,8 +1,8 @@
 import { render } from '@testing-library/react-native';
 import { Text } from '../components/Text';
 
-global.__ExpoImportMetaRegistry = global.__ExpoImportMetaRegistry || {};
-global.structuredClone = global.structuredClone || ((val: any) => JSON.parse(JSON.stringify(val)));
+(global as any).__ExpoImportMetaRegistry = (global as any).__ExpoImportMetaRegistry || {};
+(global as any).structuredClone = (global as any).structuredClone || ((val: any) => JSON.parse(JSON.stringify(val)));
 
 describe('Text Snapshot Tests', () => {
   it('renders body text correctly', () => {
@@ -15,23 +15,23 @@ describe('Text Snapshot Tests', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders large text correctly', () => {
-    const { toJSON } = render(<Text size="lg">Texto grande</Text>);
+  it('renders large weight text correctly', () => {
+    const { toJSON } = render(<Text weight="bold">Texto em negrito</Text>);
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders small text correctly', () => {
-    const { toJSON } = render(<Text size="sm">Texto pequeno</Text>);
+  it('renders small variant text correctly', () => {
+    const { toJSON } = render(<Text variant="label">Texto de rótulo</Text>);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders muted text correctly', () => {
-    const { toJSON } = render(<Text muted>Texto muted</Text>);
+    const { toJSON } = render(<Text variant="helper">Texto de ajuda</Text>);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders error text correctly', () => {
-    const { toJSON } = render(<Text color="error">Texto erro</Text>);
+    const { toJSON } = render(<Text variant="error">Texto erro</Text>);
     expect(toJSON()).toMatchSnapshot();
   });
 });

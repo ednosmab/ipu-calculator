@@ -1,0 +1,28 @@
+app/_layout.tsx(2,32): error TS2305: Module '"@/design-system"' has no exported member 'View'.
+src/components/HistoryList.tsx(35,22): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type 'Record<string, string> | { isocyanate: string; polyol: string; extractedWeight?: undefined; averageValue?: undefined; targetWeight?: undefined; machineValue?: undefined; actualWeight?: undefined; } | { ...; }'.
+  No index signature with a parameter of type 'string' was found on type 'Record<string, string> | { isocyanate: string; polyol: string; extractedWeight?: undefined; averageValue?: undefined; targetWeight?: undefined; machineValue?: undefined; actualWeight?: undefined; } | { ...; }'.
+src/components/HistoryList.tsx(36,22): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type 'Record<string, string> | { isocyanate: string; polyol: string; extractedWeight?: undefined; averageValue?: undefined; targetWeight?: undefined; machineValue?: undefined; actualWeight?: undefined; } | { ...; }'.
+  No index signature with a parameter of type 'string' was found on type 'Record<string, string> | { isocyanate: string; polyol: string; extractedWeight?: undefined; averageValue?: undefined; targetWeight?: undefined; machineValue?: undefined; actualWeight?: undefined; } | { ...; }'.
+src/design-system/__tests__/Button.test.tsx(4,8): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+src/design-system/__tests__/Button.test.tsx(4,42): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+src/design-system/__tests__/Card.test.tsx(4,8): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+src/design-system/__tests__/Card.test.tsx(4,42): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+src/design-system/__tests__/Input.test.tsx(6,8): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+src/design-system/__tests__/Input.test.tsx(6,42): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+src/design-system/__tests__/Text.test.tsx(4,8): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+src/design-system/__tests__/Text.test.tsx(4,42): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+src/design-system/__tests__/Text.test.tsx(19,37): error TS2322: Type '{ children: string; size: string; }' is not assignable to type 'IntrinsicAttributes & TextProps & { variant?: "error" | "body" | "label" | "helper" | undefined; weight?: "bold" | "medium" | "regular" | "semibold" | undefined; }'.
+  Property 'size' does not exist on type 'IntrinsicAttributes & TextProps & { variant?: "error" | "body" | "label" | "helper" | undefined; weight?: "bold" | "medium" | "regular" | "semibold" | undefined; }'.
+src/design-system/__tests__/Text.test.tsx(24,37): error TS2322: Type '{ children: string; size: string; }' is not assignable to type 'IntrinsicAttributes & TextProps & { variant?: "error" | "body" | "label" | "helper" | undefined; weight?: "bold" | "medium" | "regular" | "semibold" | undefined; }'.
+  Property 'size' does not exist on type 'IntrinsicAttributes & TextProps & { variant?: "error" | "body" | "label" | "helper" | undefined; weight?: "bold" | "medium" | "regular" | "semibold" | undefined; }'.
+src/design-system/__tests__/Text.test.tsx(29,37): error TS2322: Type '{ children: string; muted: true; }' is not assignable to type 'IntrinsicAttributes & TextProps & { variant?: "error" | "body" | "label" | "helper" | undefined; weight?: "bold" | "medium" | "regular" | "semibold" | undefined; }'.
+  Property 'muted' does not exist on type 'IntrinsicAttributes & TextProps & { variant?: "error" | "body" | "label" | "helper" | undefined; weight?: "bold" | "medium" | "regular" | "semibold" | undefined; }'.
+src/design-system/__tests__/Text.test.tsx(34,37): error TS2322: Type '{ children: string; color: string; }' is not assignable to type 'IntrinsicAttributes & TextProps & { variant?: "error" | "body" | "label" | "helper" | undefined; weight?: "bold" | "medium" | "regular" | "semibold" | undefined; }'.
+  Property 'color' does not exist on type 'IntrinsicAttributes & TextProps & { variant?: "error" | "body" | "label" | "helper" | undefined; weight?: "bold" | "medium" | "regular" | "semibold" | undefined; }'.
+src/design-system/components/Header.tsx(14,11): error TS2322: Type '"title"' is not assignable to type '"error" | "body" | "label" | "helper" | undefined'.
+src/design-system/components/ScreenLayout.tsx(17,45): error TS2322: Type '{ children: Element[]; gap: "lg"; style: { flex: number; }; align: string | undefined; }' is not assignable to type 'IntrinsicAttributes & Props'.
+  Property 'align' does not exist on type 'IntrinsicAttributes & Props'.
+src/features/models/domain/calculationModel.ts(18,13): error TS2554: Expected 2-3 arguments, but got 1.
+src/hooks/__tests__/useCalculatorLogic.test.ts(5,8): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+src/hooks/__tests__/useCalculatorLogic.test.ts(5,42): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+src/screens/HomeScreen.tsx(40,37): error TS2322: Type '"ghost"' is not assignable to type '"primary" | "secondary" | undefined'.

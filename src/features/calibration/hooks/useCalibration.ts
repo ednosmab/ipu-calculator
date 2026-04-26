@@ -23,7 +23,9 @@ export const useCalibration = () => {
   const logic = useCalculatorLogic({
     inputs: ['targetWeight', 'machineValue', 'actualWeight', 'extractedWeight', 'averageValue'],
     calculateFn: (tW, mV, aW) => calculateCalibration(tW, mV, aW),
-    validationSchema: calibrationSchema,
+    validationSchema: isHelperActive 
+      ? calibrationSchema 
+      : calibrationSchema.omit({ extractedWeight: true, averageValue: true }),
     onSuccess: async (inputs, result) => {
       await saveCalculationUseCase({
         type: 'calibration',

@@ -2,9 +2,9 @@ import { renderHook, act } from '@testing-library/react-native';
 import { z } from 'zod';
 import { useCalculatorLogic, CalculatorConfig } from '../useCalculatorLogic';
 
-global.__ExpoImportMetaRegistry = global.__ExpoImportMetaRegistry || {};
+(global as any).__ExpoImportMetaRegistry = (global as any).__ExpoImportMetaRegistry || {};
 // @ts-ignore - Mock for structuredClone missing in some node environments
-global.structuredClone = global.structuredClone || ((val: any) => JSON.parse(JSON.stringify(val)));
+(global as any).structuredClone = (global as any).structuredClone || ((val: any) => JSON.parse(JSON.stringify(val)));
 
 describe('useCalculatorLogic Integration Test', () => {
   const mockConfig: CalculatorConfig<'val1' | 'val2'> = {

@@ -15,7 +15,7 @@ export const modelSchema = z.object({
   id: z.string(),
   name: z.string().min(1, { message: 'Nome é obrigatório' }),
   type: z.enum(['ipu', 'calibration']),
-  inputs: z.record(z.number()),
+  inputs: z.record(z.string(), z.number()),
   createdAt: z.number(),
   updatedAt: z.number(),
 });

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { theme } from '../theme';
-import { Text } from './Text';
+import { Title } from './Title';
 
 type Props = {
   title: string;
@@ -11,7 +11,7 @@ type Props = {
 export const Header = ({ title, rightElement }: Props) => (
   <View style={styles.container}>
     <View style={styles.placeholder} />
-    <Text variant="title">{title}</Text>
+    <Title>{title}</Title>
     <View style={styles.right}>
       {rightElement}
     </View>
