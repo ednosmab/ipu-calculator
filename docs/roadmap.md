@@ -10,7 +10,7 @@
 
 | Item | Status | Observação |
 |------|--------|------------|
-| Validação Rigorosa (Zod) | 🔄 | Schema existe mas não fixa 0,1506 |
+
 | Cobertura de Testes 80% | ✅ | ~99% atual |
 | Snapshot Tests | ✅ | 14 snapshots implementados |
 | ErrorBoundary + LogService | ✅ | Integrado |
@@ -21,7 +21,7 @@
 |------|--------|------------|
 | Clean Architecture | ✅ | Hook genérico + específico |
 | UI ↔ Domínio separado | ✅ | Screens chamam hooks |
-| Local Persistence | ❌ | Não implementado |
+| Local Persistence | ✅ | Implementado (AsyncStorage) |
 | FlashList | ❌ | Não aplicável (sem listas) |
 
 ## Fase 3: Automação e DevOps (Médio Prazo)
@@ -47,10 +47,10 @@
 
 | Prioridade | Task | Status |
 |------------|------|--------|
-| Alta | Fixar constante 0,1506 no Zod | ❌ |
+
 | Alta | Testes de integração IPUScreen | ❌ |
 | Média | EAS Update para hotfixes | ❌ |
-| Média | Local Persistence (histórico) | ❌ |
+| Média | Local Persistence (histórico) | ✅ |
 | Baixa | Acessibilidade (accessibilityLabel) | ❌ |
 | Baixa | Offline First | ❌ |
 
@@ -68,39 +68,34 @@
 - [x] Testes unitários (~99%)
 - [x] eas.json (preview/production)
 - [x] Snapshot Tests
+- [x] Local Persistence (histórico de cálculos)
+- [x] Design System aprimorado (Header, Title, Card)
+- [x] Sincronização de estado assistente/lógica (Calibração)
 
 ---
 
 ## ❌ Pendente de Implementação
 
-### Priority Alta
-
-1. **Fixar constante 0,1506 no Zod**
-   - O schema atual (`ipuSchema.ts`) não usa a constante como valor fixo
-   - Necessário: adicionar validação que exige poliol = 0,1506
-
-2. **Testes de integração no IPUScreen**
+1. **Testes de integração no IPUScreen**
    - Não existe teste de fluxo completo
    - Necessary: testar usuário preenchendo → calculando → resultado
 
 ### Prioridade Média
 
-3. **EAS Update para hotfixes**
+2. **EAS Update para hotfixes**
    - Configurar `eas.json` com `updates`
    - Permitir推送 sem Apple/Google review
 
-4. **Local Persistence**
-   - AsyncStorage ou Expo SQLite
-   - Salvar históricos de IPU e calibrações
+
 
 ### Prioridade Baixa
 
-5. **Acessibilidade**
+3. **Acessibilidade**
    - accessibilityLabel em inputs
    - accessibilityHint para instruções
    - Contraste adequado
 
-6. **Offline First**
+4. **Offline First**
    - Strategy de cache offline
    - Funcionar sem internet
    - Nota: Em web (localhost), `isInternetReachable` retorna `null` inicialmente
@@ -110,12 +105,10 @@
 
 ## 📋 Ordem de Implementação Sugerida
 
-1. Fixar constante 0,1506 no Zod (blokada precisão)
-2. Testes de integração (validação de fluxo)
-3. EAS Update (rapidez em hotfixes)
-4. Local Persistence (histórico de cálculos)
-5. Acessibilidade (mercado)
-6. Offline First (ambiente industrial)
+1. Testes de integração (validação de fluxo)
+2. EAS Update (rapidez em hotfixes)
+3. Acessibilidade (mercado)
+4. Offline First (ambiente industrial)
 
 ---
 
