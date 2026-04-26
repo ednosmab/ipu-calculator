@@ -2,7 +2,21 @@ import { asyncStorageClient, STORAGE_KEYS } from '@/core/storage/asyncStorageCli
 import { CalculationModel, ModelType } from '../domain/calculationModel';
 import { modelSyncService } from './modelSyncService';
 
+type ModelListener = () => void;
+const listeners: Set<ModelListener> = new Set();
+
+const notify = () => {
+  listeners.forEach(listener => listener());
+};
+
 export const modelRepository = {
+  subscribe(listener: ModelListener) {
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  },
+
   async getAll(): Promise<CalculationModel[]> {
     const models = await asyncStorageClient.get<CalculationModel[]>(STORAGE_KEYS.MODELS);
     return models ?? [];
@@ -24,7 +38,9 @@ export const modelRepository = {
     
     const existing = await this.getAll();
     const updated = [modelWithStatus, ...existing];
-    return asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
+    const success = await asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
+    if (success) notify();
+    return success;
   },
 
   async update(model: CalculationModel): Promise<boolean> {
@@ -33,13 +49,17 @@ export const modelRepository = {
 
     const existing = await this.getAll();
     const updated = existing.map(m => m.id === model.id ? modelWithStatus : m);
-    return asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
+    const success = await asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
+    if (success) notify();
+    return success;
   },
 
   async delete(id: string): Promise<boolean> {
     await modelSyncService.deleteFromRemote(id);
     const existing = await this.getAll();
     const updated = existing.filter(m => m.id !== id);
-    return asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
+    const success = await asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
+    if (success) notify();
+    return success;
   },
 };
