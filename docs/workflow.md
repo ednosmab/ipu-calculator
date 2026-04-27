@@ -48,31 +48,33 @@ git push origin main
 - **Nunca faça commit direto na `main`**: Use sempre o fluxo de merge para evitar quebrar o app oficial.
 - **Variáveis de Ambiente**: Se adicionar uma nova chave no `.env` local, lembre-se de adicioná-la também no painel da Vercel (*Settings > Environment Variables*).
 - **Conflitos**: Se houver conflito no merge, o VS Code avisará. Resolva os conflitos, salve os arquivos e complete o commit.
+- **Limpar Cache ao Trocar de Ambiente**: Ao testar staging/produção, limpe o cache do app (AsyncStorage) para evitar dados órfãos de versões anteriores.
+- **Lint + Testes antes do Push**: Execute `npm run lint` e `npm test` localmente antes de fazer push para evitar falhas no CI.
 
 ## 🧪 Testes
 
 Execute os testes com Jest:
 ```bash
-npm test              # roda todos os testes
+npm test              # roda todos os testes (66+ testes)
 npm test -- --watch  # modo watch (reexecuta ao salvar)
 npm test --coverage  # com coverage report
 
 # testes isolados
-npm run test:lint        # design-system (Button, Input, Card, Text)
-npm run test:core        # core (parsers, formatters)
-npm run test:features    # features domain (calculation, validation)
-npm run test:integration # screens e hooks (integração UI/logic)
+npm run test:lint        # design-system (Button, Input, Card, Text) - 18 testes
+npm run test:core        # core (formatters, parsers) - 2 arquivos
+npm run test:features    # domain logic (calculation, validation) - 3 arquivos
+npm run test:integration # screens + hooks (UI/logic integration) - 3 arquivos
 ```
 
 | Script | Descrição |
 | :--- | :--- |
-| `test` | Todos os testes (52+ testes) |
+| `test` | Todos os testes (66+ testes) |
 | `test -- --watch` | Watch mode (reativa ao salvar) |
 | `test -- --coverage` | Gera relatório de cobertura |
 | `test:lint` | Design system (Button, Input, Card, Text) - 18 testes |
-| `test:core` | Core modules (formatters, parsers) - 2 arquivos |
-| `test:features` | Domain logic (IPU, Calibration calculation/validation) |
-| `test:integration` | Screens + Hooks (UI/logic integration) - 3 arquivos |
+| `test:core` | Core modules (formatters, parsers) |
+| `test:features` | Domain logic (calculation, validation) |
+| `test:integration` | Screens + Hooks (UI/logic integration) |
 
 ---
 
