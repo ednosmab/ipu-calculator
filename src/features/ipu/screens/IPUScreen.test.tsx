@@ -1,12 +1,15 @@
 import React from 'react';
-import { View, Text } from 'react-native';
 import * as modelUseCases from '@/features/models/application/modelUseCases';
 import { TranslationProvider } from '@/i18n/TranslationContext';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { IPUScreen } from './IPUScreen';
 
 jest.mock('@/components/ScreenLayout', () => {
-  const ScreenLayout = React.forwardRef(({ children, title, footer }, ref) => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { forwardRef } = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { View, Text } = require('react-native');
+  const ScreenLayout = forwardRef(({ children, title, footer }, ref) => {
     return (
       <View>
         <Text>{title}</Text>
