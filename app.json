@@ -21,7 +21,14 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/icon.png"
+      "favicon": "./assets/images/icon.png",
+      "name": "Calculadora IPU e Vazão",
+      "shortName": "Calc IPU",
+      "themeColor": "#0b0c0f",
+      "backgroundColor": "#0b0c0f",
+      "display": "standalone",
+      "orientation": "portrait",
+      "lang": "pt-BR"
     },
     "plugins": [
       "expo-router",
