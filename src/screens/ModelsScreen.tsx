@@ -30,6 +30,7 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
   const [injectionTime, setInjectionTime] = useState('');
   const [timeError, setTimeError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const timeInputRef = useRef<InputRef>({ focus: () => {}, current: null });
 
   const loadModels = async () => {
@@ -87,10 +88,15 @@ const openDeleteConfirm = (model: CalculationModel) => {
 
   const handleConfirmDelete = async () => {
     if (deleteModel) {
-      await deleteModelUseCase(deleteModel.id);
-      await loadModels();
-      setDeleteModel(null);
-      lastDeleteTime.current = 0;
+      setIsDeleting(true);
+      try {
+        await deleteModelUseCase(deleteModel.id);
+        await loadModels();
+        setDeleteModel(null);
+        lastDeleteTime.current = 0;
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -300,8 +306,8 @@ const openDeleteConfirm = (model: CalculationModel) => {
                 Deseja excluir o modelo &quot;{deleteModel?.name}&quot;?
               </Text>
             <View style={styles.modalButtons}>
-              <Button title="Cancelar" variant="secondary" onPress={handleCancelDelete} icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />} />
-              <Button title="Excluir" onPress={handleConfirmDelete} icon={<FontAwesome5 name="trash" size={20} color={theme.colors.bg} />} />
+              <Button title="Cancelar" variant="secondary" onPress={handleCancelDelete} disabled={isDeleting} icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />} />
+              <Button title="Excluir" onPress={handleConfirmDelete} loading={isDeleting} icon={<FontAwesome5 name="trash" size={20} color={theme.colors.bg} />} />
             </View>
           </View>
         </View>

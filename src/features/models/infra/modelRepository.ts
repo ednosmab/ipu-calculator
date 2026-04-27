@@ -55,11 +55,19 @@ export const modelRepository = {
   },
 
   async delete(id: string): Promise<boolean> {
-    await modelSyncService.deleteFromRemote(id);
+    // Optimistic delete: remove locally first
     const existing = await this.getAll();
     const updated = existing.filter(m => m.id !== id);
     const success = await asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
-    if (success) notify();
+    
+    if (success) {
+      notify();
+      // Try to delete from remote in background
+      modelSyncService.deleteFromRemote(id).catch(err => {
+        console.error('[Remote Delete Error]:', err);
+      });
+    }
+    
     return success;
   },
 };

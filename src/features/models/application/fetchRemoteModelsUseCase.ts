@@ -29,9 +29,14 @@ export const fetchRemoteModelsUseCase = async (): Promise<void> => {
     // Busca os modelos locais atuais
     const localModels = await modelRepository.getAll();
     
-    // Merge simples: IDs remotos que não estão no local são adicionados
-    // Se o ID já existe localmente, ignoramos (para não sobrescrever mudanças offline pendentes)
-    const newModels = remoteModels.filter(rm => !localModels.find(lm => lm.id === rm.id));
+    // Merge inteligente:
+    // 1. Remove duplicatas baseadas no nome (se o nome já existe localmente, não baixamos o remoto)
+    // 2. Garante que o ID remoto não exista localmente
+    const newModels = remoteModels.filter(rm => {
+      const existsById = localModels.some(lm => lm.id === rm.id);
+      const existsByName = localModels.some(lm => lm.name.toUpperCase() === rm.name.toUpperCase());
+      return !existsById && !existsByName;
+    });
 
     if (newModels.length > 0) {
       console.log(`[Pull Sync]: Adicionando ${newModels.length} novos modelos da nuvem.`);
