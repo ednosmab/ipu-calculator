@@ -49,6 +49,31 @@ git push origin main
 - **Variáveis de Ambiente**: Se adicionar uma nova chave no `.env` local, lembre-se de adicioná-la também no painel da Vercel (*Settings > Environment Variables*).
 - **Conflitos**: Se houver conflito no merge, o VS Code avisará. Resolva os conflitos, salve os arquivos e complete o commit.
 
+## 🧪 Testes
+
+Execute os testes com Jest:
+```bash
+npm test              # roda todos os testes
+npm test -- --watch  # modo watch (reexecuta ao salvar)
+npm test --coverage  # com coverage report
+
+# testes isolados
+npm run test:lint        # design-system (Button, Input, Card, Text)
+npm run test:core        # core (parsers, formatters)
+npm run test:features    # features domain (calculation, validation)
+npm run test:integration # screens e hooks (integração UI/logic)
+```
+
+| Script | Descrição |
+| :--- | :--- |
+| `test` | Todos os testes (52+ testes) |
+| `test -- --watch` | Watch mode (reativa ao salvar) |
+| `test -- --coverage` | Gera relatório de cobertura |
+| `test:lint` | Design system (Button, Input, Card, Text) - 18 testes |
+| `test:core` | Core modules (formatters, parsers) - 2 arquivos |
+| `test:features` | Domain logic (IPU, Calibration calculation/validation) |
+| `test:integration` | Screens + Hooks (UI/logic integration) - 3 arquivos |
+
 ---
 
 ## 📝 Commit Standard (Conventional Commits)

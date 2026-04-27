@@ -10,6 +10,10 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "test": "jest",
+    "test:lint": "jest --testPathPatterns=\"design-system\"",
+    "test:core": "jest --testPathPatterns=\"core\"",
+    "test:features": "jest --testPathPatterns=\"features\"",
+    "test:integration": "jest --testPathPatterns=\"(Screen|useCalculatorLogic)\"",
     "build": "npx expo export --platform web",
     "build:preview": "npm run build && npx --yes serve dist"
   },
