@@ -23,18 +23,20 @@ export const Button = ({
   icon, 
   style 
 }: Props) => {
+  const isDisabled = disabled || loading;
+
   return (
     <Pressable
       onPress={onPress}
-      disabled={disabled || loading}
+      disabled={isDisabled}
       accessibilityLabel={title}
       accessibilityRole="button"
       style={({ pressed }) => [
         styles.button,
         styles[size],
         variant === 'secondary' ? styles.secondary : styles.primary,
-        disabled && styles.disabled,
-        pressed && !disabled && { transform: [{ scale: 0.97 }], opacity: 0.9 },
+        isDisabled && styles.disabled,
+        pressed && !isDisabled && (variant === 'secondary' ? styles.secondaryPressed : styles.primaryPressed),
         style,
       ]}
     >
@@ -74,10 +76,20 @@ const styles = StyleSheet.create({
   lg: { padding: theme.spacing.buttonLg },
   primary: {
     backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
   },
   secondary: {
     backgroundColor: 'transparent',
     borderColor: theme.colors.border,
+  },
+  primaryPressed: {
+    transform: [{ scale: 0.985 }],
+    opacity: 0.96,
+  },
+  secondaryPressed: {
+    transform: [{ scale: 0.985 }],
+    backgroundColor: theme.colors.primaryDim,
+    borderColor: theme.colors.primary,
   },
   disabled: {
     opacity: 0.5,

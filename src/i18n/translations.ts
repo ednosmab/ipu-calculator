@@ -3,6 +3,9 @@ export type Language = 'pt' | 'en';
 export const translations = {
   pt: {
     appTitle: 'Calculadora IPU',
+    homeHeroTitle: 'Selecione uma operação',
+    homeHeroSubtitle: 'para começar',
+    homeFooterTagline: 'Precisão • Eficiência • Confiabilidade',
     calculateInjection: 'Calcular Injeção',
     calibrateFlow: 'Calibrar Vazão',
     calibration: 'Calibrar Vazão',
@@ -39,6 +42,9 @@ polyol: 'Poliol',
   },
   en: {
     appTitle: 'IPU Calculator',
+    homeHeroTitle: 'Select an operation',
+    homeHeroSubtitle: 'to get started',
+    homeFooterTagline: 'Precision • Efficiency • Reliability',
     calculateInjection: 'Calculate Injection',
     calibrateFlow: 'Calibrate Flow',
     calibration: 'Calibrate Flow',

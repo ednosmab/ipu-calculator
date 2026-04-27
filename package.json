@@ -10,7 +10,12 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "test": "jest",
-    "build": "npx expo export --platform web"
+    "test:lint": "jest --testPathPatterns=\"design-system\"",
+    "test:core": "jest --testPathPatterns=\"core\"",
+    "test:features": "jest --testPathPatterns=\"features\"",
+    "test:integration": "jest --testPathPatterns=\"(Screen|useCalculatorLogic)\"",
+    "build": "npx expo export --platform web",
+    "build:preview": "npm run build && npx --yes serve dist"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

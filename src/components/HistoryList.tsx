@@ -72,21 +72,30 @@ export const HistoryList = ({ history, labels, onItemPress, onClear }: Props) =>
           </Pressable>
         )}
       </HStack>
-      
-      {history.slice(0, 10).map((item) => (
-        <Pressable key={item.id} onPress={() => onItemPress?.(item)}>
-          <Card style={styles.item}>
+
+      <Card style={styles.listCard}>
+        {history.slice(0, 10).map((item, index) => (
+          <Pressable
+            key={item.id}
+            onPress={() => onItemPress?.(item)}
+            style={({ pressed }) => [
+              styles.item,
+              index < Math.min(history.length, 10) - 1 && styles.itemDivider,
+              pressed && styles.itemPressed,
+            ]}
+          >
+            <Text style={styles.resultLabel}>Resultado</Text>
             <View style={styles.row}>
               <View style={styles.inputs}>
                 <Text style={styles.inputText}>
                   {formatInputs(item.inputs)}
                 </Text>
               </View>
-              <Text style={styles.result}>{item.result.toFixed(4)}</Text>
+              <Text style={styles.result}>{item.result.toFixed(2)}</Text>
             </View>
-          </Card>
-        </Pressable>
-      ))}
+          </Pressable>
+        ))}
+      </Card>
     </View>
   );
 };
@@ -109,8 +118,22 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     fontSize: theme.typography.sizes.sm,
   },
+  listCard: {
+    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: 0,
+  },
   item: {
-    padding: theme.spacing.sm,
+    padding: theme.spacing.md,
+  },
+  itemDivider: {
+    borderBottomWidth: theme.borderWidth.thin,
+    borderBottomColor: 'rgba(44, 48, 54, 0.65)',
+  },
+  resultLabel: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.sizes.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
     marginBottom: theme.spacing.xs,
   },
   row: {
@@ -118,12 +141,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  itemPressed: {
+    backgroundColor: theme.colors.primaryDim,
+  },
   inputs: {
     flex: 1,
   },
   inputText: {
     color: theme.colors.textSecondary,
     fontSize: theme.typography.sizes.sm,
+    lineHeight: 18,
   },
   result: {
     color: theme.colors.primary,

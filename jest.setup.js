@@ -1,13 +1,36 @@
 require('@testing-library/react-native/matchers');
 
+// Mocks essenciais para Expo 54
+global.__ExpoImportMetaRegistry = {};
+global.structuredClone = (val: any) => JSON.parse(JSON.stringify(val));
+
+jest.mock('expo-router/head', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: ({ children }: { children: React.ReactNode }) => React.createElement('div', {}, children),
+  };
+});
+
 // Trava de segurança para o erro do Winter Runtime do Expo 54
 jest.mock('expo/src/winter/installGlobal', () => ({
   installGlobal: jest.fn(),
+  getValue: jest.fn(() => ({})),
 }));
+
+jest.mock('expo/src/winter/runtime.native', () => ({}));
+jest.mock('expo/src/winter/runtime.native.ts', () => ({}));
 
 jest.mock('expo', () => ({
   registerRootComponent: jest.fn(),
 }));
+
+// Mock do Modal para renderizar os filhos nos testes
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  RN.Modal = ({ children, visible }: any) => (visible ? (children) : null);
+  return RN;
+});
 
 // Mock manual do AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
@@ -42,7 +65,7 @@ jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
 }));
 
-// Mock do Expo Icons (Crítico para evitar carregamento de fontes assíncronas no teste)
+// Mock do Expo Icons
 jest.mock('@expo/vector-icons', () => {
   const React = require('react');
   return {

@@ -49,6 +49,7 @@ exports[`Button Snapshot Tests renders disabled button correctly 1`] = `
       },
       {
         "backgroundColor": "#00F5D4",
+        "borderColor": "#00F5D4",
       },
       {
         "opacity": 0.5,
@@ -68,7 +69,7 @@ exports[`Button Snapshot Tests renders disabled button correctly 1`] = `
           "fontSize": 16,
         },
         {
-          "color": "#0B0C0F",
+          "color": "#000000",
         },
         {},
       ]
@@ -128,6 +129,7 @@ exports[`Button Snapshot Tests renders large button correctly 1`] = `
       },
       {
         "backgroundColor": "#00F5D4",
+        "borderColor": "#00F5D4",
       },
       false,
       false,
@@ -145,7 +147,7 @@ exports[`Button Snapshot Tests renders large button correctly 1`] = `
           "fontSize": 20,
         },
         {
-          "color": "#0B0C0F",
+          "color": "#000000",
         },
         {},
       ]
@@ -205,15 +207,18 @@ exports[`Button Snapshot Tests renders loading button correctly 1`] = `
       },
       {
         "backgroundColor": "#00F5D4",
+        "borderColor": "#00F5D4",
       },
-      false,
+      {
+        "opacity": 0.5,
+      },
       false,
       undefined,
     ]
   }
 >
   <ActivityIndicator
-    color="#0B0C0F"
+    color="#000000"
   />
 </View>
 `;
@@ -267,6 +272,7 @@ exports[`Button Snapshot Tests renders primary button correctly 1`] = `
       },
       {
         "backgroundColor": "#00F5D4",
+        "borderColor": "#00F5D4",
       },
       false,
       false,
@@ -284,7 +290,7 @@ exports[`Button Snapshot Tests renders primary button correctly 1`] = `
           "fontSize": 16,
         },
         {
-          "color": "#0B0C0F",
+          "color": "#000000",
         },
         {},
       ]
@@ -422,6 +428,7 @@ exports[`Button Snapshot Tests renders small button correctly 1`] = `
       },
       {
         "backgroundColor": "#00F5D4",
+        "borderColor": "#00F5D4",
       },
       false,
       false,
@@ -439,7 +446,7 @@ exports[`Button Snapshot Tests renders small button correctly 1`] = `
           "fontSize": 14,
         },
         {
-          "color": "#0B0C0F",
+          "color": "#000000",
         },
         {},
       ]

@@ -113,17 +113,19 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
       ref={screenRef}
       title={t('calculateInjection')}
       footer={
-        <HStack gap="sm">
+        <HStack gap="sm" style={{ width: '100%' }}>
           <Button
             title={t('back')}
             variant="secondary"
             onPress={goBack}
-            icon={<FontAwesome5 name="arrow-left" size={20} color={theme.colors.text} />}
+            style={{ flex: 1 }}
+            icon={<FontAwesome5 name="arrow-left" size={20} color={theme.colors.textSecondary} />}
           />
           <Button
             title={t('goToCalibration')}
             onPress={goToCalibration}
-            icon={<FontAwesome5 name="tint" size={20} color={theme.colors.bg} />}
+            style={{ flex: 1 }}
+            icon={<FontAwesome5 name="tint" size={20} color={theme.colors.primaryText} />}
           />
         </HStack>
       }
@@ -136,7 +138,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
             title={t('saveAsModel')} 
             variant="secondary"
             onPress={handleOpenSaveModal}
-            icon={<FontAwesome5 name="save" size={20} color={theme.colors.textSecondary} />}
+            icon={<FontAwesome5 name="save" size={18} color={theme.colors.textSecondary} />}
           />
         )}
 
@@ -164,7 +166,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
         {error && <Text variant="error" style={styles.error}>{error}</Text>}
 
         <VStack gap="sm">
-          <Button title={t('calculateInjection')} onPress={handleCalculate} icon={<FontAwesome5 name="calculator" size={20} color={theme.colors.bg} />} />
+          <Button title={t('calculateInjection')} onPress={handleCalculate} icon={<FontAwesome5 name="calculator" size={20} color={theme.colors.primaryText} />} />
           <Button title={t('clear')} variant="secondary" onPress={clear} icon={<FontAwesome5 name="eraser" size={20} color={theme.colors.textSecondary} />} />
         </VStack>
 
@@ -189,7 +191,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
             )}
             <HStack>
               <Button title={t('cancel')} variant="secondary" onPress={handleCloseSaveModal} style={{ flex: 1 }} disabled={isSaving} icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />} />
-              <Button title={existingModel ? t('overwrite') : t('save')} onPress={handleSaveModel} style={{ flex: 1 }} loading={isSaving} icon={<FontAwesome5 name="check" size={20} color={theme.colors.bg} />} />
+              <Button title={existingModel ? t('overwrite') : t('save')} onPress={handleSaveModel} style={{ flex: 1 }} loading={isSaving} icon={<FontAwesome5 name="check" size={20} color={theme.colors.primaryText} />} />
             </HStack>
           </View>
         </View>

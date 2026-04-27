@@ -39,7 +39,7 @@ export const Input = forwardRef<InputRef, Props>(({
 
   return (
     <View style={styles.container}>
-      {label && <Text variant="label" weight="medium">{label}</Text>}
+      {label && <Text variant="label" weight="medium" style={styles.label}>{label}</Text>}
       <TextInput
         accessibilityLabel={label}
         ref={internalRef}
@@ -67,6 +67,10 @@ Input.displayName = 'Input';
 
 const styles = StyleSheet.create({
   container: { marginBottom: theme.spacing.md, gap: theme.spacing.xs },
+  label: {
+    color: theme.colors.text,
+    opacity: 0.78,
+  },
   input: {
     backgroundColor: theme.colors.input,
     borderColor: theme.colors.border,
