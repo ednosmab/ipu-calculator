@@ -32,17 +32,61 @@ jest.mock('react-native', () => {
   return RN;
 });
 
-// Mock manual do AsyncStorage
+// Store em memória para testes de AsyncStorage
+const memoryStore: Record<string, string> = {};
+
+// Mock manual do AsyncStorage com store em memória
 jest.mock('@react-native-async-storage/async-storage', () => ({
-  setItem: jest.fn(() => Promise.resolve()),
-  getItem: jest.fn(() => Promise.resolve(null)),
-  removeItem: jest.fn(() => Promise.resolve()),
-  clear: jest.fn(() => Promise.resolve()),
-  getAllKeys: jest.fn(() => Promise.resolve([])),
-  multiGet: jest.fn(() => Promise.resolve([])),
-  multiSet: jest.fn(() => Promise.resolve()),
-  multiRemove: jest.fn(() => Promise.resolve()),
+  setItem: jest.fn((key: string, value: string) => {
+    memoryStore[key] = value;
+    return Promise.resolve();
+  }),
+  getItem: jest.fn((key: string) => {
+    return Promise.resolve(memoryStore[key] ?? null);
+  }),
+  removeItem: jest.fn((key: string) => {
+    delete memoryStore[key];
+    return Promise.resolve();
+  }),
+  clear: jest.fn(() => {
+    Object.keys(memoryStore).forEach(key => delete memoryStore[key]);
+    return Promise.resolve();
+  }),
+  getAllKeys: jest.fn(() => Promise.resolve(Object.keys(memoryStore))),
+  multiGet: jest.fn((keys: string[]) =>
+    Promise.resolve(keys.map(k => [k, memoryStore[k] ?? null]))
+  ),
+  multiSet: jest.fn((pairs: [string, string][]) => {
+    pairs.forEach(([k, v]) => { memoryStore[k] = v; });
+    return Promise.resolve();
+  }),
+  multiRemove: jest.fn((keys: string[]) => {
+    keys.forEach(k => delete memoryStore[k]);
+    return Promise.resolve();
+  }),
   multiMerge: jest.fn(() => Promise.resolve()),
+}));
+
+// Expor store para reset nos testes
+export { memoryStore };
+
+// Mock do Supabase Client
+jest.mock('@/core/infra/supabaseClient', () => ({
+  supabase: {
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => Promise.resolve({ data: [], error: null })),
+        order: jest.fn(() => Promise.resolve({ data: [], error: null })),
+      })),
+      insert: jest.fn(() => Promise.resolve({ data: null, error: null })),
+      update: jest.fn(() => ({
+        eq: jest.fn(() => Promise.resolve({ data: null, error: null })),
+      })),
+      delete: jest.fn(() => ({
+        eq: jest.fn(() => Promise.resolve({ data: null, error: null })),
+      })),
+    })),
+  },
 }));
 
 // Mock do NetInfo
