@@ -49,6 +49,7 @@ exports[`Button Snapshot Tests renders disabled button correctly 1`] = `
       },
       {
         "backgroundColor": "#00F5D4",
+        "borderColor": "#00F5D4",
       },
       {
         "opacity": 0.5,
@@ -128,6 +129,7 @@ exports[`Button Snapshot Tests renders large button correctly 1`] = `
       },
       {
         "backgroundColor": "#00F5D4",
+        "borderColor": "#00F5D4",
       },
       false,
       false,
@@ -205,8 +207,11 @@ exports[`Button Snapshot Tests renders loading button correctly 1`] = `
       },
       {
         "backgroundColor": "#00F5D4",
+        "borderColor": "#00F5D4",
       },
-      false,
+      {
+        "opacity": 0.5,
+      },
       false,
       undefined,
     ]
@@ -267,6 +272,7 @@ exports[`Button Snapshot Tests renders primary button correctly 1`] = `
       },
       {
         "backgroundColor": "#00F5D4",
+        "borderColor": "#00F5D4",
       },
       false,
       false,
@@ -422,6 +428,7 @@ exports[`Button Snapshot Tests renders small button correctly 1`] = `
       },
       {
         "backgroundColor": "#00F5D4",
+        "borderColor": "#00F5D4",
       },
       false,
       false,

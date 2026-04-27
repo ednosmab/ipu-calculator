@@ -17,11 +17,12 @@ type Props = {
   centered?: boolean;
   scrollable?: boolean;
   rightHeader?: ReactNode;
+  headerTitle?: ReactNode;
   onBack?: () => void;
 };
 
 const ScreenLayout = forwardRef<ScreenLayoutRef, Props>(function ScreenLayout(
-  { title, children, footer, centered = false, scrollable = true, rightHeader, onBack },
+  { title, children, footer, centered = false, scrollable = true, rightHeader, headerTitle, onBack },
   ref
 ) {
   const scrollViewRef = useRef<ScrollView>(null);
@@ -46,7 +47,7 @@ const ScreenLayout = forwardRef<ScreenLayoutRef, Props>(function ScreenLayout(
               </Pressable>
             )}
           </View>
-          <Title>{title}</Title>
+          {headerTitle ?? <Title>{title}</Title>}
           <View style={styles.headerRight}>
             {rightHeader}
             {isConnected === false && (
@@ -98,7 +99,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: theme.spacing.md,
+    paddingTop: theme.spacing.sm,
+    paddingBottom: theme.spacing.sm,
   },
   headerLeft: {
     width: 60,
@@ -113,6 +115,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'flex-start',
+    paddingBottom: theme.spacing.md,
   },
   viewContent: {
     flex: 1,
@@ -123,8 +126,12 @@ const styles = StyleSheet.create({
   },
   bottomMenu: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    width: '100%',
     marginTop: theme.spacing.md,
+    paddingTop: theme.spacing.sm,
+    borderTopWidth: theme.borderWidth.thin,
+    borderTopColor: 'rgba(44, 48, 54, 0.45)',
   },
 });

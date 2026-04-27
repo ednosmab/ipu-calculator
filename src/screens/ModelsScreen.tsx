@@ -328,17 +328,20 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.sm,
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.xs,
   },
   modelCard: {
-    marginBottom: theme.spacing.xs,
+    marginBottom: theme.spacing.sm,
+    borderColor: theme.colors.border,
+    minHeight: 98,
+    justifyContent: 'center',
   },
   modelInfo: {
     flex: 1,
   },
   modelName: {
     color: theme.colors.text,
-    fontSize: theme.typography.sizes.md,
+    fontSize: theme.typography.sizes.lg,
     fontWeight: theme.typography.weights.medium,
   },
   nameContainer: {
@@ -364,7 +367,7 @@ const styles = StyleSheet.create({
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: theme.spacing.xs,
+    marginTop: theme.spacing.sm,
   },
   timeLabel: {
     color: theme.colors.textSecondary,
@@ -373,7 +376,7 @@ const styles = StyleSheet.create({
   },
   timeValue: {
     color: theme.colors.primary,
-    fontSize: theme.typography.sizes.lg,
+    fontSize: theme.typography.sizes.md,
     fontWeight: theme.typography.weights.bold,
   },
   empty: {

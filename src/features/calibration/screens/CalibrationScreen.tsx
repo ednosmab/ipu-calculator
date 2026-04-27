@@ -83,17 +83,19 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
       ref={screenRef}
       title={t('calibrateFlow')}
       footer={
-        <HStack gap="sm">
+        <HStack gap="sm" style={{ width: '100%' }}>
           <Button
             title={t('back')}
             variant="secondary"
             onPress={goBack}
-            icon={<FontAwesome5 name="arrow-left" size={20} color={theme.colors.text} />}
+            style={{ flex: 1 }}
+            icon={<FontAwesome5 name="arrow-left" size={20} color={theme.colors.textSecondary} />}
           />
           <Button
             title={t('goToCalculator')}
             onPress={goToCalculator}
-            icon={<FontAwesome5 name="calculator" size={20} color={theme.colors.bg} />}
+            style={{ flex: 1 }}
+            icon={<FontAwesome5 name="calculator" size={20} color={theme.colors.primaryText} />}
           />
         </HStack>
       }
@@ -161,7 +163,7 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
         {error && <Text variant="error" style={styles.error}>{error}</Text>}
 
         <VStack gap="sm">
-          <Button title={t('calculateAdjustment')} onPress={handleCalculate} icon={<FontAwesome5 name="cog" size={20} color={theme.colors.bg} />} />
+          <Button title={t('calculateAdjustment')} onPress={handleCalculate} icon={<FontAwesome5 name="cog" size={20} color={theme.colors.primaryText} />} />
           <Button title={t('clear')} variant="secondary" onPress={clear} icon={<FontAwesome5 name="eraser" size={20} color={theme.colors.textSecondary} />} />
         </VStack>
 
