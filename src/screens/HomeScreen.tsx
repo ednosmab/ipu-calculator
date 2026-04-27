@@ -33,11 +33,11 @@ export const HomeScreen = ({ onGoToCalculator, onGoToCalibration, onGoToModels }
     <ScreenLayout title={t('appTitle')} centered rightHeader={LanguageToggle}>
       <VStack gap="md">
         <Button title={t('calculateInjection')} onPress={onGoToCalculator} icon={<FontAwesome5 name="calculator" size={20} color={theme.colors.bg} />} />
-        <Button title={t('calibrateFlow')} variant="secondary" onPress={onGoToCalibration} icon={<FontAwesome5 name="tint" size={20} color={theme.colors.textSecondary} />} />
+        <Button title={t('calibrateFlow')} variant="secondary" onPress={onGoToCalibration} icon={<FontAwesome5 name="tint" size={20} color={theme.colors.primary} />} />
         
         <View style={styles.divider} />
         
-        <Button title={t('models')} variant="secondary" onPress={onGoToModels} icon={<FontAwesome5 name="list" size={20} color={theme.colors.black} />} />
+        <Button title={t('models')} variant="secondary" onPress={onGoToModels} icon={<FontAwesome5 name="list" size={20} color={theme.colors.primary} />} />
       </VStack>
     </ScreenLayout>
   );

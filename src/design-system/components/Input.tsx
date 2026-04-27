@@ -41,6 +41,7 @@ export const Input = forwardRef<InputRef, Props>(({
     <View style={styles.container}>
       {label && <Text variant="label" weight="medium">{label}</Text>}
       <TextInput
+        accessibilityLabel={label}
         ref={internalRef}
         value={value}
         onChangeText={onChange}

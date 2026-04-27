@@ -1,0 +1,14 @@
+- name: Refactor README
+  env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  run: |
+      # Cria um arquivo temporário com o prompt completo
+      echo "Regras: $(cat .github/copilot-instructions.md)" > prompt.txt
+      echo "Mudanças detectadas: ${{ steps.context.outputs.changed_files }}" >> prompt.txt
+      echo "Instrução: Refatore o README.md mantendo o nível profissional e técnico." >> prompt.txt
+
+      # Executa o Copilot lendo o arquivo de prompt
+      gh copilot suggest "$(cat prompt.txt)" > README.md
+
+      # Limpa o arquivo temporário
+      rm prompt.txt

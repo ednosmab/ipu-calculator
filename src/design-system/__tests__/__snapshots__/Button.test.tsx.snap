@@ -2,6 +2,8 @@
 
 exports[`Button Snapshot Tests renders disabled button correctly 1`] = `
 <View
+  accessibilityLabel="Disabled"
+  accessibilityRole="button"
   accessibilityState={
     {
       "busy": undefined,
@@ -79,6 +81,8 @@ exports[`Button Snapshot Tests renders disabled button correctly 1`] = `
 
 exports[`Button Snapshot Tests renders large button correctly 1`] = `
 <View
+  accessibilityLabel="Large"
+  accessibilityRole="button"
   accessibilityState={
     {
       "busy": undefined,
@@ -154,6 +158,8 @@ exports[`Button Snapshot Tests renders large button correctly 1`] = `
 
 exports[`Button Snapshot Tests renders loading button correctly 1`] = `
 <View
+  accessibilityLabel="Loading"
+  accessibilityRole="button"
   accessibilityState={
     {
       "busy": undefined,
@@ -214,6 +220,8 @@ exports[`Button Snapshot Tests renders loading button correctly 1`] = `
 
 exports[`Button Snapshot Tests renders primary button correctly 1`] = `
 <View
+  accessibilityLabel="Calcular"
+  accessibilityRole="button"
   accessibilityState={
     {
       "busy": undefined,
@@ -289,6 +297,8 @@ exports[`Button Snapshot Tests renders primary button correctly 1`] = `
 
 exports[`Button Snapshot Tests renders secondary button correctly 1`] = `
 <View
+  accessibilityLabel="Cancelar"
+  accessibilityRole="button"
   accessibilityState={
     {
       "busy": undefined,
@@ -365,6 +375,8 @@ exports[`Button Snapshot Tests renders secondary button correctly 1`] = `
 
 exports[`Button Snapshot Tests renders small button correctly 1`] = `
 <View
+  accessibilityLabel="Small"
+  accessibilityRole="button"
   accessibilityState={
     {
       "busy": undefined,
