@@ -182,6 +182,8 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
               value={modelName}
               onChange={setModelName}
               placeholder={t('modelNamePlaceholder')}
+              keyboardType="default"
+              autoCapitalize="characters"
             />
             <Text style={styles.modalText}>Tempo: {result}s</Text>
             {existingModel && (
