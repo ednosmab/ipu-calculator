@@ -14,7 +14,7 @@ export const theme = {
     success: '#00F5D4',
     text: '#FFFFFF',
     textSecondary: '#9BA1A6',
-    primaryText: '#0B0C0F',
+    primaryText: '#000000',
     successBg: 'rgba(0, 245, 212, 0.1)',
     inputPlaceholder: '#9BA1A6',
     border: '#2C3036',

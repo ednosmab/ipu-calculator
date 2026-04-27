@@ -1,16 +1,20 @@
-import { Stack } from 'expo-router';
-import Head from 'expo-router/head';
-import { ErrorBoundary, theme, Text } from '@/design-system';
-import { View, Pressable } from 'react-native';
-import { TranslationProvider } from '@/i18n/TranslationContext';
+import { ErrorBoundary, Text, theme } from '@/design-system';
 import { useSyncEngine } from '@/hooks/useSyncEngine';
+import { TranslationProvider } from '@/i18n/TranslationContext';
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as Font from 'expo-font';
+import { Stack } from 'expo-router';
+import Head from 'expo-router/head';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
+import { Pressable, View } from 'react-native';
 
 SplashScreen.preventAutoHideAsync();
 
+const installPillTextColor = theme.colors.primaryText;
+const installPillIconColor = theme.colors.primaryText;
+
+// UI Version: 1.0.2 - Forçando atualização de cores do PWA
 function Fallback({ error }: { error: Error }) {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: theme.spacing.lg, backgroundColor: theme.colors.bg }}>
@@ -39,7 +43,7 @@ export default function RootLayout() {
     // 1. Verificação de iOS (Instrução Manual)
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
-    
+
     if (isIOS && !isStandalone) {
       setShowIOSBanner(true);
     }
@@ -97,7 +101,7 @@ export default function RootLayout() {
         {showInstallBanner && (
           <View style={styles.pillContainer}>
             <Pressable onPress={handleInstallClick} style={styles.pillButton}>
-              <FontAwesome5 name="download" size={14} color="#fff" style={{ marginRight: 8 }} />
+              <FontAwesome5 name="download" size={14} color={installPillIconColor} style={{ marginRight: 8 }} />
               <Text style={styles.pillText}>Instalar App</Text>
             </Pressable>
             <Pressable onPress={() => setShowInstallBanner(false)} style={styles.pillClose}>
@@ -141,14 +145,15 @@ const styles = {
     borderRadius: 30,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
     elevation: 10,
   },
   pillText: {
-    color: '#2a2a2a', // Cinza bem escuro / Preto suave
+    color: installPillTextColor,
     fontWeight: 'bold' as const,
     fontSize: 14,
+    letterSpacing: 0.5,
   },
   pillClose: {
     backgroundColor: theme.colors.surface,

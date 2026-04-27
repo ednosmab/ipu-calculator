@@ -35,6 +35,9 @@ jest.mock('@/i18n/TranslationContext', () => ({
         extractedWeight: 'Peso Extraído',
         averageValue: 'Média Extraída',
         requiredField: 'Campo obrigatório',
+        back: 'back',
+        goToCalculator: 'goToCalculator',
+        clear: 'clear'
       };
       return translations[key] || key;
     },
@@ -49,17 +52,19 @@ describe('CalibrationScreen Integration Tests', () => {
     jest.clearAllMocks();
   });
 
-  it('should render all basic input fields', () => {
+  it('should render all basic input fields', async () => {
     const { getByLabelText, getByText } = render(
       <TranslationProvider>
         <CalibrationScreen goBack={mockGoBack} goToCalculator={mockGoToCalculator} />
       </TranslationProvider>
     );
 
-    expect(getByLabelText('Peso Alvo')).toBeTruthy();
-    expect(getByLabelText('Valor da Máquina')).toBeTruthy();
-    expect(getByLabelText('Peso Real')).toBeTruthy();
-    expect(getByText('Calcular Ajuste')).toBeTruthy();
+    await waitFor(() => {
+      expect(getByLabelText('Peso Alvo')).toBeTruthy();
+      expect(getByLabelText('Valor da Máquina')).toBeTruthy();
+      expect(getByLabelText('Peso Real')).toBeTruthy();
+      expect(getByText('Calcular Ajuste')).toBeTruthy();
+    });
   });
 
   it('should calculate the adjustment result correctly', async () => {
@@ -69,28 +74,31 @@ describe('CalibrationScreen Integration Tests', () => {
       </TranslationProvider>
     );
 
+    // Aguarda estabilização do histórico
+    await waitFor(() => expect(getByLabelText('Peso Alvo')).toBeTruthy());
+
     fireEvent.changeText(getByLabelText('Peso Alvo'), '1000');
     fireEvent.changeText(getByLabelText('Valor da Máquina'), '100');
     fireEvent.changeText(getByLabelText('Peso Real'), '900');
     fireEvent.press(getByText('Calcular Ajuste'));
 
-    // Cálculo simplificado para teste: (1000 / 900) * 100 = 111.11
-    expect(await findByText('111,11')).toBeTruthy();
+    expect(await findByText(/111,11/)).toBeTruthy();
   });
 
-  it('should show helper fields when toggle is active', () => {
-    const { getByText, queryByLabelText, getByLabelText } = render(
+  it('should show helper fields when toggle is active', async () => {
+    const { getByRole, queryByLabelText, getByLabelText, getByText } = render(
       <TranslationProvider>
         <CalibrationScreen goBack={mockGoBack} goToCalculator={mockGoToCalculator} />
       </TranslationProvider>
     );
 
-    // Inicialmente não deve mostrar
+    // Aguarda estabilização do histórico
+    await waitFor(() => expect(getByText('Assistente de Gramatura')).toBeTruthy());
+
     expect(queryByLabelText('Peso Extraído')).toBeNull();
 
-    // Ativar o assistente (Toggle)
-    const toggle = getByText('Assistente de Gramatura');
-    fireEvent.press(toggle);
+    const toggle = getByRole('switch');
+    fireEvent(toggle, 'valueChange', true);
 
     expect(getByLabelText('Peso Extraído')).toBeTruthy();
     expect(getByLabelText('Média Extraída')).toBeTruthy();

@@ -1,5 +1,5 @@
-const CACHE_NAME = 'ipu-calc-cache-v1';
-const urlsToCache = [
+const CACHE_NAME = 'ipu-calc-v4';
+const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
@@ -10,34 +10,30 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        return cache.addAll(urlsToCache);
+        return cache.addAll(ASSETS_TO_CACHE);
       })
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Retorna do cache se encontrar
         if (response) {
           return response;
         }
         
-        // Ou faz a requisição na rede
         return fetch(event.request).then(
           function(response) {
-            // Verifica se recebemos uma resposta válida
             if(!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
 
-            // Clona a resposta (pois a resposta é um stream que só pode ser consumido uma vez)
             var responseToCache = response.clone();
 
             caches.open(CACHE_NAME)
               .then(function(cache) {
-                // Não colocar em cache requisições da API Supabase (para dados dinâmicos)
                 if (event.request.url.indexOf('supabase.co') === -1) {
                   cache.put(event.request, responseToCache);
                 }
@@ -63,4 +59,5 @@ self.addEventListener('activate', event => {
       );
     })
   );
+  self.clients.claim();
 });
