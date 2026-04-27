@@ -1,23 +1,21 @@
 import React from 'react';
+import { View, Text } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { CalibrationScreen } from './CalibrationScreen';
 import { TranslationProvider } from '@/i18n/TranslationContext';
 
-// Mock do ScreenLayout para evitar efeitos colaterais de rede e Expo no ambiente de testes
 jest.mock('@/components/ScreenLayout', () => {
-  const React = require('react');
-  const { View, Text } = require('react-native');
-  return {
-    ScreenLayout: React.forwardRef(({ children, title, footer }, ref) => {
-      return (
-        <View>
-          <Text>{title}</Text>
-          {children}
-          {footer}
-        </View>
-      );
-    }),
-  };
+  const ScreenLayout = React.forwardRef(({ children, title, footer }, ref) => {
+    return (
+      <View>
+        <Text>{title}</Text>
+        {children}
+        {footer}
+      </View>
+    );
+  });
+  ScreenLayout.displayName = 'ScreenLayout';
+  return { ScreenLayout };
 });
 
 // Mock das traduções

@@ -1,7 +1,6 @@
 import React, { createRef } from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Input, InputRef } from '../components/Input';
-import { TextInput } from 'react-native';
 
 (global as any).__ExpoImportMetaRegistry = (global as any).__ExpoImportMetaRegistry || {};
 (global as any).structuredClone = (global as any).structuredClone || ((val: any) => JSON.parse(JSON.stringify(val)));

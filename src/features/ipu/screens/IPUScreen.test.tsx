@@ -1,24 +1,22 @@
+import React from 'react';
+import { View, Text } from 'react-native';
 import * as modelUseCases from '@/features/models/application/modelUseCases';
 import { TranslationProvider } from '@/i18n/TranslationContext';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
-import React from 'react';
 import { IPUScreen } from './IPUScreen';
 
-// Mock do ScreenLayout para evitar efeitos colaterais de rede nos testes
 jest.mock('@/components/ScreenLayout', () => {
-  const React = require('react');
-  const { View, Text } = require('react-native');
-  return {
-    ScreenLayout: React.forwardRef(({ children, title, footer }, ref) => {
-      return (
-        <View>
-          <Text>{title}</Text>
-          {children}
-          {footer}
-        </View>
-      );
-    }),
-  };
+  const ScreenLayout = React.forwardRef(({ children, title, footer }, ref) => {
+    return (
+      <View>
+        <Text>{title}</Text>
+        {children}
+        {footer}
+      </View>
+    );
+  });
+  ScreenLayout.displayName = 'ScreenLayout';
+  return { ScreenLayout };
 });
 
 // Mock do Expo Router
@@ -106,7 +104,7 @@ describe('IPUScreen Integration Tests', () => {
     (modelUseCases.createModelUseCase as jest.Mock).mockResolvedValue(true);
     (modelUseCases.getModelsByTypeUseCase as jest.Mock).mockResolvedValue([]);
 
-    const { getByLabelText, findByText, queryByText, findByLabelText } = render(
+    const { getByLabelText, queryByText, findByLabelText } = render(
       <TranslationProvider>
         <IPUScreen goBack={mockGoBack} goToCalibration={mockGoToCalibration} />
       </TranslationProvider>
