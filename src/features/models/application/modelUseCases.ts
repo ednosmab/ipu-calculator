@@ -8,6 +8,12 @@ export type CreateModelInput = {
 };
 
 export const createModelUseCase = async (input: CreateModelInput): Promise<CalculationModel> => {
+  const existing = await modelRepository.getByType(input.type);
+  const duplicate = existing.find(m => m.name.toUpperCase() === input.name.toUpperCase());
+  if (duplicate) {
+    throw new Error('Já existe um modelo com este nome');
+  }
+
   const now = Date.now();
   const model: CalculationModel = {
     id: createModelId(),

@@ -135,8 +135,8 @@ const openDeleteConfirm = (model: CalculationModel) => {
       
       setModalVisible(false);
       await loadModels();
-    } catch {
-      Alert.alert('Erro', 'Não foi possível salvar o modelo');
+    } catch (error) {
+      Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível salvar o modelo');
     } finally {
       setIsSaving(false);
     }
