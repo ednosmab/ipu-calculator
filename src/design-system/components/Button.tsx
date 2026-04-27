@@ -27,6 +27,8 @@ export const Button = ({
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
+      accessibilityLabel={title}
+      accessibilityRole="button"
       style={({ pressed }) => [
         styles.button,
         styles[size],
