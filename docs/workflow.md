@@ -83,13 +83,21 @@ npm run test:integration # screens + hooks (UI/logic integration) - 3 arquivos
 
 | Script | Descrição |
 | :--- | :--- |
-| `test` | Todos os testes (78+ testes) |
+| `test` | Todos os testes (85+ testes) |
 | `test -- --watch` | Watch mode (reativa ao salvar) |
 | `test -- --coverage` | Gera relatório de cobertura |
 | `test:lint` | Design system (Button, Input, Card, Text) - 18 testes |
 | `test:core` | Core modules (formatters, parsers) |
 | `test:features` | Domain logic (calculation, validation) |
 | `test:integration` | Screens + Hooks (UI/logic integration) |
+
+---
+
+## 📋 Tasks Pendentes
+
+| Task | Prioridade | Status |
+| :--- | :--- | :--- |
+| Corrigir teste `useRealtimeModels.should refetch models when a Realtime event is received` | baixa | skipped |
 
 ---
 
