@@ -15,10 +15,11 @@ export const modelSyncService = {
         });
 
       if (error) {
-        console.error('Error syncing model to Supabase:', error);
+        console.error('[Supabase Sync Error]:', error.message, error.details);
         return false;
       }
 
+      console.log('[Supabase Sync Success]: Modelo sincronizado com sucesso.');
       return true;
     } catch (e) {
       console.error('Network error during sync:', e);
