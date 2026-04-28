@@ -119,6 +119,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
       
       // useRealtimeModels reage automaticamente via modelRepository.subscribe()
       setModalVisible(false);
+      await loadModels();
     } catch (error) {
       Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível salvar o modelo');
     } finally {
