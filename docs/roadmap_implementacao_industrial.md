@@ -16,12 +16,12 @@ Aplicar identidade visual industrial mantendo os padrões existentes:
 src/design-system/theme.ts
 ```
 
-###STATUS: ✅ Parcial (precisa ajuste de cores)
+###STATUS: ✅ Implementado
 
 ### Tarefas
 
-- [ ] Atualizar `theme.colors` para padrão industrial
-- [ ] Manter estrutura existente (spacing, roundness, typography)
+- [x] Atualizar `theme.colors` para padrão industrial
+- [x] Manter estrutura existente (spacing, roundness, typography)
 
 ### Tokens Propostos
 
@@ -76,13 +76,13 @@ src/features/ipu/screens/IPUScreen.tsx
 src/components/ResultCard.tsx
 ```
 
-###STATUS: ✅ Parcial (precisa ajuste visual)
+###STATUS: ✅ Implementado
 
 ### Tarefas
 
-- [ ] Exibir "—" quando result for null (inverter condição)
-- [ ] Aplicar theme industrial nos componentes
-- [ ] Labels já estão em português via i18n (manter)
+- [x] Exibir "—" quando result for null (inverter condição)
+- [x] Aplicar theme industrial nos componentes
+- [x] Labels já estão em português via i18n (manter)
 
 ### Ajuste na Screen
 
@@ -130,11 +130,11 @@ O i18n já suportaPT/EN. Labels existentes:
 
 ## ✅ Critérios de Aceitação
 
-- [ ] Fundo `#0B0C0F` (ou similar dark)
-- [ ] primary `#00F5D4` em CTAs
-- [ ] Resultado exibe "—" quando null
-- [ ] Labels via i18n (PT/EN)
-- [ ] Estrutura Hook Genérico + Específico mantida
+- [x] Fundo `#0B0C0F` (ou similar dark)
+- [x] primary `#00F5D4` em CTAs
+- [x] Resultado exibe "—" quando null
+- [x] Labels via i18n (PT/EN)
+- [x] Estrutura Hook Genérico + Específico mantida
 
 ---
 

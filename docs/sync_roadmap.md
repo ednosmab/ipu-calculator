@@ -16,7 +16,8 @@ Este documento descreve os passos para implementar a sincronização dos modelos
 ## Fase 3: Monitoramento e Sincronização Ativa (Semana 2-3)
 - [x] **Integração NetInfo**: Listener global para detectar quando o app volta a ter internet.
 - [x] **Sync Engine**: Serviço que percorre a fila de pendências e as resolve sequencialmente ao reconectar.
-- [ ] **Indicadores de UI**: Adicionar pequenos ícones de status (nuvem, check, alerta) nos cards de modelos para indicar estado de sincronização.
+- [x] **Filas de operações pendentes**: Implementado `pending_deletes` e `pending_edits` com max 3 tentativas.
+- [x] **Indicadores de UI**: Adicionar pequenos ícones de status (nuvem, check, alerta) nos cards de modelos para indicar estado de sincronização.
 
 ## Fase 4: Segundo Plano e Resiliência (Semana 3-4)
 - [ ] **Background Sync (Expo TaskManager)**: Registrar tarefa para tentar sincronizar pendências mesmo se o app estiver minimizado.
