@@ -7,7 +7,6 @@ const mockPendingModel: CalculationModel = {
   name: 'Modelo Pendente',
   type: 'ipu',
   inputs: { isocyanate: 100, polyol: 150 },
-  result: 1785.71,
   createdAt: Date.now() - 10000,
   updatedAt: Date.now() - 10000,
   syncStatus: 'pending',
@@ -18,7 +17,6 @@ const mockSyncedModel: CalculationModel = {
   name: 'Modelo Sincronizado',
   type: 'calibration',
   inputs: { targetWeight: 1000, machineValue: 100, actualWeight: 900 },
-  result: 111.11,
   createdAt: Date.now() - 10000,
   updatedAt: Date.now() - 10000,
   syncStatus: 'synced',
@@ -26,12 +24,12 @@ const mockSyncedModel: CalculationModel = {
 
 describe('Schema Migration Service', () => {
   beforeEach(async () => {
-    await asyncStorageClient.remove('schema_version');
+    await asyncStorageClient.remove(STORAGE_KEYS.SCHEMA_VERSION);
     await asyncStorageClient.remove(STORAGE_KEYS.MODELS);
   });
 
   afterEach(async () => {
-    await asyncStorageClient.remove('schema_version');
+    await asyncStorageClient.remove(STORAGE_KEYS.SCHEMA_VERSION);
     await asyncStorageClient.remove(STORAGE_KEYS.MODELS);
   });
 
@@ -42,13 +40,13 @@ describe('Schema Migration Service', () => {
     });
 
     it('should return false when schema version matches', async () => {
-      await asyncStorageClient.set('schema_version', SCHEMA_VERSION);
+      await asyncStorageClient.set(STORAGE_KEYS.SCHEMA_VERSION, SCHEMA_VERSION);
       const needs = await schemaMigrationService.needsMigration();
       expect(needs).toBe(false);
     });
 
     it('should return true when schema version is different', async () => {
-      await asyncStorageClient.set('schema_version', '0.9.0');
+      await asyncStorageClient.set(STORAGE_KEYS.SCHEMA_VERSION, '0.9.0');
       const needs = await schemaMigrationService.needsMigration();
       expect(needs).toBe(true);
     });
@@ -56,7 +54,7 @@ describe('Schema Migration Service', () => {
 
   describe('migrateIfNeeded', () => {
     it('should not migrate when schema is up to date', async () => {
-      await asyncStorageClient.set('schema_version', SCHEMA_VERSION);
+      await asyncStorageClient.set(STORAGE_KEYS.SCHEMA_VERSION, SCHEMA_VERSION);
       const result = await schemaMigrationService.migrateIfNeeded();
       expect(result.migrated).toBe(false);
       expect(result.count).toBe(0);

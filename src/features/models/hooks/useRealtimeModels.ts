@@ -44,7 +44,7 @@ export const useRealtimeModels = () => {
       )
       .subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.warn('[useRealtimeModels]: Realtime indisponível.');
+          console.warn('[useRealtimeModels]: Realtime indisponível. Operando em modo local.');
         }
       });
 
