@@ -1,6 +1,8 @@
 import { asyncStorageClient, STORAGE_KEYS } from '@/core/storage/asyncStorageClient';
 import { CalculationModel, ModelType } from '../domain/calculationModel';
+import { createPendingOperation, createPendingDelete, PendingOperation, MAX_ATTEMPTS } from '../domain/pendingOperation';
 import { modelSyncService } from './modelSyncService';
+import { pendingOpsService } from './pendingOpsService';
 
 type ModelListener = () => void;
 const listeners: Set<ModelListener> = new Set();
@@ -34,7 +36,19 @@ export const modelRepository = {
 
   async create(model: CalculationModel): Promise<boolean> {
     const isSynced = await modelSyncService.syncToRemote(model);
-    const modelWithStatus = { ...model, syncStatus: isSynced ? 'synced' : ('pending' as const) };
+    
+    const modelWithStatus = { ...model, syncStatus: isSynced ? 'synced' : 'pending' };
+    
+    const existing = await this.getAll();
+    const updated = [modelWithStatus, ...existing];
+    const success = await asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
+    
+    if (success) notify();
+    return success;
+  },
+
+  async createFromRemote(model: CalculationModel): Promise<boolean> {
+    const modelWithStatus = { ...model, syncStatus: 'synced' as const };
     
     const existing = await this.getAll();
     const updated = [modelWithStatus, ...existing];
@@ -43,31 +57,39 @@ export const modelRepository = {
     return success;
   },
 
-  async update(model: CalculationModel): Promise<boolean> {
-    const isSynced = await modelSyncService.syncToRemote(model);
-    const modelWithStatus = { ...model, syncStatus: isSynced ? 'synced' : ('pending' as const) };
-
+async update(model: CalculationModel): Promise<boolean> {
     const existing = await this.getAll();
+    const isSynced = await modelSyncService.syncToRemote(model);
+    
+    let modelWithStatus: CalculationModel;
+    if (isSynced) {
+      modelWithStatus = { ...model, syncStatus: 'synced' };
+    } else {
+      modelWithStatus = { ...model, syncStatus: 'pending' };
+      const pending = createPendingOperation('update', model);
+      await pendingOpsService.addPendingEdit(pending);
+    }
+    
     const updated = existing.map(m => m.id === model.id ? modelWithStatus : m);
     const success = await asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
+    
     if (success) notify();
     return success;
   },
 
   async delete(id: string): Promise<boolean> {
-    // Optimistic delete: remove locally first
-    const existing = await this.getAll();
-    const updated = existing.filter(m => m.id !== id);
-    const success = await asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
+    const isSynced = await modelSyncService.deleteFromRemote(id);
     
-    if (success) {
-      notify();
-      // Try to delete from remote in background
-      modelSyncService.deleteFromRemote(id).catch(err => {
-        console.error('[Remote Delete Error]:', err);
-      });
+    if (isSynced) {
+      const existing = await this.getAll();
+      const updated = existing.filter(m => m.id !== id);
+      const success = await asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
+      if (success) notify();
+      return success;
     }
-    
-    return success;
+
+    await pendingOpsService.addPendingDelete(id);
+    notify();
+    return true;
   },
 };

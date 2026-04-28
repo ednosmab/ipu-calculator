@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { StyleSheet, View, Modal as RNModal, TouchableOpacity, Alert } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Button, Text, Card, theme } from '@/design-system';
@@ -6,8 +6,8 @@ import { Input, InputRef } from '@/design-system/components/Input';
 import { ScreenLayout } from '@/components/ScreenLayout';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { CalculationModel, ModelType } from '@/features/models/domain/calculationModel';
-import { getModelsByTypeUseCase, deleteModelUseCase, updateModelUseCase, createModelUseCase } from '@/features/models/application/modelUseCases';
-import { modelRepository } from '@/features/models/infra/modelRepository';
+import { deleteModelUseCase, updateModelUseCase, createModelUseCase } from '@/features/models/application/modelUseCases';
+import { useRealtimeModels } from '@/features/models/hooks/useRealtimeModels';
 import { parseNumber } from '@/core/parsers/numberParser';
 
 type Props = {
@@ -18,9 +18,11 @@ type Props = {
 export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
-  const [ipuModels, setIpuModels] = useState<CalculationModel[]>([]);
-  const [calibrationModels, setCalibrationModels] = useState<CalculationModel[]>([]);
-  
+
+  const { models } = useRealtimeModels();
+  const ipuModels = models.filter(m => m.type === 'ipu');
+  const calibrationModels = models.filter(m => m.type === 'calibration');
+
   const [modalVisible, setModalVisible] = useState(false);
   const [isTimeOnly, setIsTimeOnly] = useState(false);
   const [deleteModel, setDeleteModel] = useState<CalculationModel | null>(null);
@@ -32,24 +34,6 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const timeInputRef = useRef<InputRef>({ focus: () => {}, current: null });
-
-  const loadModels = async () => {
-    const ipu = await getModelsByTypeUseCase('ipu');
-    const calibration = await getModelsByTypeUseCase('calibration');
-    setIpuModels(ipu);
-    setCalibrationModels(calibration);
-  };
-
-  useEffect(() => {
-    loadModels();
-
-    // Se inscreve para atualizações (ex: quando o sync de background termina)
-    const unsubscribe = modelRepository.subscribe(() => {
-      loadModels();
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   const openCreate = () => {
     setEditingModel(null);
@@ -91,7 +75,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
       setIsDeleting(true);
       try {
         await deleteModelUseCase(deleteModel.id);
-        await loadModels();
+        // useRealtimeModels reage automaticamente via modelRepository.subscribe()
         setDeleteModel(null);
         lastDeleteTime.current = 0;
       } finally {
@@ -133,8 +117,8 @@ const openDeleteConfirm = (model: CalculationModel) => {
         });
       }
       
+      // useRealtimeModels reage automaticamente via modelRepository.subscribe()
       setModalVisible(false);
-      await loadModels();
     } catch (error) {
       Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível salvar o modelo');
     } finally {
