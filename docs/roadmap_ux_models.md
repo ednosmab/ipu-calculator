@@ -21,7 +21,7 @@
 | Item | Status | Descrição |
 |------|--------|----------|
 | Modelo Duplicado | ✅ | Erro inline no modal (IPUScreen e ModelsScreen) |
-| Toast/Alert | ❌ | Mensagem clara para o usuário |
+ | Toast/Alert | ✅ | Mensagem clara para o usuário |
 
 ---
 
@@ -34,7 +34,7 @@
 | Alta | Modelo Duplicado | ✅ | Erro inline ao criar/editar |
 | Média | Loading Animation | ❌ | Skeleton ou Spinner na lista |
 | Média | Transições | ❌ | Animações em elementos |
-| Baixa | Search Melhorado | ❌ | Buscar em qualquer posição |
+ | Baixa | Search Melhorado | ✅ | Buscar em qualquer posição |
 
 ---
 

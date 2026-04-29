@@ -144,7 +144,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
     const sorted = [...models].sort((a, b) => a.name.localeCompare(b.name));
     if (!search.trim()) return sorted;
     const term = search.toUpperCase();
-    return sorted.filter(m => m.name.startsWith(term));
+    return sorted.filter(m => m.name.toUpperCase().includes(term));
   };
 
   const renderList = (models: CalculationModel[], type: ModelType) => {
@@ -365,10 +365,10 @@ const styles = StyleSheet.create({
     marginLeft: theme.spacing.sm,
   },
   badgeCreated: {
-    backgroundColor: '#4A90D9',
+    backgroundColor: theme.colors.badgeCreated,
   },
   badgeEdited: {
-    backgroundColor: '#FF9500',
+    backgroundColor: theme.colors.badgeEdited,
   },
   badgeText: {
     color: theme.colors.bg,
