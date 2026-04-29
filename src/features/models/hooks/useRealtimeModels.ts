@@ -33,24 +33,35 @@ export const useRealtimeModels = () => {
       fetchModels(false);
     });
 
-    const channel = supabase
-      .channel('realtime-models')
-      .on(
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    try {
+      channel = supabase.channel('realtime-models');
+
+      channel.on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'models' },
         () => {
           fetchModels(true);
         }
-      )
-      .subscribe((status) => {
+      );
+
+      channel.subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           console.warn('[useRealtimeModels]: Realtime indisponível. Operando em modo local.');
+        } else if (status === 'SUBSCRIBED') {
+          console.log('[useRealtimeModels]: Realtime conectado com sucesso.');
         }
       });
+    } catch (e) {
+      console.warn('[useRealtimeModels]: Erro ao configurar realtime, operando offline:', e);
+    }
 
     return () => {
       unsubscribeRepo();
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [fetchModels]);
 
