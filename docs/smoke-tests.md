@@ -75,6 +75,62 @@ Este documento contém os casos de teste para validação rápida das funcionali
 
 ---
 
+## Modelos (Sync + Realtime)
+
+### Criar Modelo
+
+| Campo | Valor |
+|-------|-------|
+| Nome | "Teste Smoke" |
+| Tipo | IPU |
+| Isocianato | 0.0771 |
+| Poliol | 0.1506 |
+
+### Verificações
+
+- [ ] Modelo salvo localmente
+- [ ] Modelo sincroniza com Supabase
+- [ ] Modelo aparece em todas as abas abertas
+
+### Editar Modelo
+
+| Campo | Novo Valor |
+|-------|------------|
+| Isocianato | 0.1000 |
+
+### Verificações
+
+- [ ] Alteração salva localmente
+- [ ] Alteração sincroniza com Supabase
+- [ ] Alteração replicada em todas as abas abertas
+
+### Deletar Modelo (via Supabase)
+
+### Verificações
+
+- [ ] Delete no Supabase remove modelo das abas abertas
+- [ ] Multiple abas receptor a mesma mudança
+
+---
+
+## Offline + Sincronização
+
+### Cenário: Dados Móveis Instáveis
+
+1. Conectar em dados móveis
+2. Criar modelo
+3. Desconectar (modo avião)
+4. Abrir novamente
+
+### Verificações
+
+- [ ] App inicia sem crash ("Algo deu errado" não aparece)
+- [ ] Modelo salvo localmente como "pending"
+- [ ] Ao reconectar, sincroniza automaticamente
+- [ ] "Conexão restabelecida" aparece no console
+
+---
+
 ## Checklist Rápido
 
 Execute estes testes em cada nova versão:
@@ -84,5 +140,9 @@ Execute estes testes em cada nova versão:
 - [ ] Teste IPU passa
 - [ ] Teste Calibração passa
 - [ ] Troca de idioma funciona
+- [ ] Criar modelo sincroniza com Supabase
+- [ ] Editar modelo replica em abas abertas
+- [ ] Deletar no Supabase remove das abas abertas
+- [ ] Modo offline funciona sem crash
 - [ ] Build Android gera APK
 - [ ] Build Web funciona
