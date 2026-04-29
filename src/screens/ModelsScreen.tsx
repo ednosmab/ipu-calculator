@@ -19,7 +19,7 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
 
-  const { models } = useRealtimeModels();
+  const { models, isLoading } = useRealtimeModels();
   const ipuModels = models.filter(m => m.type === 'ipu');
   const calibrationModels = models.filter(m => m.type === 'calibration');
 
