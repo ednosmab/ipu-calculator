@@ -7,6 +7,8 @@ import { InputRef } from '@/design-system/components/Input';
 import { ResultCard } from '@/components/ResultCard';
 import { HistoryList } from '@/components/HistoryList';
 import { ScreenLayout, ScreenLayoutRef } from '@/components/ScreenLayout';
+import { Toast } from '@/components/Toast';
+import { useToast } from '@/hooks/useToast';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useIPUCalculator } from '../hooks/useIPUCalculator';
 import { useTranslation } from '@/i18n/TranslationContext';
@@ -19,15 +21,11 @@ type Props = {
 };
 
 export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
-  const screenRef = useRef<ScreenLayoutRef>(null);
-  const isoRef = useRef<InputRef>({ focus: () => {}, current: null });
-  const polyolRef = useRef<InputRef>({ focus: () => {}, current: null });
   const { t } = useTranslation();
-  const [showSaveModal, setShowSaveModal] = useState(false);
-  const [modelName, setModelName] = useState('');
-  const [saveError, setSaveError] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  
+  const { toast, success, error: showError } = useToast();
+  const screenRef = useRef<ScreenLayoutRef>(null);
+  const isoRef = useRef<InputRef>(null);
+  const polyolRef = useRef<InputRef>(null);
   const { 
     isocyanate, 
     polyol, 
@@ -42,6 +40,11 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
     clearHistory,
     fillFromHistory 
   } = useIPUCalculator();
+
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [modelName, setModelName] = useState('');
+  const [saveError, setSaveError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleCalculate = () => {
     logService.info('IPU calculation started', { isocyanate, polyol });
@@ -78,6 +81,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
         type: 'ipu',
         inputs: { injectionTime: timeNum },
       });
+      success('Modelo salvo com sucesso');
       setShowSaveModal(false);
       setModelName('');
     } catch (e) {
@@ -85,6 +89,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
       if (message.includes('Já existe um modelo com este nome')) {
         setSaveError(message);
       } else {
+        showError('Erro ao salvar modelo');
         logService.error('Failed to save model', e);
       }
     } finally {
@@ -99,27 +104,29 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
   };
 
   return (
-    <ScreenLayout
-      ref={screenRef}
-      title={t('calculateInjection')}
-      footer={
-        <HStack gap="sm" style={{ width: '100%' }}>
-          <Button
-            title={t('back')}
-            variant="secondary"
-            onPress={goBack}
-            style={{ flex: 1 }}
-            icon={<FontAwesome5 name="arrow-left" size={20} color={theme.colors.textSecondary} />}
-          />
-          <Button
-            title={t('goToCalibration')}
-            onPress={goToCalibration}
-            style={{ flex: 1 }}
-            icon={<FontAwesome5 name="tint" size={20} color={theme.colors.primaryText} />}
-          />
-        </HStack>
-      }
-    >
+    <>
+      {toast && <Toast message={toast.message} type={toast.type} />}
+      <ScreenLayout
+        ref={screenRef}
+        title={t('calculateInjection')}
+        footer={
+          <HStack gap="sm" style={{ width: '100%' }}>
+            <Button
+              title={t('back')}
+              variant="secondary"
+              onPress={goBack}
+              style={{ flex: 1 }}
+              icon={<FontAwesome5 name="arrow-left" size={20} color={theme.colors.textSecondary} />}
+            />
+            <Button
+              title={t('goToCalibration')}
+              onPress={goToCalibration}
+              style={{ flex: 1 }}
+              icon={<FontAwesome5 name="tint" size={20} color={theme.colors.primaryText} />}
+            />
+          </HStack>
+        }
+      >
       <VStack gap="lg">
         <ResultCard result={result} />
 
@@ -188,5 +195,6 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
           </View>
         </RNModal>
     </ScreenLayout>
+    </>
   );
 };

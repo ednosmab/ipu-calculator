@@ -7,7 +7,8 @@ import { Stack } from 'expo-router';
 import Head from 'expo-router/head';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
+import { registerBackgroundSync } from '@/core/sync/backgroundSyncService';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -81,6 +82,12 @@ export default function RootLayout() {
   };
 
   useSyncEngine();
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      registerBackgroundSync().catch(console.error);
+    }
+  }, []);
 
   if (!isMounted || (!loaded && !error)) {
     return null;

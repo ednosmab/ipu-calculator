@@ -30,7 +30,7 @@
       "orientation": "portrait",
       "lang": "pt-BR"
     },
-    "plugins": [
+"plugins": [
       "expo-router",
       [
         "expo-splash-screen",
@@ -39,6 +39,14 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#0b0c0f"
+        }
+      ],
+      [
+        "sentry-expo",
+        {
+          "project": "calculadora-ipu",
+          "organization": "edsondev",
+          "runtime": "react-native"
         }
       ]
     ],

@@ -3,6 +3,8 @@ import { asyncStorageClient, STORAGE_KEYS } from '@/core/storage/asyncStorageCli
 import { modelRepository } from '../infra/modelRepository';
 import { CalculationModel } from '../domain/calculationModel';
 
+const MODEL_TTL_MS = 48 * 60 * 60 * 1000;
+
 export const fetchRemoteModelsUseCase = async (): Promise<void> => {
   try {
     const { data, error } = await supabase
@@ -46,7 +48,10 @@ export const fetchRemoteModelsUseCase = async (): Promise<void> => {
     
     updated = [...updated, ...pendingModels];
 
-    await asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
+    await asyncStorageClient.set(STORAGE_KEYS.MODELS, {
+      data: updated,
+      expiresAt: Date.now() + MODEL_TTL_MS,
+    });
   } catch (e) {
     // Offline ou erro de rede - mantém modelos locais
   }

@@ -1,9 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, View, Modal as RNModal, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Modal as RNModal, TouchableOpacity, Alert, ActivityIndicator, Animated } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Button, Text, Card, theme } from '@/design-system';
 import { Input, InputRef } from '@/design-system/components/Input';
 import { ScreenLayout } from '@/components/ScreenLayout';
+import { Toast } from '@/components/Toast';
+import { useToast } from '@/hooks/useToast';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { CalculationModel, ModelType } from '@/features/models/domain/calculationModel';
 import { deleteModelUseCase, updateModelUseCase, createModelUseCase } from '@/features/models/application/modelUseCases';
@@ -18,6 +20,7 @@ type Props = {
 export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
+  const { toast, success, error } = useToast();
 
   const { models, isLoading } = useRealtimeModels();
   const ipuModels = models.filter(m => m.type === 'ipu');
@@ -35,6 +38,19 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const timeInputRef = useRef<InputRef>({ focus: () => {}, current: null });
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    if (!isLoading && models.length > 0) {
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      fadeAnim.setValue(0);
+    }
+  }, [isLoading, models.length, fadeAnim]);
 
   const openCreate = () => {
     setEditingModel(null);
@@ -78,9 +94,11 @@ const openDeleteConfirm = (model: CalculationModel) => {
       setIsDeleting(true);
       try {
         await deleteModelUseCase(deleteModel.id);
-        // useRealtimeModels reage automaticamente via modelRepository.subscribe()
+        success('Modelo excluído com sucesso');
         setDeleteModel(null);
         lastDeleteTime.current = 0;
+      } catch (e) {
+        error('Não foi possível excluir o modelo');
       } finally {
         setIsDeleting(false);
       }
@@ -113,15 +131,16 @@ const openDeleteConfirm = (model: CalculationModel) => {
           inputs: { injectionTime: timeNum },
           updatedAt: Date.now(),
         });
+        success('Modelo editado com sucesso');
       } else {
         await createModelUseCase({
           name: nameUpper,
           type: 'ipu',
           inputs: { injectionTime: timeNum },
         });
+        success('Modelo salvo com sucesso');
       }
       
-      // useRealtimeModels reage automaticamente via modelRepository.subscribe()
       setModalVisible(false);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Não foi possível salvar o modelo';
@@ -152,7 +171,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
     if (filtered.length === 0) return null;
     
     return (
-      <View style={styles.section}>
+      <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
         <Text style={styles.sectionTitle}>
           {type === 'ipu' ? 'Injeção' : 'Calibração'}
         </Text>
@@ -177,12 +196,17 @@ const openDeleteConfirm = (model: CalculationModel) => {
                       </Text>
                     </View>
                   )}
-                  <FontAwesome5 
-                    name={model.syncStatus === 'synced' ? "check-circle" : "cloud-upload-alt"} 
-                    size={14} 
-                    color={model.syncStatus === 'synced' ? theme.colors.success : theme.colors.textSecondary} 
-                    style={styles.syncIcon}
-                  />
+                  <View style={styles.syncStatusRow}>
+                    <FontAwesome5 
+                      name={model.syncStatus === 'synced' ? "check-circle" : "cloud-upload-alt"} 
+                      size={14} 
+                      color={model.syncStatus === 'synced' ? theme.colors.success : theme.colors.primary} 
+                      style={styles.syncIcon}
+                    />
+                    {model.syncStatus !== 'synced' && (
+                      <Text style={styles.pendingText}>Aguardando rede</Text>
+                    )}
+                  </View>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   onPress={(e) => {
@@ -220,7 +244,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
             </View>
           </Card>
         ))}
-      </View>
+      </Animated.View>
     );
   };
 
@@ -233,10 +257,10 @@ const openDeleteConfirm = (model: CalculationModel) => {
   );
 
   const renderSkeleton = () => (
-    <View style={styles.content}>
-      <View style={[styles.skeletonCard, { backgroundColor: theme.colors.surface, borderRadius: theme.roundness.md, padding: theme.spacing.md, marginBottom: theme.spacing.sm }]} />
-      <View style={[styles.skeletonCard, { backgroundColor: theme.colors.surface, borderRadius: theme.roundness.md, padding: theme.spacing.md, marginBottom: theme.spacing.sm }]} />
-      <View style={[styles.skeletonCard, { backgroundColor: theme.colors.surface, borderRadius: theme.roundness.md, padding: theme.spacing.md }]} />
+    <View style={styles.skeletonContainer}>
+      {[1, 2, 3].map((i) => (
+        <View key={i} style={styles.skeletonCard} />
+      ))}
     </View>
   );
 
@@ -245,7 +269,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
       <ScreenLayout title="Modelos" onBack={onGoBack}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={styles.loadingText}>Carregando modelos...</Text>
+          <Text style={styles.loadingText}>Carregando modelos, aguarde...</Text>
           {renderSkeleton()}
         </View>
       </ScreenLayout>
@@ -254,6 +278,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
 
   return (
     <ScreenLayout title="Modelos" onBack={onGoBack} footer={fab}>
+      {toast && <Toast message={toast.message} type={toast.type} />}
       <View style={styles.content}>
         {totalModels > 0 && (
           <Input
@@ -396,8 +421,17 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.weights.bold,
   },
   syncIcon: {
+    marginRight: theme.spacing.xs,
+  },
+  syncStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginLeft: theme.spacing.sm,
-    opacity: 0.8,
+  },
+  pendingText: {
+    color: theme.colors.primary,
+    fontSize: theme.typography.sizes.xs,
+    marginLeft: theme.spacing.xs,
   },
   modelInputs: {
     color: theme.colors.textSecondary,
@@ -443,9 +477,15 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.md,
     marginBottom: theme.spacing.xl,
   },
+  skeletonContainer: {
+    width: '100%',
+    gap: theme.spacing.sm,
+  },
   skeletonCard: {
     height: 98,
-    opacity: 0.5,
+    backgroundColor: theme.colors.input,
+    borderRadius: theme.roundness.md,
+    opacity: 0.3,
   },
   fabWrapper: {
     flexDirection: 'row',

@@ -20,7 +20,7 @@ Este documento descreve os passos para implementar a sincronização dos modelos
 - [x] **Indicadores de UI**: Adicionar pequenos ícones de status (nuvem, check, alerta) nos cards de modelos para indicar estado de sincronização.
 
 ## Fase 4: Segundo Plano e Resiliência (Semana 3-4)
-- [ ] **Background Sync (Expo TaskManager)**: Registrar tarefa para tentar sincronizar pendências mesmo se o app estiver minimizado.
+- [x] **Background Sync (Expo TaskManager)**: Registrar tarefa para tentar sincronizar pendências mesmo se o app estiver minimizado.
 - [ ] **Resolução de Conflitos**: Implementar estratégia "Last Write Wins" baseada no timestamp `updatedAt`.
 - [ ] **Testes de Estresse Offline**: Validar comportamento com modo avião, interrupções de rede e concorrência.
 

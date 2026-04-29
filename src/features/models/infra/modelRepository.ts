@@ -4,6 +4,13 @@ import { createPendingOperation, createPendingDelete, PendingOperation, MAX_ATTE
 import { modelSyncService } from './modelSyncService';
 import { pendingOpsService } from './pendingOpsService';
 
+const MODEL_TTL_MS = 48 * 60 * 60 * 1000; // 48 hours
+
+interface CacheMetadata {
+  data: CalculationModel[];
+  expiresAt: number;
+}
+
 type ModelListener = () => void;
 const listeners: Set<ModelListener> = new Set();
 
@@ -19,9 +26,21 @@ export const modelRepository = {
     };
   },
 
-  async getAll(): Promise<CalculationModel[]> {
-    const models = await asyncStorageClient.get<CalculationModel[]>(STORAGE_KEYS.MODELS);
-    return models ?? [];
+  isExpired(expiresAt: number): boolean {
+    return Date.now() > expiresAt;
+  },
+
+  async getAll(forceRefresh = false): Promise<CalculationModel[]> {
+    const cached = await asyncStorageClient.get<CacheMetadata>(STORAGE_KEYS.MODELS);
+    
+    if (!cached) return [];
+    
+    if (!forceRefresh && cached.expiresAt && this.isExpired(cached.expiresAt)) {
+      console.log('[modelRepository] Cache expirado, retornando vazio');
+      return [];
+    }
+    
+    return cached.data ?? [];
   },
 
   async getByType(type: ModelType): Promise<CalculationModel[]> {
@@ -32,6 +51,18 @@ export const modelRepository = {
   async getById(id: string): Promise<CalculationModel | undefined> {
     const all = await this.getAll();
     return all.find(m => m.id === id);
+  },
+
+  async getAllWithMetadata(): Promise<CacheMetadata | null> {
+    return asyncStorageClient.get<CacheMetadata>(STORAGE_KEYS.MODELS);
+  },
+
+  async saveWithTTL(data: CalculationModel[]): Promise<boolean> {
+    const cache: CacheMetadata = {
+      data,
+      expiresAt: Date.now() + MODEL_TTL_MS,
+    };
+    return asyncStorageClient.set(STORAGE_KEYS.MODELS, cache);
   },
 
   async create(model: CalculationModel): Promise<boolean> {
@@ -45,7 +76,7 @@ export const modelRepository = {
     
     const existing = await this.getAll();
     const updated = [modelWithStatus, ...existing];
-    const success = await asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
+    const success = await this.saveWithTTL(updated);
     
     if (success) notify();
     return success;
@@ -60,7 +91,7 @@ export const modelRepository = {
     
     const existing = await this.getAll();
     const updated = [modelWithStatus, ...existing];
-    const success = await asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
+    const success = await this.saveWithTTL(updated);
     if (success) notify();
     return success;
   },
@@ -79,7 +110,7 @@ export const modelRepository = {
     }
     
     const updated = existing.map(m => m.id === model.id ? modelWithStatus : m);
-    const success = await asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
+    const success = await this.saveWithTTL(updated);
     
     if (success) notify();
     return success;
@@ -91,7 +122,7 @@ export const modelRepository = {
     if (isSynced) {
       const existing = await this.getAll();
       const updated = existing.filter(m => m.id !== id);
-      const success = await asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
+      const success = await this.saveWithTTL(updated);
       if (success) notify();
       return success;
     }

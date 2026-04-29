@@ -7,8 +7,9 @@ Este documento descreve os próximos passos sugeridos para levar a Calculadora I
 ## 🚀 Fase 1: Estabilização e Observabilidade (Curto Prazo)
 *Foco: Garantir que saibamos quando algo quebra em produção.*
 
-1.  **Monitoramento de Erros com Sentry**: ⏳
-    *   Integrar `sentry-expo`.
+1.  **Monitoramento de Erros com Sentry**: 🔄
+    *   Integrar `sentry-expo` ✅ (código implementado)
+    *   Configurar DSN no ambiente (Vercel + local) ⏳
     *   Configurar alertas para erros críticos de sincronização com o Supabase.
     *   Garantir captura de erros silenciosos no Service Worker.
 2.  **Testes de Regressão Críticos**: ✅

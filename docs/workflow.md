@@ -103,6 +103,52 @@ npm run test:e2e         # Playwright E2E (realtime sync)
 
 ---
 
+## 🆕 Implementações Recentes (Abril 2026)
+
+### UX & Model Improvements
+- **Indicador de Criado/Editado**: Badges azuis (#4A90D9) e laranja (#FF9500) nos cards
+- **Feedback de Erro**: Erro inline para modelo duplicado
+- **Loading Animation**: Spinner + skeleton cards na tela de Modelos
+- **Transições**: Fade-in suave ao carregar lista de modelos
+- **Search Melhorado**: Busca em qualquer posição do nome
+
+### Monitoramento & Sincronização
+- **Sentry**: Integração com sentry-expo + ErrorBoundary
+  - Pendente: configurar DSN na Vercel
+- **Background Sync**: Sincronização em segundo plano (Expo TaskManager)
+  - Intervalo: 15 minutos
+  - Funciona em iOS/Android
+
+---
+
+## 🧪 Teste de Usabilidade - Check
+
+Antes do teste, execute:
+
+```bash
+npm run lint        # validar código
+npm run build       # gerar build web
+```
+
+**Telas a testar:**
+1. ✅ **Modelos** - Loading, busca, badges, animações
+2. ✅ **Injeção (IPU)** - Cálculo com modelo
+3. ✅ **Calibração** - Fluxo completo
+4. ✅ **Offline** - Criar modelo sem internet, verificar sync ao reconectar
+
+**Itens validados:**
+- [ ] Loading spinner aparece ao abrir Modelos
+- [ ] Skeleton cards durante carregamento
+- [ ] Busca encontra texto no meio do nome
+- [ ] Badge "Novo" azul aparece em modelos criados
+- [ ] Badge "Editado" laranja aparece em modelos editados
+- [ ] Erro inline ao tentar criar modelo com nome duplicado
+- [ ] Transição suave (fade) ao carregar lista
+- [ ] Criar modelo offline funciona
+- [ ] Ao reconectar, modelo sincroniza automaticamente
+
+---
+
 ## 📝 Commit Standard (Conventional Commits)
 
 All commit messages must be in **English** following the Conventional Commits pattern:

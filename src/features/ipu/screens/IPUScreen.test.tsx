@@ -6,10 +6,11 @@ import { IPUScreen } from './IPUScreen';
 
 jest.mock('@/components/ScreenLayout', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { forwardRef } = require('react');
+  const { forwardRef, useImperativeHandle } = require('react');
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { View, Text } = require('react-native');
   const ScreenLayout = forwardRef(({ children, title, footer }, ref) => {
+    useImperativeHandle(ref, () => ({ scrollToTop: () => {} }));
     return (
       <View>
         <Text>{title}</Text>
@@ -34,6 +35,17 @@ jest.mock('expo-haptics', () => ({
   selectionAsync: jest.fn(),
   notificationAsync: jest.fn(),
   impactAsync: jest.fn(),
+}));
+
+// Mock do Toast e useToast
+jest.mock('@/components/Toast', () => 'Toast');
+jest.mock('@/hooks/useToast', () => ({
+  useToast: () => ({
+    toast: null,
+    success: jest.fn(),
+    error: jest.fn(),
+    info: jest.fn(),
+  }),
 }));
 
 // Mocks específicos deste teste que não estão no setup global

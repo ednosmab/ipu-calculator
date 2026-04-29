@@ -7,7 +7,6 @@ const mockModel: CalculationModel = {
   name: 'Modelo Teste',
   type: 'ipu',
   inputs: { isocyanate: 100, polyol: 150 },
-  result: 1785.71,
   createdAt: Date.now(),
   updatedAt: Date.now(),
   syncStatus: 'pending',
@@ -20,6 +19,14 @@ const mockModelSynced: CalculationModel = {
   name: 'Modelo Sincronizado',
   syncStatus: 'synced',
   localAction: null,
+};
+
+const saveWithTTL = async (models: CalculationModel[]) => {
+  const cache = {
+    data: models,
+    expiresAt: Date.now() + 48 * 60 * 60 * 1000,
+  };
+  await asyncStorageClient.set(STORAGE_KEYS.MODELS, cache);
 };
 
 describe('ModelRepository Sync', () => {
@@ -93,7 +100,7 @@ describe('ModelRepository Sync', () => {
         { ...mockModel, id: 'model-3', syncStatus: 'synced' },
       ];
 
-      await asyncStorageClient.set(STORAGE_KEYS.MODELS, models);
+      await saveWithTTL(models);
 
       const retrieved = await modelRepository.getAll();
       expect(retrieved).toHaveLength(3);
