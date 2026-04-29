@@ -1,5 +1,6 @@
 import { supabase } from '@/core/infra/supabaseClient';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { fetchRemoteModelsUseCase } from '../application/fetchRemoteModelsUseCase';
 import { CalculationModel } from '../domain/calculationModel';
 import { modelRepository } from '../infra/modelRepository';
@@ -8,6 +9,7 @@ export const useRealtimeModels = () => {
   const [models, setModels] = useState<CalculationModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const lastSyncTime = useRef(0);
+  const appState = useRef(AppState.currentState);
 
   const fetchModels = useCallback(async (fromRemote = false) => {
     if (fromRemote) {
@@ -33,6 +35,19 @@ export const useRealtimeModels = () => {
       fetchModels(false);
     });
 
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        console.log('[useRealtimeModels] App voltou ao foreground, sincronizando...');
+        fetchModels(true);
+      }
+      appState.current = nextAppState;
+    };
+
+    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
     try {
@@ -41,7 +56,8 @@ export const useRealtimeModels = () => {
       channel.on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'models' },
-        () => {
+        (payload) => {
+          console.log('[useRealtimeModels] Evento Realtime:', payload.eventType);
           fetchModels(true);
         }
       );
@@ -59,6 +75,7 @@ export const useRealtimeModels = () => {
 
     return () => {
       unsubscribeRepo();
+      appStateSubscription.remove();
       if (channel) {
         supabase.removeChannel(channel);
       }
