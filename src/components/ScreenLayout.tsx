@@ -35,6 +35,7 @@ const ScreenLayout = forwardRef<ScreenLayoutRef, Props>(function ScreenLayout(
   }), []));
 
   const ContentWrapper = scrollable ? ScrollView : View;
+  const showOfflineIcon = isConnected === false;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -50,7 +51,7 @@ const ScreenLayout = forwardRef<ScreenLayoutRef, Props>(function ScreenLayout(
           {headerTitle ?? <Title>{title}</Title>}
           <View style={styles.headerRight}>
             {rightHeader}
-            {isConnected === false && (
+            {showOfflineIcon && (
               <FontAwesome5 name="wifi" size={16} color={theme.colors.error} />
             )}
           </View>

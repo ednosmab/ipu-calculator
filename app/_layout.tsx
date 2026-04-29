@@ -9,6 +9,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { Platform, Pressable, View } from 'react-native';
 import { registerBackgroundSync } from '@/core/sync/backgroundSyncService';
+import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -90,7 +91,7 @@ export default function RootLayout() {
   }, []);
 
   if (!isMounted || (!loaded && !error)) {
-    return null;
+    return <LoadingSkeleton />;
   }
 
   return (
