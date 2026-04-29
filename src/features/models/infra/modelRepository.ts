@@ -37,7 +37,11 @@ export const modelRepository = {
   async create(model: CalculationModel): Promise<boolean> {
     const isSynced = await modelSyncService.syncToRemote(model);
     
-    const modelWithStatus = { ...model, syncStatus: isSynced ? 'synced' : 'pending' };
+    const modelWithStatus: CalculationModel = { 
+      ...model, 
+      syncStatus: isSynced ? 'synced' : 'pending',
+      localAction: isSynced ? null : 'created',
+    };
     
     const existing = await this.getAll();
     const updated = [modelWithStatus, ...existing];
@@ -48,7 +52,11 @@ export const modelRepository = {
   },
 
   async createFromRemote(model: CalculationModel): Promise<boolean> {
-    const modelWithStatus = { ...model, syncStatus: 'synced' as const };
+    const modelWithStatus: CalculationModel = { 
+      ...model, 
+      syncStatus: 'synced' as const,
+      localAction: null,
+    };
     
     const existing = await this.getAll();
     const updated = [modelWithStatus, ...existing];
@@ -57,15 +65,15 @@ export const modelRepository = {
     return success;
   },
 
-async update(model: CalculationModel): Promise<boolean> {
+  async update(model: CalculationModel): Promise<boolean> {
     const existing = await this.getAll();
     const isSynced = await modelSyncService.syncToRemote(model);
     
     let modelWithStatus: CalculationModel;
     if (isSynced) {
-      modelWithStatus = { ...model, syncStatus: 'synced' };
+      modelWithStatus = { ...model, syncStatus: 'synced', localAction: null };
     } else {
-      modelWithStatus = { ...model, syncStatus: 'pending' };
+      modelWithStatus = { ...model, syncStatus: 'pending', localAction: 'edited' };
       const pending = createPendingOperation('update', model);
       await pendingOpsService.addPendingEdit(pending);
     }

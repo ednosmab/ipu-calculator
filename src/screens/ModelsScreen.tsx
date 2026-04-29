@@ -156,6 +156,17 @@ const openDeleteConfirm = (model: CalculationModel) => {
                   style={styles.nameContainer}
                 >
                   <Text style={styles.modelName}>{model.name}</Text>
+                  {model.localAction && (
+                    <View style={[
+                      styles.badge,
+                      model.localAction === 'created' && styles.badgeCreated,
+                      model.localAction === 'edited' && styles.badgeEdited,
+                    ]}>
+                      <Text style={styles.badgeText}>
+                        {model.localAction === 'created' ? 'Novo' : 'Editado'}
+                      </Text>
+                    </View>
+                  )}
                   <FontAwesome5 
                     name={model.syncStatus === 'synced' ? "check-circle" : "cloud-upload-alt"} 
                     size={14} 
@@ -331,6 +342,24 @@ const styles = StyleSheet.create({
   nameContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  badge: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: 2,
+    borderRadius: theme.roundness.sm,
+    marginLeft: theme.spacing.sm,
+  },
+  badgeCreated: {
+    backgroundColor: '#4A90D9',
+  },
+  badgeEdited: {
+    backgroundColor: '#FF9500',
+  },
+  badgeText: {
+    color: theme.colors.bg,
+    fontSize: theme.typography.sizes.xs,
+    fontWeight: theme.typography.weights.bold,
   },
   syncIcon: {
     marginLeft: theme.spacing.sm,

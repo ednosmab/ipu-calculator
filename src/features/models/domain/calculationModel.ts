@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 export type ModelType = 'ipu' | 'calibration';
 
+export type LocalAction = 'created' | 'edited' | null;
+
 export interface CalculationModel {
   id: string;
   name: string;
@@ -10,6 +12,7 @@ export interface CalculationModel {
   createdAt: number;
   updatedAt: number;
   syncStatus: 'synced' | 'pending';
+  localAction: LocalAction;
 }
 
 export const modelSchema = z.object({
@@ -20,6 +23,7 @@ export const modelSchema = z.object({
   createdAt: z.number(),
   updatedAt: z.number(),
   syncStatus: z.enum(['synced', 'pending']),
+  localAction: z.enum(['created', 'edited']).nullable(),
 });
 
 export const createModelId = (): string => {

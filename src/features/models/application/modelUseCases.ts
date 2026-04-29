@@ -23,6 +23,7 @@ export const createModelUseCase = async (input: CreateModelInput): Promise<Calcu
     createdAt: now,
     updatedAt: now,
     syncStatus: 'pending',
+    localAction: 'created',
   };
 
   await modelRepository.create(model);
@@ -30,7 +31,7 @@ export const createModelUseCase = async (input: CreateModelInput): Promise<Calcu
 };
 
 export const updateModelUseCase = async (model: CalculationModel): Promise<boolean> => {
-  const updated: CalculationModel = { ...model, updatedAt: Date.now(), syncStatus: 'pending' };
+  const updated: CalculationModel = { ...model, updatedAt: Date.now(), syncStatus: 'pending', localAction: 'edited' };
   return modelRepository.update(updated);
 };
 

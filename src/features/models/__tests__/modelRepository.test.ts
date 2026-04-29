@@ -11,6 +11,7 @@ const mockModel: CalculationModel = {
   createdAt: Date.now(),
   updatedAt: Date.now(),
   syncStatus: 'pending',
+  localAction: 'created',
 };
 
 const mockModelSynced: CalculationModel = {
@@ -18,6 +19,7 @@ const mockModelSynced: CalculationModel = {
   id: 'test-456',
   name: 'Modelo Sincronizado',
   syncStatus: 'synced',
+  localAction: null,
 };
 
 describe('ModelRepository Sync', () => {

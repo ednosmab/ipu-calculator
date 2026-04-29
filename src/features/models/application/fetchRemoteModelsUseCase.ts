@@ -26,6 +26,7 @@ export const fetchRemoteModelsUseCase = async (): Promise<void> => {
         createdAt: new Date(item.created_at).getTime(),
         updatedAt: new Date(item.updated_at).getTime(),
         syncStatus: 'synced' as const,
+        localAction: null,
       }));
 
       for (const rm of remoteModels) {
