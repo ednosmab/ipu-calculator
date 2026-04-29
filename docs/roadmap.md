@@ -37,9 +37,12 @@
 
 | Item | Status | Observação |
 |------|--------|------------|
-| Offline First | ❌ | Não implementado |
+| Offline First | ✅ | Implementado com Sync + Realtime |
 | i18n (PT/EN) | ✅ | Implementado |
 | Acessibilidade | ❌ | Não implementado |
+| Model Indicators | ❌ | Edit/Delete indicators |
+| Loading Animation | ❌ | Skeleton/Spinner |
+| Search Melhorado | ❌ | Buscar em qualquer parte |
 
 ---
 
@@ -48,11 +51,13 @@
 | Prioridade | Task | Status |
 |------------|------|--------|
 
-| Alta | Testes de integração IPUScreen | ❌ |
+| Alta | Indicadores Edit/Delete | ❌ |
+| Alta | Modelo Duplicado (erro claro) | ❌ |
+| Média | Testes de integração IPUScreen | ❌ |
 | Média | EAS Update para hotfixes | ❌ |
-| Média | Local Persistence (histórico) | ✅ |
-| Baixa | Acessibilidade (accessibilityLabel) | ❌ |
-| Baixa | Offline First | ❌ |
+| Média | Loading Animation | ❌ |
+| Baixa | Acessibilidade | ❌ |
+| Baixa | Search Melhorado | ❌ |
 
 ---
 
@@ -71,6 +76,8 @@
 - [x] Local Persistence (histórico de cálculos)
 - [x] Design System aprimorado (Header, Title, Card)
 - [x] Sincronização de estado assistente/lógica (Calibração)
+- [x] Offline First com Sync + Realtime
+- [x] Supabase Realtime (criado/edit/delete remoto)
 
 ---
 
