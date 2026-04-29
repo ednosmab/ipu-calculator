@@ -70,26 +70,36 @@ await AsyncStorage.removeItem('schema_version');
 
 Execute os testes com Jest:
 ```bash
-npm test              # roda todos os testes (78+ testes)
-npm test -- --watch  # modo watch (reexecuta ao salvar)
-npm test --coverage  # com coverage report
+npm test              # roda todos os testes (85 testes)
+npm test -- --watch  # modo watch (reativa ao salvar)
+npm test -- --coverage  # com coverage report
 
-# testes isolados
-npm run test:lint        # design-system (Button, Input, Card, Text) - 18 testes
-npm run test:core        # core (formatters, parsers) - 2 arquivos
-npm run test:features    # domain logic (calculation, validation) - 3 arquivos
-npm run test:integration # screens + hooks (UI/logic integration) - 3 arquivos
+# testes por módulo
+npm run test:lint        # design-system (Button, Input, Card, Text)
+npm run test:core        # core (formatters, parsers)
+npm run test:features    # domain logic (calculation, validation)
+npm run test:integration # screens + hooks (UI/logic integration)
+npm run test:e2e         # Playwright E2E (realtime sync)
 ```
 
 | Script | Descrição |
 | :--- | :--- |
-| `test` | Todos os testes (78+ testes) |
-| `test -- --watch` | Watch mode (reativa ao salvar) |
-| `test -- --coverage` | Gera relatório de cobertura |
-| `test:lint` | Design system (Button, Input, Card, Text) - 18 testes |
-| `test:core` | Core modules (formatters, parsers) |
-| `test:features` | Domain logic (calculation, validation) |
-| `test:integration` | Screens + Hooks (UI/logic integration) |
+| `test` | Todos os testes (85 testes) |
+| `test -- --watch` | Watch mode |
+| `test -- --coverage` | Relatório de cobertura |
+| `test:lint` | Design system |
+| `test:core` | Módulos core |
+| `test:features` | Lógica de domínio |
+| `test:integration` | Screens + Hooks |
+| `test:e2e` | Playwright E2E |
+
+---
+
+## 📋 Tasks Pendentes
+
+| Task | Prioridade | Status |
+| :--- | :--- | :--- |
+| Corrigir teste `useRealtimeModels.should refetch models when a Realtime event is received` | baixa | skipped |
 
 ---
 
