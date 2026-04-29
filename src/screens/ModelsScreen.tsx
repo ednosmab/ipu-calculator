@@ -40,6 +40,7 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
     setEditingModel(null);
     setModelName('');
     setInjectionTime('');
+    setNameError('');
     setModalVisible(true);
   };
 
@@ -48,6 +49,7 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
     setModelName(model.name);
     setInjectionTime(String(model.inputs.injectionTime || ''));
     setIsTimeOnly(false);
+    setNameError('');
     setModalVisible(true);
   };
 
@@ -135,6 +137,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
 
   const handleModalClose = () => {
     setModalVisible(false);
+    setNameError('');
   };
 
   const filterBySearch = (models: CalculationModel[]) => {

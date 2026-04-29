@@ -20,28 +20,8 @@
 
 | Item | Status | Descrição |
 |------|--------|----------|
-| Modelo Duplicado | ❌ | Exibir erro específico quando nome já existe |
+| Modelo Duplicado | ✅ | Erro inline no modal (IPUScreen e ModelsScreen) |
 | Toast/Alert | ❌ | Mensagem clara para o usuário |
-
----
-
-## Fase 3: Loading & Transições
-
-| Item | Status | Descrição |
-|------|--------|----------|
-| Skeleton Loading | ❌ | Animação de loading para modelos |
-| Transições | ❌ | Animações suaves entre telas/elementos |
-| Pull to Refresh | ❌ | Atualizar models com gesto |
-
----
-
-## Fase 4: Busca de Modelos
-
-| Item | Status | Descrição |
-|------|--------|----------|
-| Search Medio | ❌ | Buscar mesmo em qualquer parte do nome |
-| Case Insensitive | ❌ | Ignorar maiúsculas/minúsculas |
-| Highlight | ❌ | Destacar termos encontrados |
 
 ---
 
@@ -51,7 +31,7 @@
 |------------|------|--------|----------|
 | Alta | Indicador Editado | ✅ | Badge laranja nos cards |
 | Alta | Indicador Criado | ✅ | Badge azul nos cards |
-| Alta | Modelo Duplicado | ❌ | Exibir erro claro ao criar |
+| Alta | Modelo Duplicado | ✅ | Erro inline ao criar/editar |
 | Média | Loading Animation | ❌ | Skeleton ou Spinner na lista |
 | Média | Transições | ❌ | Animações em elementos |
 | Baixa | Search Melhorado | ❌ | Buscar em qualquer posição |
@@ -61,9 +41,12 @@
 ## ✅ Itens Concluídos
 
 - [x] Badge "Novo" para modelos criados localmente (azul #4A90D9)
-- [x] Badge "Editado" para modelos editados localmente (laranja #FF9500)
+- [x] Badge "Editado" para modelos editados (laranja #FF9500)
 - [x] Campo `localAction` no CalculationModel
 - [x] Atualização automática via modelRepository
+- [x] Erro inline para nome duplicado na ModelsScreen
+- [x] Erro inline para nome duplicado na IPUScreen
+- [x] Verificação de duplicado em updateModelUseCase
 
 ## 📋 Detalhamento
 
