@@ -1,8 +1,7 @@
 import { useRef, useState } from 'react';
 import { Modal as RNModal, View } from 'react-native';
 import { logService } from '@/core/logging/LogService';
-import { CalculationModel } from '@/features/models/domain/calculationModel';
-import { createModelUseCase, getModelsByTypeUseCase, updateModelUseCase } from '@/features/models/application/modelUseCases';
+import { createModelUseCase } from '@/features/models/application/modelUseCases';
 import { Button, Input, Card, theme, HStack, VStack, Text } from '@/design-system';
 import { InputRef } from '@/design-system/components/Input';
 import { ResultCard } from '@/components/ResultCard';
@@ -26,7 +25,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
   const { t } = useTranslation();
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [modelName, setModelName] = useState('');
-  const [existingModel, setExistingModel] = useState<CalculationModel | null>(null);
+  const [saveError, setSaveError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   
   const { 
@@ -63,40 +62,31 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
 
   const handleOpenSaveModal = async () => {
     setModelName('');
-    const nameUpper = (result || '').toUpperCase();
-    const models = await getModelsByTypeUseCase('ipu');
-    const found = models.find(m => m.name.toUpperCase() === nameUpper);
-    setExistingModel(found || null);
+    setSaveError('');
     setShowSaveModal(true);
   };
 
   const handleSaveModel = async () => {
     if (!modelName.trim()) return;
     setIsSaving(true);
+    setSaveError('');
     try {
       const nameUpper = modelName.trim().toUpperCase();
       const timeNum = parseNumber(result ?? '');
-      const models = await getModelsByTypeUseCase('ipu');
-      const existing = models.find(m => m.name.toUpperCase() === nameUpper);
-      
-      if (existing) {
-        await updateModelUseCase({
-          ...existing,
-          name: nameUpper,
-          inputs: { injectionTime: timeNum },
-        });
-      } else {
-        await createModelUseCase({
-          name: nameUpper,
-          type: 'ipu',
-          inputs: { injectionTime: timeNum },
-        });
-      }
+      await createModelUseCase({
+        name: nameUpper,
+        type: 'ipu',
+        inputs: { injectionTime: timeNum },
+      });
       setShowSaveModal(false);
       setModelName('');
-      setExistingModel(null);
     } catch (e) {
-      logService.error('Failed to save model', e);
+      const message = e instanceof Error ? e.message : 'Erro ao salvar modelo';
+      if (message.includes('Já existe um modelo com este nome')) {
+        setSaveError(message);
+      } else {
+        logService.error('Failed to save model', e);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -105,7 +95,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
   const handleCloseSaveModal = () => {
     setShowSaveModal(false);
     setModelName('');
-    setExistingModel(null);
+    setSaveError('');
   };
 
   return (
@@ -173,31 +163,30 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
         <HistoryList history={history} onItemPress={fillFromHistory} onClear={clearHistory} />
       </VStack>
 
-      <RNModal visible={showSaveModal} transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('saveAsModel')}</Text>
-            <Input
-              label={t('modelName')}
-              value={modelName}
-              onChange={setModelName}
-              placeholder={t('modelNamePlaceholder')}
-              keyboardType="default"
-              autoCapitalize="characters"
-            />
-            <Text style={styles.modalText}>Tempo: {result}s</Text>
-            {existingModel && (
-              <Text style={styles.modalText}>
-                {t('existingModel')}: {existingModel.inputs.injectionTime.toFixed(2).replace('.', ',')}s ({t('willBeOverwritten')})
-              </Text>
-            )}
-            <HStack>
-              <Button title={t('cancel')} variant="secondary" onPress={handleCloseSaveModal} style={{ flex: 1 }} disabled={isSaving} icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />} />
-              <Button title={existingModel ? t('overwrite') : t('save')} onPress={handleSaveModel} style={{ flex: 1 }} loading={isSaving} icon={<FontAwesome5 name="check" size={20} color={theme.colors.primaryText} />} />
-            </HStack>
+<RNModal visible={showSaveModal} transparent>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>{t('saveAsModel')}</Text>
+              <Input
+                label={t('modelName')}
+                value={modelName}
+                onChange={(val) => {
+                  setModelName(val);
+                  setSaveError('');
+                }}
+                placeholder={t('modelNamePlaceholder')}
+                keyboardType="default"
+                autoCapitalize="characters"
+                error={saveError}
+              />
+              <Text style={styles.modalText}>Tempo: {result}s</Text>
+              <HStack>
+                <Button title={t('cancel')} variant="secondary" onPress={handleCloseSaveModal} style={{ flex: 1 }} disabled={isSaving} icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />} />
+                <Button title={t('save')} onPress={handleSaveModel} style={{ flex: 1 }} loading={isSaving} icon={<FontAwesome5 name="check" size={20} color={theme.colors.primaryText} />} />
+              </HStack>
+            </View>
           </View>
-        </View>
-      </RNModal>
+        </RNModal>
     </ScreenLayout>
   );
 };

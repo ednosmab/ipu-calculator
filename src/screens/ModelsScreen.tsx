@@ -29,6 +29,7 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
   const lastDeleteTime = useRef(0);
   const [editingModel, setEditingModel] = useState<CalculationModel | null>(null);
   const [modelName, setModelName] = useState('');
+  const [nameError, setNameError] = useState('');
   const [injectionTime, setInjectionTime] = useState('');
   const [timeError, setTimeError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -87,7 +88,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
   const handleSave = async () => {
     const nameUpper = modelName.trim().toUpperCase();
     if (!nameUpper) {
-      Alert.alert('Erro', 'Nome é obrigatório');
+      setNameError('Nome é obrigatório');
       return;
     }
     
@@ -99,6 +100,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
     }
     
     setTimeError('');
+    setNameError('');
     
     setIsSaving(true);
     try {
@@ -120,7 +122,12 @@ const openDeleteConfirm = (model: CalculationModel) => {
       // useRealtimeModels reage automaticamente via modelRepository.subscribe()
       setModalVisible(false);
     } catch (error) {
-      Alert.alert('Erro', error instanceof Error ? error.message : 'Não foi possível salvar o modelo');
+      const message = error instanceof Error ? error.message : 'Não foi possível salvar o modelo';
+      if (message.includes('Já existe um modelo com este nome')) {
+        setNameError(message);
+      } else {
+        Alert.alert('Erro', message);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -259,10 +266,14 @@ const openDeleteConfirm = (model: CalculationModel) => {
                 <Input
                   label="Nome"
                   value={modelName}
-                  onChange={setModelName}
+                  onChange={(val) => {
+                    setModelName(val);
+                    setNameError('');
+                  }}
                   placeholder="Nome do modelo"
                   keyboardType="default"
                   autoCapitalize="characters"
+                  error={nameError}
                 />
               )}
               <Input

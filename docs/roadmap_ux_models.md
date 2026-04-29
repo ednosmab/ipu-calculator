@@ -10,9 +10,9 @@
 
 | Item | Status | Descrição |
 |------|--------|----------|
-| Indicador de Edit | ❌ | Badge/ícone indicando modelo editado |
-| Indicador de Delete | ❌ | Badge/ícone indicando modelo deletado |
-| Status de Sync | ❌ | Indicador visual de synced/pending |
+| Indicador de Criado | ✅ | Badge "Novo" azul (#4A90D9) |
+| Indicador de Editado | ✅ | Badge "Editado" laranja (#FF9500) |
+| Status de Sync | ✅ | Ícone nuvem (synced/pending) |
 
 ---
 
@@ -47,23 +47,32 @@
 
 ## 🛠️ Backlog Imediato
 
-| Prioridade | Task | Descrição |
-|------------|------|----------|
-| Alta | Indicador Edit/Delete | Badge visual nos cards de modelo |
-| Alta | Modelo Duplicado | Exibir erro claro ao criar |
-| Média | Loading Animation | Skeleton ou Spinner na lista |
-| Média | Transições | Animações em elementos |
-| Baixa | Search Melhorado | Buscar em qualquer posição |
+| Prioridade | Task | Status | Descrição |
+|------------|------|--------|----------|
+| Alta | Indicador Editado | ✅ | Badge laranja nos cards |
+| Alta | Indicador Criado | ✅ | Badge azul nos cards |
+| Alta | Modelo Duplicado | ❌ | Exibir erro claro ao criar |
+| Média | Loading Animation | ❌ | Skeleton ou Spinner na lista |
+| Média | Transições | ❌ | Animações em elementos |
+| Baixa | Search Melhorado | ❌ | Buscar em qualquer posição |
 
 ---
 
+## ✅ Itens Concluídos
+
+- [x] Badge "Novo" para modelos criados localmente (azul #4A90D9)
+- [x] Badge "Editado" para modelos editados localmente (laranja #FF9500)
+- [x] Campo `localAction` no CalculationModel
+- [x] Atualização automática via modelRepository
+
 ## 📋 Detalhamento
 
-### Indicador Edit/Delete
+### Indicador Criado/Editado
 
-- Adicionar badge nos cards do modelo
-- Edit: ícone de "editado" com timestamp
-- Delete: toast "Modelo deletado" com Undo
+- ✅ Badge "Novo" (azul #4A90D9) para modelos criados localmente
+- ✅ Badge "Editado" (laranja #FF9500) para modelos editados
+- Campo `localAction` no modelo: 'created' | 'edited' | null
+- Exibição condicional no ModelsScreen.tsx
 
 ### Modelo Duplicado
 

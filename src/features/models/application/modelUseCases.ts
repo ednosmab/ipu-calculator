@@ -31,6 +31,12 @@ export const createModelUseCase = async (input: CreateModelInput): Promise<Calcu
 };
 
 export const updateModelUseCase = async (model: CalculationModel): Promise<boolean> => {
+  const existing = await modelRepository.getByType(model.type);
+  const duplicate = existing.find(m => m.id !== model.id && m.name.toUpperCase() === model.name.toUpperCase());
+  if (duplicate) {
+    throw new Error('Já existe um modelo com este nome');
+  }
+  
   const updated: CalculationModel = { ...model, updatedAt: Date.now(), syncStatus: 'pending', localAction: 'edited' };
   return modelRepository.update(updated);
 };
