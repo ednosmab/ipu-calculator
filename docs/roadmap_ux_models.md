@@ -32,7 +32,7 @@
 | Alta | Indicador Editado | ✅ | Badge laranja nos cards |
 | Alta | Indicador Criado | ✅ | Badge azul nos cards |
 | Alta | Modelo Duplicado | ✅ | Erro inline ao criar/editar |
-| Média | Loading Animation | ❌ | Skeleton ou Spinner na lista |
+| Média | Loading Animation | ✅ | Skeleton ou Spinner na lista |
 | Média | Transições | ❌ | Animações em elementos |
  | Baixa | Search Melhorado | ✅ | Buscar em qualquer posição |
 

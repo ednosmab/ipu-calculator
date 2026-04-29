@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, View, Modal as RNModal, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, View, Modal as RNModal, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Button, Text, Card, theme } from '@/design-system';
 import { Input, InputRef } from '@/design-system/components/Input';
@@ -232,6 +232,26 @@ const openDeleteConfirm = (model: CalculationModel) => {
     </View>
   );
 
+  const renderSkeleton = () => (
+    <View style={styles.content}>
+      <View style={[styles.skeletonCard, { backgroundColor: theme.colors.surface, borderRadius: theme.roundness.md, padding: theme.spacing.md, marginBottom: theme.spacing.sm }]} />
+      <View style={[styles.skeletonCard, { backgroundColor: theme.colors.surface, borderRadius: theme.roundness.md, padding: theme.spacing.md, marginBottom: theme.spacing.sm }]} />
+      <View style={[styles.skeletonCard, { backgroundColor: theme.colors.surface, borderRadius: theme.roundness.md, padding: theme.spacing.md }]} />
+    </View>
+  );
+
+  if (isLoading) {
+    return (
+      <ScreenLayout title="Modelos" onBack={onGoBack}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={styles.loadingText}>Carregando modelos...</Text>
+          {renderSkeleton()}
+        </View>
+      </ScreenLayout>
+    );
+  }
+
   return (
     <ScreenLayout title="Modelos" onBack={onGoBack} footer={fab}>
       <View style={styles.content}>
@@ -410,6 +430,22 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     textAlign: 'center',
     marginTop: theme.spacing.xl,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.lg,
+  },
+  loadingText: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.sizes.md,
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.xl,
+  },
+  skeletonCard: {
+    height: 98,
+    opacity: 0.5,
   },
   fabWrapper: {
     flexDirection: 'row',
