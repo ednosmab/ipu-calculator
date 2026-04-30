@@ -13,6 +13,7 @@ export const useRealtimeModels = () => {
   const appState = useRef(AppState.currentState);
 
   const fetchModels = useCallback(async (fromRemote = false) => {
+    console.log('[useRealtimeModels] fetchModels called, fromRemote:', fromRemote);
     if (fromRemote) {
       const now = Date.now();
       if (now - lastSyncTime.current < 1000) {
@@ -22,6 +23,8 @@ export const useRealtimeModels = () => {
       await fetchRemoteModelsUseCase();
     }
     const data = await modelRepository.getAll();
+    console.log('[useRealtimeModels] Modelos retornados do repo:', data.length);
+    console.log('[useRealtimeModels] IDs dos modelos:', data.map(m => m.id));
     logger.info('[useRealtimeModels] Modelos carregados:', data.length);
     setModels(data);
     setIsLoading(false);
