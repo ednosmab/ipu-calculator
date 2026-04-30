@@ -33,14 +33,24 @@ export const useIPUCalculator = () => {
   });
 
   const clearHistory = async () => {
-    await historyRepository.clear();
+    await historyRepository.clear('ipu');
     await loadHistory();
   };
+
+  const [pendingCalculate, setPendingCalculate] = useState(false);
+
+  // #07 Fix: trigger calculate after setState has applied the new input values
+  useEffect(() => {
+    if (pendingCalculate) {
+      logic.calculate();
+      setPendingCalculate(false);
+    }
+  }, [pendingCalculate, logic.calculate]);
 
   const fillFromHistory = (item: CalculationHistory) => {
     logic.setInputValue('isocyanate', item.inputs.isocyanate?.toString() ?? '');
     logic.setInputValue('polyol', item.inputs.polyol?.toString() ?? '');
-    logic.calculate();
+    setPendingCalculate(true);
   };
 
   return {

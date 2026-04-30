@@ -4,6 +4,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import { fetchRemoteModelsUseCase } from '../application/fetchRemoteModelsUseCase';
 import { CalculationModel } from '../domain/calculationModel';
 import { modelRepository } from '../infra/modelRepository';
+import { logger } from '@/core/logging/logger';
 
 export const useRealtimeModels = () => {
   const [models, setModels] = useState<CalculationModel[]>([]);
@@ -21,17 +22,17 @@ export const useRealtimeModels = () => {
       await fetchRemoteModelsUseCase();
     }
     const data = await modelRepository.getAll();
-    console.log('[useRealtimeModels] Modelos carregados:', data.length);
+    logger.info('[useRealtimeModels] Modelos carregados:', data.length);
     setModels(data);
     setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    console.log('[useRealtimeModels] Iniciando...');
+    logger.info('[useRealtimeModels] Iniciando...');
     fetchModels(true);
 
     const unsubscribeRepo = modelRepository.subscribe(() => {
-      console.log('[useRealtimeModels] Notificado via repo, recarregando...');
+      logger.info('[useRealtimeModels] Notificado via repo, recarregando...');
       fetchModels(false);
     });
 
@@ -40,7 +41,7 @@ export const useRealtimeModels = () => {
         appState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        console.log('[useRealtimeModels] App voltou ao foreground, sincronizando...');
+        logger.info('[useRealtimeModels] App voltou ao foreground, sincronizando...');
         fetchModels(true);
       }
       appState.current = nextAppState;
@@ -57,20 +58,20 @@ export const useRealtimeModels = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'models' },
         (payload) => {
-          console.log('[useRealtimeModels] Evento Realtime:', payload.eventType);
+          logger.info('[useRealtimeModels] Evento Realtime:', payload.eventType);
           fetchModels(true);
         }
       );
 
       channel.subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.warn('[useRealtimeModels]: Realtime indisponível. Operando em modo local.');
+          logger.warn('[useRealtimeModels]: Realtime indisponível. Operando em modo local.');
         } else if (status === 'SUBSCRIBED') {
-          console.log('[useRealtimeModels]: Realtime conectado com sucesso.');
+          logger.info('[useRealtimeModels]: Realtime conectado com sucesso.');
         }
       });
     } catch (e) {
-      console.warn('[useRealtimeModels]: Erro ao configurar realtime, operando offline:', e);
+      logger.warn('[useRealtimeModels]: Erro ao configurar realtime, operando offline:', e);
     }
 
     return () => {

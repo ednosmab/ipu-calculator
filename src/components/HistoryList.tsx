@@ -6,11 +6,12 @@ import { CalculationHistory } from '@/features/history/domain/calculationHistory
 type Props = {
   history: CalculationHistory[];
   labels?: Record<string, string>;
+  decimals?: number;
   onItemPress?: (item: CalculationHistory) => void;
   onClear?: () => void;
 };
 
-export const HistoryList = ({ history, labels, onItemPress, onClear }: Props) => {
+export const HistoryList = ({ history, labels, decimals = 2, onItemPress, onClear }: Props) => {
   if (history.length === 0) {
     return null;
   }
@@ -91,7 +92,7 @@ export const HistoryList = ({ history, labels, onItemPress, onClear }: Props) =>
                   {formatInputs(item.inputs)}
                 </Text>
               </View>
-              <Text style={styles.result}>{item.result.toFixed(2)}</Text>
+              <Text style={styles.result}>{item.result.toFixed(decimals)}</Text>
             </View>
           </Pressable>
         ))}

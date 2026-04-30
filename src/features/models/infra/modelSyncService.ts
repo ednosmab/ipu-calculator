@@ -1,5 +1,6 @@
 import { supabase } from '@/core/infra/supabaseClient';
 import { CalculationModel } from '../domain/calculationModel';
+import { logger } from '@/core/logging/logger';
 
 export const modelSyncService = {
   async syncToRemote(model: CalculationModel): Promise<boolean> {
@@ -15,14 +16,14 @@ export const modelSyncService = {
         });
 
       if (error) {
-        console.error('[Supabase Sync Error]:', error.message, error.details);
+        logger.error('[Supabase Sync Error]:', error.message, error.details);
         return false;
       }
 
-      console.log('[Supabase Sync Success]: Modelo sincronizado com sucesso.');
+      logger.info('[Supabase Sync Success]: Modelo sincronizado com sucesso.');
       return true;
     } catch (e) {
-      console.error('Network error during sync:', e);
+      logger.error('Network error during sync:', e);
       return false;
     }
   },
@@ -35,13 +36,13 @@ export const modelSyncService = {
         .eq('id', id);
 
       if (error) {
-        console.error('Error deleting model from Supabase:', error);
+        logger.error('Error deleting model from Supabase:', error);
         return false;
       }
 
       return true;
     } catch (e) {
-      console.error('Network error during remote delete:', e);
+      logger.error('Network error during remote delete:', e);
       return false;
     }
   }

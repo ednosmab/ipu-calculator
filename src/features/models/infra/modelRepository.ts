@@ -3,8 +3,17 @@ import { CalculationModel, ModelType } from '../domain/calculationModel';
 import { createPendingOperation, createPendingDelete, PendingOperation, MAX_ATTEMPTS } from '../domain/pendingOperation';
 import { modelSyncService } from './modelSyncService';
 import { pendingOpsService } from './pendingOpsService';
+import { logger } from '@/core/logging/logger';
 
 const MODEL_TTL_MS = 48 * 60 * 60 * 1000; // 48 hours
+
+// Simple async mutex to prevent race conditions on concurrent write operations
+let writeQueue: Promise<unknown> = Promise.resolve();
+const withWriteLock = <T>(fn: () => Promise<T>): Promise<T> => {
+  const next = writeQueue.then(fn);
+  writeQueue = next.catch(() => {});
+  return next;
+};
 
 interface CacheMetadata {
   data: CalculationModel[];
@@ -32,14 +41,19 @@ export const modelRepository = {
 
   async getAll(forceRefresh = false): Promise<CalculationModel[]> {
     const cached = await asyncStorageClient.get<CacheMetadata>(STORAGE_KEYS.MODELS);
-    
+
     if (!cached) return [];
-    
-    if (!forceRefresh && cached.expiresAt && this.isExpired(cached.expiresAt)) {
-      console.log('[modelRepository] Cache expirado, retornando vazio');
-      return [];
+
+    if (cached.expiresAt && this.isExpired(cached.expiresAt)) {
+      logger.info('[modelRepository] Cache expirado — retornando dados obsoletos e acionando refresh em background');
+      if (!forceRefresh) {
+        import('../application/fetchRemoteModelsUseCase')
+          .then(({ fetchRemoteModelsUseCase }) => fetchRemoteModelsUseCase())
+          .catch((err) => logger.error('[modelRepository] Falha no refresh de background', err));
+      }
+      return cached.data ?? [];
     }
-    
+
     return cached.data ?? [];
   },
 
@@ -66,20 +80,22 @@ export const modelRepository = {
   },
 
   async create(model: CalculationModel): Promise<boolean> {
-    const isSynced = await modelSyncService.syncToRemote(model);
-    
-    const modelWithStatus: CalculationModel = { 
-      ...model, 
-      syncStatus: isSynced ? 'synced' : 'pending',
-      localAction: isSynced ? null : 'created',
-    };
-    
-    const existing = await this.getAll();
-    const updated = [modelWithStatus, ...existing];
-    const success = await this.saveWithTTL(updated);
-    
-    if (success) notify();
-    return success;
+    return withWriteLock(async () => {
+      const isSynced = await modelSyncService.syncToRemote(model);
+
+      const modelWithStatus: CalculationModel = {
+        ...model,
+        syncStatus: isSynced ? 'synced' : 'pending',
+        localAction: isSynced ? null : 'created',
+      };
+
+      const existing = await this.getAll();
+      const updated = [modelWithStatus, ...existing];
+      const success = await this.saveWithTTL(updated);
+
+      if (success) notify();
+      return success;
+    });
   },
 
   async createFromRemote(model: CalculationModel): Promise<boolean> {
@@ -97,38 +113,54 @@ export const modelRepository = {
   },
 
   async update(model: CalculationModel): Promise<boolean> {
-    const existing = await this.getAll();
-    const isSynced = await modelSyncService.syncToRemote(model);
-    
-    let modelWithStatus: CalculationModel;
-    if (isSynced) {
-      modelWithStatus = { ...model, syncStatus: 'synced', localAction: null };
-    } else {
-      modelWithStatus = { ...model, syncStatus: 'pending', localAction: 'edited' };
-      const pending = createPendingOperation('update', model);
-      await pendingOpsService.addPendingEdit(pending);
-    }
-    
-    const updated = existing.map(m => m.id === model.id ? modelWithStatus : m);
-    const success = await this.saveWithTTL(updated);
-    
-    if (success) notify();
-    return success;
+    return withWriteLock(async () => {
+      const existing = await this.getAll();
+      const isSynced = await modelSyncService.syncToRemote(model);
+
+      let modelWithStatus: CalculationModel;
+      if (isSynced) {
+        modelWithStatus = { ...model, syncStatus: 'synced', localAction: null };
+      } else {
+        modelWithStatus = { ...model, syncStatus: 'pending', localAction: 'edited' };
+        const pending = createPendingOperation('update', model);
+        await pendingOpsService.addPendingEdit(pending);
+      }
+
+      const updated = existing.map(m => m.id === model.id ? modelWithStatus : m);
+      const success = await this.saveWithTTL(updated);
+
+      if (success) notify();
+      return success;
+    });
   },
 
-  async delete(id: string): Promise<boolean> {
-    const isSynced = await modelSyncService.deleteFromRemote(id);
-    
-    if (isSynced) {
+  // Persists a model update locally only, without triggering a remote sync.
+  // Use this when the sync has already been performed by the caller.
+  async updateLocal(model: CalculationModel): Promise<boolean> {
+    return withWriteLock(async () => {
       const existing = await this.getAll();
-      const updated = existing.filter(m => m.id !== id);
+      const updated = existing.map(m => m.id === model.id ? model : m);
       const success = await this.saveWithTTL(updated);
       if (success) notify();
       return success;
-    }
+    });
+  },
 
-    await pendingOpsService.addPendingDelete(id);
-    notify();
-    return true;
+  async delete(id: string): Promise<boolean> {
+    return withWriteLock(async () => {
+      const isSynced = await modelSyncService.deleteFromRemote(id);
+
+      if (isSynced) {
+        const existing = await this.getAll();
+        const updated = existing.filter(m => m.id !== id);
+        const success = await this.saveWithTTL(updated);
+        if (success) notify();
+        return success;
+      }
+
+      await pendingOpsService.addPendingDelete(id);
+      notify();
+      return true;
+    });
   },
 };

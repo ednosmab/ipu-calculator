@@ -167,7 +167,7 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
           <Button title={t('clear')} variant="secondary" onPress={clear} icon={<FontAwesome5 name="eraser" size={20} color={theme.colors.textSecondary} />} />
         </VStack>
 
-        <HistoryList history={history} onItemPress={fillFromHistory} onClear={clearHistory} />
+        <HistoryList history={history} decimals={3} onItemPress={fillFromHistory} onClear={clearHistory} />
       </VStack>
     </ScreenLayout>
   );

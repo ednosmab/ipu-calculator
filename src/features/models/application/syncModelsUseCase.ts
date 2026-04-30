@@ -1,43 +1,44 @@
 import { modelRepository } from '../infra/modelRepository';
 import { modelSyncService } from '../infra/modelSyncService';
 import { pendingOpsService } from '../infra/pendingOpsService';
-import { MAX_ATTEMPTS, PendingOperation } from '../domain/pendingOperation';
-import { asyncStorageClient, STORAGE_KEYS } from '@/core/storage/asyncStorageClient';
+import { MAX_ATTEMPTS } from '../domain/pendingOperation';
+import { logger } from '@/core/logging/logger';
 
 export const processPendingDeletesUseCase = async (): Promise<{ processed: number; failed: number }> => {
   const pendingIds = await pendingOpsService.getPendingDeletes();
-  
+
   if (pendingIds.length === 0) return { processed: 0, failed: 0 };
 
-  console.log(`[PendingDeletes] Processando ${pendingIds.length} deletes pendentes...`);
+  logger.info(`[PendingDeletes] Processando ${pendingIds.length} deletes pendentes...`);
 
   let processed = 0;
   let failed = 0;
 
   for (const id of pendingIds) {
     const success = await modelSyncService.deleteFromRemote(id);
-    
+
     if (success) {
       await pendingOpsService.removePendingDelete(id);
+      // #02 Fix: use saveWithTTL via the repository instead of raw asyncStorageClient.set
       const models = await modelRepository.getAll();
       const updated = models.filter(m => m.id !== id);
-      await asyncStorageClient.set(STORAGE_KEYS.MODELS, updated);
+      await modelRepository.saveWithTTL(updated);
       processed++;
     } else {
       failed++;
     }
   }
 
-  console.log(`[PendingDeletes] Processados: ${processed}, Falhos: ${failed}`);
+  logger.info(`[PendingDeletes] Processados: ${processed}, Falhos: ${failed}`);
   return { processed, failed };
 };
 
 export const processPendingEditsUseCase = async (): Promise<{ processed: number; failed: number }> => {
   const pendingEdits = await pendingOpsService.getPendingEdits();
-  
+
   if (pendingEdits.length === 0) return { processed: 0, failed: 0 };
 
-  console.log(`[PendingEdits] Processando ${pendingEdits.length} edits pendentes...`);
+  logger.info(`[PendingEdits] Processando ${pendingEdits.length} edits pendentes...`);
 
   let processed = 0;
   let failed = 0;
@@ -49,15 +50,16 @@ export const processPendingEditsUseCase = async (): Promise<{ processed: number;
     }
 
     const success = await modelSyncService.syncToRemote(op.model);
-    
+
     if (success) {
       await pendingOpsService.removePendingEdit(op.id);
-      await modelRepository.update({ ...op.model, syncStatus: 'synced' });
+      // #06 Fix: use updateLocal to avoid triggering a second syncToRemote call
+      await modelRepository.updateLocal({ ...op.model, syncStatus: 'synced', localAction: null });
       processed++;
     } else {
       const attempts = op.attempts + 1;
       if (attempts >= MAX_ATTEMPTS) {
-        console.log(`[PendingEdits] Modelo ${op.id} excedeu tentativas, removendo da fila`);
+        logger.warn(`[PendingEdits] Modelo ${op.id} excedeu tentativas, removendo da fila`);
         await pendingOpsService.removePendingEdit(op.id);
         failed++;
       } else {
@@ -66,7 +68,7 @@ export const processPendingEditsUseCase = async (): Promise<{ processed: number;
     }
   }
 
-  console.log(`[PendingEdits] Processados: ${processed}, Falhos: ${failed}`);
+  logger.info(`[PendingEdits] Processados: ${processed}, Falhos: ${failed}`);
   return { processed, failed };
 };
 
@@ -76,12 +78,13 @@ export const syncModelsUseCase = async (): Promise<void> => {
 
   if (pendingModels.length === 0) return;
 
-  console.log(`Iniciando sincronização de ${pendingModels.length} modelos pendentes...`);
+  logger.info(`[Sync] Iniciando sincronização de ${pendingModels.length} modelos pendentes...`);
 
   for (const model of pendingModels) {
     const success = await modelSyncService.syncToRemote(model);
     if (success) {
-      await modelRepository.update({ ...model, syncStatus: 'synced' });
+      // #06 Fix: updateLocal avoids double-sync — sync already happened above
+      await modelRepository.updateLocal({ ...model, syncStatus: 'synced', localAction: null });
     }
   }
 };

@@ -37,6 +37,7 @@ export const useCalibration = () => {
   });
 
   // Auto-calculate actualWeight when extractedWeight or averageValue changes
+  // #05 Fix: removed `logic` from dependencies to prevent unnecessary re-renders
   useEffect(() => {
     if (!isHelperActive) return;
 
@@ -47,7 +48,7 @@ export const useCalibration = () => {
       const result = numExtracted / numAverage;
       logic.setInputValue('actualWeight', result.toFixed(3));
     }
-  }, [logic.inputs.extractedWeight, logic.inputs.averageValue, isHelperActive, logic]);
+  }, [logic.inputs.extractedWeight, logic.inputs.averageValue, isHelperActive]);
 
   const toggleHelper = (value: boolean) => {
     setIsHelperActive(value);
@@ -58,9 +59,19 @@ export const useCalibration = () => {
   };
 
   const clearHistory = async () => {
-    await historyRepository.clear();
+    await historyRepository.clear('calibration');
     await loadHistory();
   };
+
+  const [pendingCalculate, setPendingCalculate] = useState(false);
+
+  // #07 Fix: trigger calculate after setState has applied the new input values
+  useEffect(() => {
+    if (pendingCalculate) {
+      logic.calculate();
+      setPendingCalculate(false);
+    }
+  }, [pendingCalculate, logic.calculate]);
 
   const fillFromHistory = (item: CalculationHistory) => {
     logic.setInputValue('targetWeight', item.inputs.targetWeight?.toString() ?? '');
@@ -71,7 +82,7 @@ export const useCalibration = () => {
     if (item.inputs.extractedWeight && item.inputs.averageValue) {
       setIsHelperActive(true);
     }
-    logic.calculate();
+    setPendingCalculate(true);
   };
 
   return {

@@ -21,7 +21,13 @@ export const historyRepository = {
     return asyncStorageClient.set(STORAGE_KEYS.CALCULATION_HISTORY, updated);
   },
 
-  async clear(): Promise<boolean> {
-    return asyncStorageClient.remove(STORAGE_KEYS.CALCULATION_HISTORY);
+  // #03 Fix: optional `type` param prevents one feature from clearing another's history
+  async clear(type?: 'ipu' | 'calibration'): Promise<boolean> {
+    if (!type) {
+      return asyncStorageClient.remove(STORAGE_KEYS.CALCULATION_HISTORY);
+    }
+    const existing = await this.getAll();
+    const remaining = existing.filter((item) => item.type !== type);
+    return asyncStorageClient.set(STORAGE_KEYS.CALCULATION_HISTORY, remaining);
   },
 };
