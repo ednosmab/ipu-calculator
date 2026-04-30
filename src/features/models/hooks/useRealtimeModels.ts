@@ -32,6 +32,7 @@ export const useRealtimeModels = () => {
     fetchModels(true);
 
     const unsubscribeRepo = modelRepository.subscribe(() => {
+      console.log('[useRealtimeModels] 💥 Listener executado, chamando fetchModels...');
       logger.info('[useRealtimeModels] Notificado via repo, recarregando...');
       fetchModels(false);
     });
