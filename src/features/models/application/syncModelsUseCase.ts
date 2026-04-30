@@ -77,11 +77,16 @@ export const syncModelsUseCase = async (): Promise<void> => {
 
   logger.info(`[Sync] Iniciando sincronização de ${pendingModels.length} modelos pendentes...`);
 
+  let syncedCount = 0;
   for (const model of pendingModels) {
     const success = await modelSyncService.syncToRemote(model);
     if (success) {
-      // #06 Fix: updateLocal avoids double-sync — sync already happened above
       await modelRepository.updateLocal({ ...model, syncStatus: 'synced', localAction: null });
+      syncedCount++;
+    } else {
+      logger.warn(`[Sync] Falha ao sincronizar modelo ${model.id}`);
     }
   }
+
+  logger.info(`[Sync] Concluído: ${syncedCount} sincronizados, ${pendingModels.length - syncedCount} falhas`);
 };

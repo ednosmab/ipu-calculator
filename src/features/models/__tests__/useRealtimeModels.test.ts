@@ -14,6 +14,7 @@ const mockModel: CalculationModel = {
   createdAt: Date.now(),
   updatedAt: Date.now(),
   syncStatus: 'synced',
+  localAction: null,
 };
 
 jest.mock('../infra/modelRepository', () => ({

@@ -10,8 +10,11 @@ const MODEL_TTL_MS = 48 * 60 * 60 * 1000; // 48 hours
 // Simple async mutex to prevent race conditions on concurrent write operations
 let writeQueue: Promise<unknown> = Promise.resolve();
 const withWriteLock = <T>(fn: () => Promise<T>): Promise<T> => {
-  const next = writeQueue.then(fn);
-  writeQueue = next.catch(() => {});
+  const next = writeQueue.then(fn).catch((err) => {
+    writeQueue = Promise.resolve(); // Reset queue on error
+    throw err; // Re-throw to inform caller
+  });
+  writeQueue = next;
   return next;
 };
 
@@ -167,8 +170,12 @@ export const modelRepository = {
         return success;
       }
 
+      // Offline: remove locally and add to pending deletes
+      const existing = await this.getAll();
+      const updated = existing.filter(m => m.id !== id);
+      const success = await this.saveWithTTL(updated);
       await pendingOpsService.addPendingDelete(id);
-      notify();
+      if (success) notify();
       return true;
     });
   },

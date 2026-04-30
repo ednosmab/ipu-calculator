@@ -8,6 +8,7 @@ import { modelRepository } from '../infra/modelRepository';
 export const useRealtimeModels = () => {
   const [models, setModels] = useState<CalculationModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState(Date.now());
   const lastSyncTime = useRef(0);
   const appState = useRef(AppState.currentState);
 
@@ -21,8 +22,8 @@ export const useRealtimeModels = () => {
       await fetchRemoteModelsUseCase();
     }
     const data = await modelRepository.getAll();
-    // Force new reference to ensure re-render
-    setModels([...data]);
+    setModels(data);
+    setLastUpdate(Date.now());
     setIsLoading(false);
   }, []);
 
@@ -78,5 +79,5 @@ export const useRealtimeModels = () => {
     };
   }, [fetchModels]);
 
-  return { models, isLoading };
+  return { models, isLoading, lastUpdate };
 };

@@ -10,6 +10,7 @@ const mockPendingModel: CalculationModel = {
   createdAt: Date.now() - 10000,
   updatedAt: Date.now() - 10000,
   syncStatus: 'pending',
+  localAction: 'created' as const,
 };
 
 const mockSyncedModel: CalculationModel = {
@@ -20,6 +21,7 @@ const mockSyncedModel: CalculationModel = {
   createdAt: Date.now() - 10000,
   updatedAt: Date.now() - 10000,
   syncStatus: 'synced',
+  localAction: null,
 };
 
 describe('Schema Migration Service', () => {
