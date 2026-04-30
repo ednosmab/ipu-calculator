@@ -21,7 +21,8 @@ export const useRealtimeModels = () => {
       await fetchRemoteModelsUseCase();
     }
     const data = await modelRepository.getAll();
-    setModels(data);
+    // Force new reference to ensure re-render
+    setModels([...data]);
     setIsLoading(false);
   }, []);
 
