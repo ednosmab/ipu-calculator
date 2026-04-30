@@ -171,7 +171,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
     if (filtered.length === 0) return null;
     
     return (
-      <Animated.View style={[styles.section, { opacity: fadeAnim }]}>
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>
           {type === 'ipu' ? 'Injeção' : 'Calibração'}
         </Text>
