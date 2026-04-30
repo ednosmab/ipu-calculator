@@ -40,6 +40,14 @@
           "resizeMode": "contain",
           "backgroundColor": "#0b0c0f"
         }
+      ],
+      [
+        "sentry-expo",
+        {
+          "project": "calculadora-ipu",
+          "organization": "edsondev",
+          "runtime": "react-native"
+        }
       ]
     ],
     "experiments": {
