@@ -24,7 +24,6 @@ type ModelListener = () => void;
 const listeners: Set<ModelListener> = new Set();
 
 const notify = () => {
-  console.log('[modelRepository] notify() chamado, listeners:', listeners.size);
   listeners.forEach(listener => listener());
 };
 
@@ -135,8 +134,6 @@ export const modelRepository = {
     });
   },
 
-  // Persists a model update locally only, without triggering a remote sync.
-  // Use this when the sync has already been performed by the caller.
   async updateLocal(model: CalculationModel): Promise<boolean> {
     return withWriteLock(async () => {
       const existing = await this.getAll();
@@ -148,28 +145,18 @@ export const modelRepository = {
   },
 
   async delete(id: string): Promise<boolean> {
-    console.log('[modelRepository] Tentando excluir modelo:', id);
     return withWriteLock(async () => {
       const isSynced = await modelSyncService.deleteFromRemote(id);
-      console.log('[modelRepository] Delete remoto resultado:', isSynced);
 
       if (isSynced) {
         const existing = await this.getAll();
-        console.log('[modelRepository] Modelos antes do delete:', existing.length);
         const updated = existing.filter(m => m.id !== id);
-        console.log('[modelRepository] Modelos depois do delete:', updated.length);
         const success = await this.saveWithTTL(updated);
-        console.log('[modelRepository] Save TTL sucesso:', success);
-        if (success) {
-          console.log('[modelRepository] Chamando notify()');
-          notify();
-        }
+        if (success) notify();
         return success;
       }
 
-      console.log('[modelRepository] Offline - adicionando pending delete');
       await pendingOpsService.addPendingDelete(id);
-      console.log('[modelRepository] Chamando notify() (offline)');
       notify();
       return true;
     });

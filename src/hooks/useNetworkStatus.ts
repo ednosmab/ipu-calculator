@@ -16,7 +16,6 @@ export const useNetworkStatus = () => {
     // Web: use native browser events
     if (typeof window !== 'undefined') {
       const updateConnection = (connected: boolean) => {
-        console.log('[NetworkStatus] Conexão alterada para:', connected ? 'online' : 'offline');
         setIsConnected(connected);
       };
 

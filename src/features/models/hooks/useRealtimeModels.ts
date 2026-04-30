@@ -4,7 +4,6 @@ import { AppState, AppStateStatus } from 'react-native';
 import { fetchRemoteModelsUseCase } from '../application/fetchRemoteModelsUseCase';
 import { CalculationModel } from '../domain/calculationModel';
 import { modelRepository } from '../infra/modelRepository';
-import { logger } from '@/core/logging/logger';
 
 export const useRealtimeModels = () => {
   const [models, setModels] = useState<CalculationModel[]>([]);
@@ -13,7 +12,6 @@ export const useRealtimeModels = () => {
   const appState = useRef(AppState.currentState);
 
   const fetchModels = useCallback(async (fromRemote = false) => {
-    console.log('[useRealtimeModels] fetchModels called, fromRemote:', fromRemote);
     if (fromRemote) {
       const now = Date.now();
       if (now - lastSyncTime.current < 1000) {
@@ -23,20 +21,14 @@ export const useRealtimeModels = () => {
       await fetchRemoteModelsUseCase();
     }
     const data = await modelRepository.getAll();
-    console.log('[useRealtimeModels] Modelos retornados do repo:', data.length);
-    console.log('[useRealtimeModels] IDs dos modelos:', data.map(m => m.id));
-    logger.info('[useRealtimeModels] Modelos carregados:', data.length);
     setModels(data);
     setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    logger.info('[useRealtimeModels] Iniciando...');
     fetchModels(true);
 
     const unsubscribeRepo = modelRepository.subscribe(() => {
-      console.log('[useRealtimeModels] 💥 Listener executado, chamando fetchModels...');
-      logger.info('[useRealtimeModels] Notificado via repo, recarregando...');
       fetchModels(false);
     });
 
@@ -45,7 +37,6 @@ export const useRealtimeModels = () => {
         appState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        logger.info('[useRealtimeModels] App voltou ao foreground, sincronizando...');
         fetchModels(true);
       }
       appState.current = nextAppState;
@@ -62,20 +53,19 @@ export const useRealtimeModels = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'models' },
         (payload) => {
-          logger.info('[useRealtimeModels] Evento Realtime:', payload.eventType);
           fetchModels(true);
         }
       );
 
       channel.subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          logger.warn('[useRealtimeModels]: Realtime indisponível. Operando em modo local.');
+          console.warn('[useRealtimeModels]: Realtime indisponível. Operando em modo local.');
         } else if (status === 'SUBSCRIBED') {
-          logger.info('[useRealtimeModels]: Realtime conectado com sucesso.');
+          console.log('[useRealtimeModels]: Realtime conectado com sucesso.');
         }
       });
     } catch (e) {
-      logger.warn('[useRealtimeModels]: Erro ao configurar realtime, operando offline:', e);
+      console.warn('[useRealtimeModels]: Erro ao configurar realtime, operando offline:', e);
     }
 
     return () => {
