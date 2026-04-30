@@ -1,43 +1,61 @@
-import { useEffect } from 'react';
-import NetInfo from '@react-native-community/netinfo';
+import { useEffect, useRef } from 'react';
+import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import { syncModelsUseCase } from '@/features/models/application/syncModelsUseCase';
 import { fetchRemoteModelsUseCase } from '@/features/models/application/fetchRemoteModelsUseCase';
 import { schemaMigrationService } from '@/features/models/application/schemaMigrationService';
 import { processPendingDeletesUseCase, processPendingEditsUseCase } from '@/features/models/application/syncModelsUseCase';
-import { captureError, addBreadcrumb } from '@/core/monitoring/sentryService';
+import { logger } from '@/core/logging/logger';
+
+const runSync = async () => {
+  logger.info('[SyncEngine] Iniciando sincronização...');
+  await syncModelsUseCase();
+  await fetchRemoteModelsUseCase();
+  await processPendingDeletesUseCase();
+  await processPendingEditsUseCase();
+  logger.info('[SyncEngine] Sincronização concluída');
+};
 
 export const useSyncEngine = () => {
+  const isFirstRun = useRef(true);
+
   useEffect(() => {
     const init = async () => {
       try {
         const migration = await schemaMigrationService.migrateIfNeeded();
         if (migration.migrated) {
-          console.log(`[Migration] ${migration.count} modelos pendentes marcados para re-sync`);
+          logger.info(`[Migration] ${migration.count} modelos pendentes marcados para re-sync`);
         }
 
-        await syncModelsUseCase();
-        await fetchRemoteModelsUseCase();
-        await processPendingDeletesUseCase();
-        await processPendingEditsUseCase();
+        await runSync();
       } catch (error) {
-        captureError(error as Error, { context: 'sync_engine_init' });
+        logger.error('[SyncEngine] Erro na inicialização:', error);
       }
     };
 
     init();
 
-    const unsubscribe = NetInfo.addEventListener(state => {
+    const handleOnline = () => {
+      if (!isFirstRun.current) {
+        logger.info('[SyncEngine] Conexão restabelecida, iniciando sincronização...');
+        runSync().catch((error) => logger.error('[SyncEngine] Erro na sincronização:', error));
+      }
+      isFirstRun.current = false;
+    };
+
+    // Web: usar eventos nativos do browser
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', handleOnline);
+      return () => window.removeEventListener('online', handleOnline);
+    }
+
+    // Mobile: usar NetInfo
+    const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
       if (state.isConnected && state.isInternetReachable) {
-        addBreadcrumb('sync', 'Conexão restabelecida, iniciando sincronização');
-        console.log('Conexão restabelecida. Disparando sincronização...');
-        syncModelsUseCase()
-          .catch((error) => captureError(error, { context: 'sync_on_reconnect' }));
-        fetchRemoteModelsUseCase()
-          .catch((error) => captureError(error, { context: 'fetch_on_reconnect' }));
-        processPendingDeletesUseCase()
-          .catch((error) => captureError(error, { context: 'pending_deletes_on_reconnect' }));
-        processPendingEditsUseCase()
-          .catch((error) => captureError(error, { context: 'pending_edits_on_reconnect' }));
+        if (!isFirstRun.current) {
+          logger.info('[SyncEngine] Conexão restabelecida, iniciando sincronização...');
+          runSync().catch((error) => logger.error('[SyncEngine] Erro na sincronização:', error));
+        }
+        isFirstRun.current = false;
       }
     });
 

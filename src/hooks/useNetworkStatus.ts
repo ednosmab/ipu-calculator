@@ -1,34 +1,44 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
-
-const checkConnection = (state: NetInfoState): boolean => {
-  if (typeof window !== 'undefined' && navigator.onLine !== undefined) {
-    return navigator.onLine;
-  }
-  return state.isConnected === true && state.isInternetReachable !== false;
-};
+import { logger } from '@/core/logging/logger';
 
 export const useNetworkStatus = () => {
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    const updateConnection = (connected: boolean) => {
+      logger.info('[NetworkStatus] Conexão alterada para:', connected ? 'online' : 'offline');
+      setIsConnected(connected);
+    };
+
+    // Web: usar eventos nativos do browser
+    if (typeof window !== 'undefined') {
+      updateConnection(navigator.onLine);
+
+      const handleOnline = () => updateConnection(true);
+      const handleOffline = () => updateConnection(false);
+
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+
+      return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      };
+    }
+
+    // Mobile: usar NetInfo
     NetInfo.fetch().then((state: NetInfoState) => {
-      setIsConnected(checkConnection(state));
+      const connected = state.isConnected === true && state.isInternetReachable !== false;
+      updateConnection(connected);
     });
 
     const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-      
-      debounceTimer.current = setTimeout(() => {
-        setIsConnected(checkConnection(state));
-      }, 500);
+      const connected = state.isConnected === true && state.isInternetReachable !== false;
+      updateConnection(connected);
     });
 
-    return () => {
-      unsubscribe();
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    };
+    return () => unsubscribe();
   }, []);
 
   return isConnected;
