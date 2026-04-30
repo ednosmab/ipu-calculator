@@ -158,7 +158,7 @@ export const modelRepository = {
     });
   },
 
-  async delete(id: string): Promise<boolean> {
+async delete(id: string): Promise<boolean> {
     return withWriteLock(async () => {
       const isSynced = await modelSyncService.deleteFromRemote(id);
 
