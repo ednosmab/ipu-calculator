@@ -24,6 +24,7 @@ type ModelListener = () => void;
 const listeners: Set<ModelListener> = new Set();
 
 const notify = () => {
+  console.log('[modelRepository] notify() chamado, listeners:', listeners.size);
   listeners.forEach(listener => listener());
 };
 
