@@ -19,10 +19,7 @@ export const processPendingDeletesUseCase = async (): Promise<{ processed: numbe
 
     if (success) {
       await pendingOpsService.removePendingDelete(id);
-      // #02 Fix: use saveWithTTL via the repository instead of raw asyncStorageClient.set
-      const models = await modelRepository.getAll();
-      const updated = models.filter(m => m.id !== id);
-      await modelRepository.saveWithTTL(updated);
+      await modelRepository.removeLocal(id);
       processed++;
     } else {
       failed++;

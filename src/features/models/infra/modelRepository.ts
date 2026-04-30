@@ -144,6 +144,17 @@ export const modelRepository = {
     });
   },
 
+  // Remove model locally without triggering remote sync (for sync engine)
+  async removeLocal(id: string): Promise<boolean> {
+    return withWriteLock(async () => {
+      const existing = await this.getAll();
+      const updated = existing.filter(m => m.id !== id);
+      const success = await this.saveWithTTL(updated);
+      if (success) notify();
+      return success;
+    });
+  },
+
   async delete(id: string): Promise<boolean> {
     return withWriteLock(async () => {
       const isSynced = await modelSyncService.deleteFromRemote(id);
