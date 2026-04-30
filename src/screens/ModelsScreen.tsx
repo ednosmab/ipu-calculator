@@ -244,7 +244,7 @@ const openDeleteConfirm = (model: CalculationModel) => {
             </View>
           </Card>
         ))}
-      </Animated.View>
+      </View>
     );
   };
 
