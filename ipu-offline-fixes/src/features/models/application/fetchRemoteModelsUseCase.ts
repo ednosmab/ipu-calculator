@@ -17,7 +17,9 @@ export const fetchRemoteModelsUseCase = async (): Promise<void> => {
 
     const localModels = await modelRepository.getAll();
 
-    // Bug #1 Fix: start with local models as base, not empty array
+    // Bug #1 Fix: o merge agora começa com os modelos locais como base,
+    // evitando que modelos 'synced' existentes sejam silenciosamente apagados
+    // quando o remote demora ou retorna uma lista parcial.
     let updated: CalculationModel[] = [...localModels];
 
     if (data && data.length > 0) {
@@ -35,7 +37,7 @@ export const fetchRemoteModelsUseCase = async (): Promise<void> => {
       for (const rm of remoteModels) {
         const localIndex = updated.findIndex(m => m.id === rm.id);
         if (localIndex >= 0) {
-          // Remote only updates if newer
+          // Remote ganha apenas se for mais recente
           if (rm.updatedAt > updated[localIndex].updatedAt) {
             updated[localIndex] = rm;
           }
@@ -46,8 +48,9 @@ export const fetchRemoteModelsUseCase = async (): Promise<void> => {
     }
 
     const remoteIds = data ? new Set(data.map(m => m.id)) : new Set<string>();
-    // Remove only 'synced' that no longer exist remotely
-    // Preserve 'pending' models for later sync
+
+    // Remove apenas modelos 'synced' que não existem mais no remote;
+    // modelos 'pending' são preservados para sincronização futura.
     updated = updated.filter(m =>
       m.syncStatus === 'pending' || remoteIds.has(m.id)
     );
@@ -57,6 +60,6 @@ export const fetchRemoteModelsUseCase = async (): Promise<void> => {
       expiresAt: Date.now() + MODEL_TTL_MS,
     });
   } catch (e) {
-    // Offline or network error - keep local models
+    // Offline ou erro de rede — mantém modelos locais
   }
 };

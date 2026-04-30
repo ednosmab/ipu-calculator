@@ -14,12 +14,11 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// Bug #4 Fix: Network-first with fallback to cache.
-// Strategy: try network first, update cache, fallback to cache if offline.
+// Bug #4 Fix: Network-first com fallback para cache.
+// Estratégia anterior (cache-first) não cacheava bundles JS/CSS gerados
+// dinamicamente, causando falha ao abrir o app offline.
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-
-  // Ignore Supabase API requests
   if (event.request.url.includes('supabase.co')) return;
 
   event.respondWith(
@@ -27,20 +26,18 @@ self.addEventListener('fetch', event => {
       .then(response => {
         if (response && response.status === 200 && response.type === 'basic') {
           const clone = response.clone();
-          caches.open(CACHE_NAME)
-            .then(cache => cache.put(event.request, clone));
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;
       })
       .catch(() => {
-        return caches.match(event.request)
-          .then(cached => {
-            if (cached) return cached;
-            // Final fallback to index.html (SPA shell)
-            if (event.request.headers.get('accept')?.includes('text/html')) {
-              return caches.match('/index.html');
-            }
-          });
+        return caches.match(event.request).then(cached => {
+          if (cached) return cached;
+          // Fallback final para o index.html (SPA shell)
+          if (event.request.headers.get('accept')?.includes('text/html')) {
+            return caches.match('/index.html');
+          }
+        });
       })
   );
 });

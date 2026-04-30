@@ -30,7 +30,10 @@ export const useSyncEngine = () => {
       } catch (error) {
         logger.error('[SyncEngine] Erro na inicialização:', error);
       } finally {
-        // Bug #3 Fix: isFirstRun must be set here, not inside handleOnline
+        // Bug #3 Fix: isFirstRun deve ser marcado como false após o init(),
+        // não dentro do handleOnline. Antes, se a conexão caísse e voltasse
+        // rapidamente após a abertura, o handleOnline pulava o sync por achar
+        // que ainda era a primeira execução.
         isFirstRun.current = false;
       }
     };
@@ -44,13 +47,13 @@ export const useSyncEngine = () => {
       }
     };
 
-    // Web: use native browser events
+    // Web: usar eventos nativos do browser
     if (typeof window !== 'undefined') {
       window.addEventListener('online', handleOnline);
       return () => window.removeEventListener('online', handleOnline);
     }
 
-    // Mobile: use NetInfo
+    // Mobile: usar NetInfo
     const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
       if (state.isConnected && state.isInternetReachable) {
         if (!isFirstRun.current) {
