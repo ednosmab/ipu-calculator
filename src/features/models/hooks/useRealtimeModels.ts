@@ -28,6 +28,7 @@ export const useRealtimeModels = () => {
   }, []);
 
   useEffect(() => {
+    console.log('[useRealtimeModels] Initializing...');
     fetchModels(true);
 
     const unsubscribeRepo = modelRepository.subscribe(() => {
@@ -45,6 +46,17 @@ export const useRealtimeModels = () => {
     };
 
     const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+
+    // Web: visibility change detection
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchModels(true);
+      }
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
 
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
@@ -73,6 +85,9 @@ export const useRealtimeModels = () => {
     return () => {
       unsubscribeRepo();
       appStateSubscription.remove();
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
       if (channel) {
         supabase.removeChannel(channel);
       }
