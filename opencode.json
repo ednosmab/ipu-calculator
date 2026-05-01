@@ -1,0 +1,27 @@
+{
+    "$schema": "https://opencode.ai",
+    "agent": {
+        "build": {
+            "model": "openrouter/minimax/minimax-text-01",
+            "temperature": 0.7,
+            "top_p": 0.95,
+            "context_window": 128000
+        }
+    },
+    "instructions": [
+        "docs/**/*.md",
+        "AGENTS.md"
+    ],
+    "mcp": {
+        "local-filesystem": {
+            "type": "local",
+            "command": [
+                "npx",
+                "-y",
+                "@modelcontextprotocol/server-filesystem",
+                "./docs"
+            ],
+            "enabled": true
+        }
+    }
+}

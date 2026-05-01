@@ -15,6 +15,10 @@ Este documento descreve os próximos passos sugeridos para levar a Calculadora I
 2.  **Testes de Regressão Críticos**: ✅
     *   Implementar testes de fumaça (Smoke Tests) para o fluxo de salvamento offline.
     *   Garantir que atualizações do manifesto PWA não quebrem a instalabilidade.
+3.  **Auto-Update via Service Worker**: ⏳
+    *   Detectar nova versão via Service Worker
+    *   Mostrar toast "Atualização disponível - toque para recarregar"
+    *   Aplicar update sem perder dados do usuário
 
 ---
 
