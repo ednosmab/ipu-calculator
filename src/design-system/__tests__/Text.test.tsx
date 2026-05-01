@@ -1,9 +1,6 @@
 import { render } from '@testing-library/react-native';
 import { Text } from '../components/Text';
 
-(global as any).__ExpoImportMetaRegistry = (global as any).__ExpoImportMetaRegistry || {};
-(global as any).structuredClone = (global as any).structuredClone || ((val: any) => JSON.parse(JSON.stringify(val)));
-
 describe('Text Snapshot Tests', () => {
   it('renders body text correctly', () => {
     const { toJSON } = render(<Text>Corpo texto</Text>);

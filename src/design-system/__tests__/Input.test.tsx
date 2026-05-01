@@ -2,9 +2,6 @@ import React, { createRef } from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Input, InputRef } from '../components/Input';
 
-(global as any).__ExpoImportMetaRegistry = (global as any).__ExpoImportMetaRegistry || {};
-(global as any).structuredClone = (global as any).structuredClone || ((val: any) => JSON.parse(JSON.stringify(val)));
-
 describe('Input Component', () => {
   it('renders correctly with label and placeholder', () => {
     const { getByText, getByPlaceholderText } = render(

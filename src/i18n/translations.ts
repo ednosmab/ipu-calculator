@@ -39,6 +39,7 @@ polyol: 'Poliol',
     existingModel: 'Modelo existente',
     willBeOverwritten: 'será sobrescrito',
     overwrite: 'Sobrescrever',
+    updateAvailable: 'Nova versão disponível - toque para atualizar',
   },
   en: {
     appTitle: 'IPU Calculator',
@@ -78,6 +79,7 @@ polyol: 'Poliol',
     existingModel: 'Existing model',
     willBeOverwritten: 'will be overwritten',
     overwrite: 'Overwrite',
+    updateAvailable: 'New version available - tap to update',
   },
 } as const;
 

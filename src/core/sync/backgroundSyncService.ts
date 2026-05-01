@@ -34,11 +34,11 @@ export const registerBackgroundSync = async () => {
       }
     });
 
-    const options: BackgroundFetch.BackgroundFetchOptions = {
+    const options = {
       minimumInterval: 15 * 60,
       stopOnTerminate: false,
       startOnBoot: true,
-    };
+    } as any;
 
     await BackgroundFetch.registerTaskAsync(BACKGROUND_SYNC_TASK, options);
     logger.info('[BackgroundSync] Tarefa registrada com sucesso');
