@@ -4,6 +4,16 @@ Este documento descreve os próximos passos sugeridos para levar a Calculadora I
 
 ---
 
+## 🎯 Próximos Passos
+
+| Task | Status |
+|------|--------|
+| Merge refactor → develop | ⏳ pendente |
+| Testar no staging | ⏳ pendente |
+| Merge develop → main (produção) | ⏳ pendente |
+
+---
+
 ## 🚀 Fase 1: Estabilização e Observabilidade (Curto Prazo)
 *Foco: Garantir que saibamos quando algo quebra em produção.*
 
