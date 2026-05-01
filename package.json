@@ -1,7 +1,7 @@
 {
   "name": "calculadora-ipu",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -14,7 +14,7 @@
     "test:core": "jest --testPathPatterns=\"core\"",
     "test:features": "jest --testPathPatterns=\"features\"",
     "test:integration": "jest --testPathPatterns=\"(Screen|useCalculatorLogic)\"",
-    "build": "npx expo export --platform web",
+    "build": "npx expo export --platform web && node scripts/inject-sw-version.js",
     "build:preview": "npm run build && npx --yes serve dist",
     "test:e2e": "npx playwright test"
   },

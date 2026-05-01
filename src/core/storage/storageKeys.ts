@@ -6,6 +6,7 @@ export const STORAGE_KEYS = {
   PENDING_DELETES: '@ipu:pending_deletes',
   PENDING_EDITS: '@ipu:pending_edits',
   SCHEMA_VERSION: '@ipu:schema_version',
+  CACHE_VERSION: '@ipu:cache_version',
 } as const;
 
 export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];

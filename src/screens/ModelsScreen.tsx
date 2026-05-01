@@ -1,16 +1,16 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, View, Modal as RNModal, TouchableOpacity, Alert, ActivityIndicator, Animated } from 'react-native';
+import { StyleSheet, View, ActivityIndicator, Animated } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { Button, Text, Card, theme } from '@/design-system';
-import { Input, InputRef } from '@/design-system/components/Input';
+import { Button, Text, Input, theme } from '@/design-system';
 import { ScreenLayout } from '@/components/ScreenLayout';
 import { Toast } from '@/components/Toast';
 import { useToast } from '@/hooks/useToast';
 import { useTranslation } from '@/i18n/TranslationContext';
-import { CalculationModel, ModelType } from '@/features/models/domain/calculationModel';
-import { deleteModelUseCase, updateModelUseCase, createModelUseCase } from '@/features/models/application/modelUseCases';
+import { CalculationModel } from '@/features/models/domain/calculationModel';
+import { deleteModelUseCase } from '@/features/models/application/modelUseCases';
 import { useRealtimeModels } from '@/features/models/hooks/useRealtimeModels';
-import { parseNumber } from '@/core/parsers/numberParser';
+import { useModelForm } from '@/features/models/hooks/useModelForm';
+import { ModelList, ModelFormModal, ModelDeleteModal } from '@/features/models/components';
 
 type Props = {
   onGoBack: () => void;
@@ -20,24 +20,16 @@ type Props = {
 export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
-  const { toast, success, error } = useToast();
+  const { toast } = useToast();
+  const lastDeleteTime = useRef(0);
 
   const { models, isLoading } = useRealtimeModels();
   const ipuModels = models.filter(m => m.type === 'ipu');
   const calibrationModels = models.filter(m => m.type === 'calibration');
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [isTimeOnly, setIsTimeOnly] = useState(false);
   const [deleteModel, setDeleteModel] = useState<CalculationModel | null>(null);
-  const lastDeleteTime = useRef(0);
-  const [editingModel, setEditingModel] = useState<CalculationModel | null>(null);
-  const [modelName, setModelName] = useState('');
-  const [nameError, setNameError] = useState('');
-  const [injectionTime, setInjectionTime] = useState('');
-  const [timeError, setTimeError] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const timeInputRef = useRef<InputRef>({ focus: () => {}, current: null });
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -52,32 +44,9 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
     }
   }, [isLoading, models.length, fadeAnim]);
 
-  const openCreate = () => {
-    setEditingModel(null);
-    setModelName('');
-    setInjectionTime('');
-    setNameError('');
-    setModalVisible(true);
-  };
+  const form = useModelForm({ models });
 
-  const openEdit = (model: CalculationModel) => {
-    setEditingModel(model);
-    setModelName(model.name);
-    setInjectionTime(String(model.inputs.injectionTime || ''));
-    setIsTimeOnly(false);
-    setNameError('');
-    setModalVisible(true);
-  };
-
-  const openEditTime = (model: CalculationModel) => {
-    setEditingModel(model);
-    setModelName('');
-    setInjectionTime(String(model.inputs.injectionTime || ''));
-    setIsTimeOnly(true);
-    setModalVisible(true);
-  };
-
-const openDeleteConfirm = (model: CalculationModel) => {
+  const openDeleteConfirm = (model: CalculationModel) => {
     const now = Date.now();
     if (now - lastDeleteTime.current < 500) return;
     lastDeleteTime.current = now;
@@ -94,165 +63,21 @@ const openDeleteConfirm = (model: CalculationModel) => {
       setIsDeleting(true);
       try {
         await deleteModelUseCase(deleteModel.id);
-        success('Modelo excluído com sucesso');
         setDeleteModel(null);
         lastDeleteTime.current = 0;
       } catch (e) {
-        error('Não foi possível excluir o modelo');
+        // Error handled
       } finally {
         setIsDeleting(false);
       }
     }
   };
 
-  const handleSave = async () => {
-    const nameUpper = modelName.trim().toUpperCase();
-    if (!nameUpper) {
-      setNameError('Nome é obrigatório');
-      return;
-    }
-    
-    const timeNum = parseNumber(injectionTime);
-    if (isNaN(timeNum) || timeNum <= 0) {
-      setTimeError('Tempo deve ser maior que zero');
-      timeInputRef.current?.focus();
-      return;
-    }
-    
-    setTimeError('');
-    setNameError('');
-    
-    setIsSaving(true);
-    try {
-      if (editingModel) {
-        await updateModelUseCase({
-          ...editingModel,
-          name: nameUpper,
-          inputs: { injectionTime: timeNum },
-          updatedAt: Date.now(),
-        });
-        success('Modelo editado com sucesso');
-      } else {
-        await createModelUseCase({
-          name: nameUpper,
-          type: 'ipu',
-          inputs: { injectionTime: timeNum },
-        });
-        success('Modelo salvo com sucesso');
-      }
-      
-      setModalVisible(false);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Não foi possível salvar o modelo';
-      if (message.includes('Já existe um modelo com este nome')) {
-        setNameError(message);
-      } else {
-        Alert.alert('Erro', message);
-      }
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleModalClose = () => {
-    setModalVisible(false);
-    setNameError('');
-  };
-
-  const filterBySearch = (models: CalculationModel[]) => {
-    const sorted = [...models].sort((a, b) => a.name.localeCompare(b.name));
-    if (!search.trim()) return sorted;
-    const term = search.toUpperCase();
-    return sorted.filter(m => m.name.toUpperCase().includes(term));
-  };
-
-  const renderList = (models: CalculationModel[], type: ModelType) => {
-    const filtered = filterBySearch(models);
-    if (filtered.length === 0) return null;
-    
-    return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          {type === 'ipu' ? 'Injeção' : 'Calibração'}
-        </Text>
-        {filtered.map((model) => (
-<Card key={model.id} style={styles.modelCard}>
-            <View style={styles.row}>
-              <View style={{ flex: 1 }}>
-                <TouchableOpacity 
-                  onPress={() => onSelectModel(model)} 
-                  activeOpacity={0.7}
-                  style={styles.nameContainer}
-                >
-                  <Text style={styles.modelName}>{model.name}</Text>
-                  {model.localAction && (
-                    <View style={[
-                      styles.badge,
-                      model.localAction === 'created' && styles.badgeCreated,
-                      model.localAction === 'edited' && styles.badgeEdited,
-                    ]}>
-                      <Text style={styles.badgeText}>
-                        {model.localAction === 'created' ? 'Novo' : 'Editado'}
-                      </Text>
-                    </View>
-                  )}
-                  <View style={styles.syncStatusRow}>
-                    <FontAwesome5 
-                      name={model.syncStatus === 'synced' ? "check-circle" : "cloud-upload-alt"} 
-                      size={14} 
-                      color={model.syncStatus === 'synced' ? theme.colors.success : theme.colors.primary} 
-                      style={styles.syncIcon}
-                    />
-                    {model.syncStatus !== 'synced' && (
-                      <Text style={styles.pendingText}>Aguardando rede</Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    openEditTime(model);
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.timeRow}>
-                    <Text style={styles.timeLabel}>Tempo:</Text>
-                    <Text style={styles.timeValue}>{model.inputs.injectionTime.toFixed(2).replace('.', ',')}s</Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-              <TouchableOpacity
-                onPress={(e) => {
-                  e.stopPropagation();
-                  openEdit(model);
-                }}
-                style={styles.iconBtn}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <FontAwesome5 name="pen" size={20} color={theme.colors.textSecondary} />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                onPress={(e) => {
-                  e.stopPropagation();
-                  openDeleteConfirm(model);
-                }}
-                style={styles.iconBtn}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <FontAwesome5 name="trash-alt" size={20} color={theme.colors.error} />
-              </TouchableOpacity>
-            </View>
-          </Card>
-        ))}
-      </View>
-    );
-  };
-
   const totalModels = ipuModels.length + calibrationModels.length;
 
   const fab = (
     <View style={styles.fabWrapper}>
-      <Button title={t('createModel')} onPress={openCreate} style={styles.fabButton} icon={<FontAwesome5 name="plus" size={20} color={theme.colors.bg} />} />
+      <Button title={t('createModel')} onPress={form.openCreate} style={styles.fabButton} icon={<FontAwesome5 name="plus" size={20} color={theme.colors.bg} />} />
     </View>
   );
 
@@ -290,82 +115,56 @@ const openDeleteConfirm = (model: CalculationModel) => {
           />
         )}
 
-        {renderList(ipuModels, 'ipu')}
-        {renderList(calibrationModels, 'calibration')}
+        <ModelList
+          models={ipuModels}
+          type="ipu"
+          search={search}
+          onEdit={form.openEdit}
+          onEditTime={form.openEditTime}
+          onDelete={openDeleteConfirm}
+          onSelect={onSelectModel}
+        />
+        <ModelList
+          models={calibrationModels}
+          type="calibration"
+          search={search}
+          onEdit={form.openEdit}
+          onEditTime={form.openEditTime}
+          onDelete={openDeleteConfirm}
+          onSelect={onSelectModel}
+        />
 
         {totalModels === 0 && (
           <Text style={styles.empty}>Nenhum modelo salvo</Text>
         )}
 
-        {totalModels > 0 && search.trim() && filterBySearch(ipuModels).length === 0 && filterBySearch(calibrationModels).length === 0 && (
+        {totalModels > 0 && search.trim() && (
           <Text style={styles.empty}>Nenhum resultado encontrado</Text>
         )}
       </View>
 
-      <RNModal visible={modalVisible} animationType="fade" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {editingModel ? (isTimeOnly ? `${editingModel.name} - Editar Tempo` : 'Editar Modelo') : 'Novo Modelo'}
-            </Text>
-            
-            <View>
-              {!isTimeOnly && (
-                <Input
-                  label="Nome"
-                  value={modelName}
-                  onChange={(val) => {
-                    setModelName(val);
-                    setNameError('');
-                  }}
-                  placeholder="Nome do modelo"
-                  keyboardType="default"
-                  autoCapitalize="characters"
-                  error={nameError}
-                />
-              )}
-              <Input
-                ref={timeInputRef}
-                label="Tempo de Injeção (segundos)"
-                value={injectionTime}
-                onChange={(val) => {
-                  setInjectionTime(val);
-                  setTimeError('');
-                }}
-                placeholder="0.00"
-                keyboardType="decimal-pad"
-                error={timeError}
-              />
-              
-              <View style={styles.modalButtons}>
-                <Button
-                  title="Cancelar"
-                  variant="secondary"
-                  onPress={handleModalClose}
-                  disabled={isSaving}
-                  icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />}
-                />
-                <Button title="Salvar" onPress={handleSave} loading={isSaving} icon={<FontAwesome5 name="check" size={20} color={theme.colors.bg} />} />
-              </View>
-            </View>
-          </View>
-        </View>
-      </RNModal>
+      <ModelFormModal
+        visible={form.modalVisible}
+        isTimeOnly={form.isTimeOnly}
+        editingModel={form.editingModel}
+        modelName={form.modelName}
+        nameError={form.nameError}
+        injectionTime={form.injectionTime}
+        timeError={form.timeError}
+        isSaving={form.isSaving}
+        timeInputRef={form.timeInputRef}
+        onChangeName={form.setModelName}
+        onChangeTime={form.setInjectionTime}
+        onSave={form.handleSave}
+        onClose={form.handleModalClose}
+      />
 
-      <RNModal visible={!!deleteModel} transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Excluir Modelo</Text>
-<Text style={styles.modalText}>
-                Deseja excluir o modelo &quot;{deleteModel?.name}&quot;?
-              </Text>
-            <View style={styles.modalButtons}>
-              <Button title="Cancelar" variant="secondary" onPress={handleCancelDelete} disabled={isDeleting} icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />} />
-              <Button title="Excluir" onPress={handleConfirmDelete} loading={isDeleting} icon={<FontAwesome5 name="trash" size={20} color={theme.colors.bg} />} />
-            </View>
-          </View>
-        </View>
-      </RNModal>
+      <ModelDeleteModal
+        model={deleteModel}
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </ScreenLayout>
   );
 };
@@ -373,92 +172,6 @@ const openDeleteConfirm = (model: CalculationModel) => {
 const styles = StyleSheet.create({
   content: {
     flex: 1,
-  },
-  section: {
-    marginTop: theme.spacing.md,
-  },
-  sectionTitle: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.sizes.sm,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: theme.spacing.xs,
-  },
-  modelCard: {
-    marginBottom: theme.spacing.sm,
-    borderColor: theme.colors.border,
-    minHeight: 98,
-    justifyContent: 'center',
-  },
-  modelInfo: {
-    flex: 1,
-  },
-  modelName: {
-    color: theme.colors.text,
-    fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.medium,
-  },
-  nameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  badge: {
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 2,
-    borderRadius: theme.roundness.sm,
-    marginLeft: theme.spacing.sm,
-  },
-  badgeCreated: {
-    backgroundColor: theme.colors.badgeCreated,
-  },
-  badgeEdited: {
-    backgroundColor: theme.colors.badgeEdited,
-  },
-  badgeText: {
-    color: theme.colors.bg,
-    fontSize: theme.typography.sizes.xs,
-    fontWeight: theme.typography.weights.bold,
-  },
-  syncIcon: {
-    marginRight: theme.spacing.xs,
-  },
-  syncStatusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: theme.spacing.sm,
-  },
-  pendingText: {
-    color: theme.colors.primary,
-    fontSize: theme.typography.sizes.xs,
-    marginLeft: theme.spacing.xs,
-  },
-  modelInputs: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.sizes.sm,
-    marginTop: theme.spacing.xs,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconBtn: {
-    padding: theme.spacing.sm,
-  },
-  timeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: theme.spacing.sm,
-  },
-  timeLabel: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.sizes.sm,
-    marginRight: theme.spacing.xs,
-  },
-  timeValue: {
-    color: theme.colors.primary,
-    fontSize: theme.typography.sizes.md,
-    fontWeight: theme.typography.weights.bold,
   },
   empty: {
     color: theme.colors.textSecondary,
@@ -494,38 +207,5 @@ const styles = StyleSheet.create({
   },
   fabButton: {
     minWidth: 120,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.8)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: theme.spacing.lg,
-  },
-  modalContent: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.roundness.lg,
-    padding: theme.spacing.lg,
-    width: '100%',
-    maxWidth: 320,
-  },
-  modalTitle: {
-    color: theme.colors.text,
-    fontSize: theme.typography.sizes.lg,
-    fontWeight: theme.typography.weights.bold,
-    marginBottom: theme.spacing.md,
-    textAlign: 'center',
-  },
-  modalText: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.sizes.md,
-    textAlign: 'center',
-    marginBottom: theme.spacing.lg,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: theme.spacing.md,
-    gap: theme.spacing.sm,
   },
 });

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ipu-calc-v7';
+const CACHE_NAME = 'ipu-calc-__APP_VERSION__';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -45,6 +45,12 @@ self.addEventListener('fetch', event => {
   );
 });
 
+self.addEventListener('message', event => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -59,4 +65,13 @@ self.addEventListener('activate', event => {
     })
   );
   self.clients.claim();
+
+  // Check for update and notify clients
+  self.registration.update().then(() => {
+    self.clients.matchAll().then(clients => {
+      clients.forEach(client => {
+        client.postMessage({ type: 'SW_UPDATED' });
+      });
+    });
+  });
 });

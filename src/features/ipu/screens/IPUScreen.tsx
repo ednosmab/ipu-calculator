@@ -90,7 +90,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
         setSaveError(message);
       } else {
         showError('Erro ao salvar modelo');
-        logService.error('Failed to save model', e);
+        logService.error('Failed to save model', e instanceof Error ? e : undefined);
       }
     } finally {
       setIsSaving(false);

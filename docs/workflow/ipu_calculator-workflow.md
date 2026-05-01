@@ -44,11 +44,40 @@ git push origin main
 
 ---
 
+## 🌐 Servidor Local (Serve)
+
+Comando para iniciar o servidor local após build:
+```bash
+# Build da aplicação
+npm run build
+
+# Iniciar servidor local (porta 3000)
+npx serve dist -l 3000
+```
+
+**Problema comum (porta presa):** Erro 404 ou "Address already in use"
+```bash
+# Matar processo na porta 3000
+fuser -k 3000/tcp
+
+# Verificar se há outro processo ocupando
+lsof -i :3000
+```
+
+**Build limpo:** Se o serve mostrar 404 em todas as rotas, limpe a dist e rebuild:
+```bash
+rm -rf dist
+npm run build
+```
+
+---
+
 ## ⚠️ Lembretes Importantes
 - **Nunca faça commit direto na `main`**: Use sempre o fluxo de merge para evitar quebrar o app oficial.
 - **Variáveis de Ambiente**: Se adicionar uma nova chave no `.env` local, lembre-se de adicioná-la também no painel da Vercel (*Settings > Environment Variables*).
 - **Conflitos**: Se houver conflito no merge, o VS Code avisará. Resolva os conflitos, salve os arquivos e complete o commit.
 - **Lint + Testes antes do Push**: Execute `npm run lint` e `npm test` localmente antes de fazer push para evitar falhas no CI.
+- **Porta presa**: Antes de iniciar o serve, verifique se a porta está livre.
 
 ## 🔄 Migração de Schema e Sincronização
 

@@ -8,7 +8,7 @@ jest.mock('@/components/ScreenLayout', () => {
   const { forwardRef } = require('react');
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { View, Text } = require('react-native');
-  const ScreenLayout = forwardRef(({ children, title, footer }, ref) => {
+  const ScreenLayout = forwardRef(({ children, title, footer }: { children?: React.ReactNode; title?: string; footer?: React.ReactNode }, ref: any) => {
     return (
       <View>
         <Text>{title}</Text>

@@ -1,5 +1,7 @@
 import { ErrorBoundary, Text, theme } from '@/design-system';
 import { useSyncEngine } from '@/hooks/useSyncEngine';
+import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
+import { UpdateBanner } from '@/components/UpdateBanner';
 import { TranslationProvider } from '@/i18n/TranslationContext';
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as Font from 'expo-font';
@@ -38,6 +40,7 @@ export default function RootLayout() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [showIOSBanner, setShowIOSBanner] = useState(false);
+  const { updateAvailable, refreshApp, dismissUpdate } = useServiceWorkerUpdate();
 
   useEffect(() => {
     setIsMounted(true);
@@ -130,6 +133,11 @@ export default function RootLayout() {
               <FontAwesome5 name="times" size={14} color={theme.colors.textSecondary} />
             </Pressable>
           </View>
+        )}
+
+        {/* Update Banner */}
+        {updateAvailable && (
+          <UpdateBanner onRefresh={refreshApp} onDismiss={dismissUpdate} />
         )}
       </ErrorBoundary>
     </TranslationProvider>

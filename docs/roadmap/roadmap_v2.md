@@ -4,17 +4,31 @@ Este documento descreve os próximos passos sugeridos para levar a Calculadora I
 
 ---
 
+## 🎯 Próximos Passos
+
+| Task | Status |
+|------|--------|
+| Merge refactor → develop | ⏳ pendente |
+| Testar no staging | ⏳ pendente |
+| Merge develop → main (produção) | ⏳ pendente |
+
+---
+
 ## 🚀 Fase 1: Estabilização e Observabilidade (Curto Prazo)
 *Foco: Garantir que saibamos quando algo quebra em produção.*
 
-1.  **Monitoramento de Erros com Sentry**: 🔄
+1.  **Monitoramento de Erros com Sentry**: ⏸️
     *   Integrar `sentry-expo` ✅ (código implementado)
-    *   Configurar DSN no ambiente (Vercel + local) ⏳
+    *   **Pausado**: não há necessidade no momento. Implementar se o volume de usuários crescer.
     *   Configurar alertas para erros críticos de sincronização com o Supabase.
     *   Garantir captura de erros silenciosos no Service Worker.
-2.  **Testes de Regressão Críticos**: ✅
+2.  **Testes de Regressão Críticos**: ✅ (concluído em 01/05/2026)
     *   Implementar testes de fumaça (Smoke Tests) para o fluxo de salvamento offline.
     *   Garantir que atualizações do manifesto PWA não quebrem a instalabilidade.
+3.  **Auto-Update via Service Worker**: ✅ (concluído em 01/05/2026)
+    *   Detectar nova versão via Service Worker
+    *   Mostrar toast "Atualização disponível - toque para recarregar"
+    *   Aplicar update sem perder dados do usuário
 
 ---
 
@@ -33,9 +47,9 @@ Este documento descreve os próximos passos sugeridos para levar a Calculadora I
 ## 🌍 Fase 3: Globalização e Ecossistema (Longo Prazo)
 *Foco: Preparar o app para novos mercados e casos de uso.*
 
-1.  **Gestão de i18n Profissional**: ⏳
+1.  **Gestão de i18n Profissional**: ⏸️
     *   Mover os arquivos de tradução para uma plataforma externa (ex: Transifex ou Lokalise).
-    *   Permitir que especialistas técnicos traduzam termos específicos da Astra sem tocar no código.
+    *   **Pausado**: sistema atual (PT/EN) é suficiente. Implementar quando o projeto crescer.
 2.  **Dashboard de Analytics Industrial**: ⏳
     *   Integrar telemetria anônima para entender quais calculadoras são mais usadas e em quais horários.
     *   Uso dessas métricas para priorizar novas funcionalidades baseadas em dados reais.

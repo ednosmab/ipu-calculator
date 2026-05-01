@@ -29,7 +29,7 @@ const mockSubscribeFn = jest.fn();
 const mockOnFn = jest.fn();
 const mockRemoveChannel = jest.fn();
 
-const mockChannel = {
+const mockChannel: any = {
   on: jest.fn().mockReturnThis(),
   subscribe: jest.fn((cb?: (status: string) => void) => {
     mockSubscribeFn(cb);

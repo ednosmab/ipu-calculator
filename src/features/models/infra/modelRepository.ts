@@ -1,11 +1,10 @@
 import { asyncStorageClient, STORAGE_KEYS } from '@/core/storage/asyncStorageClient';
+import { CACHE_VERSION } from '@/core/versioning/cacheVersion';
 import { CalculationModel, ModelType } from '../domain/calculationModel';
 import { createPendingOperation, createPendingDelete, PendingOperation, MAX_ATTEMPTS } from '../domain/pendingOperation';
 import { modelSyncService } from './modelSyncService';
 import { pendingOpsService } from './pendingOpsService';
 import { logger } from '@/core/logging/logger';
-
-const MODEL_TTL_MS = 48 * 60 * 60 * 1000; // 48 hours
 
 // Simple async mutex to prevent race conditions on concurrent write operations
 let writeQueue: Promise<unknown> = Promise.resolve();
@@ -21,6 +20,7 @@ const withWriteLock = <T>(fn: () => Promise<T>): Promise<T> => {
 interface CacheMetadata {
   data: CalculationModel[];
   expiresAt: number;
+  schemaVersion?: string;
 }
 
 type ModelListener = () => void;
@@ -46,6 +46,12 @@ export const modelRepository = {
     const cached = await asyncStorageClient.get<CacheMetadata>(STORAGE_KEYS.MODELS);
 
     if (!cached) return [];
+
+    if (cached.schemaVersion && cached.schemaVersion !== CACHE_VERSION.SCHEMA) {
+      logger.warn(`[modelRepository] Schema desatualizado — invalidando cache (${cached.schemaVersion} → ${CACHE_VERSION.SCHEMA})`);
+      await asyncStorageClient.remove(STORAGE_KEYS.MODELS);
+      return [];
+    }
 
     if (cached.expiresAt && this.isExpired(cached.expiresAt)) {
       logger.info('[modelRepository] Cache expirado — retornando dados obsoletos e acionando refresh em background');
@@ -77,7 +83,8 @@ export const modelRepository = {
   async saveWithTTL(data: CalculationModel[]): Promise<boolean> {
     const cache: CacheMetadata = {
       data,
-      expiresAt: Date.now() + MODEL_TTL_MS,
+      expiresAt: Date.now() + CACHE_VERSION.MODEL_TTL_MS,
+      schemaVersion: CACHE_VERSION.SCHEMA,
     };
     return asyncStorageClient.set(STORAGE_KEYS.MODELS, cache);
   },

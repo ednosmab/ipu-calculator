@@ -33,8 +33,8 @@ export const HistoryList = ({ history, labels, decimals = 2, onItemPress, onClea
     if (keys.length === 2) {
       const key1 = keys[0];
       const key2 = keys[1];
-      const label1 = displayLabels[key1] ?? key1;
-      const label2 = displayLabels[key2] ?? key2;
+      const label1 = (displayLabels as Record<string, string>)[key1] ?? key1;
+      const label2 = (displayLabels as Record<string, string>)[key2] ?? key2;
       return `${label1} ${inputs[key1]} • ${label2} ${inputs[key2]}`;
     }
     if (keys.length === 5) {
@@ -44,16 +44,16 @@ export const HistoryList = ({ history, labels, decimals = 2, onItemPress, onClea
       
       const parts: string[] = [];
       if (hasHelper) {
-        parts.push(`${displayLabels.extractedWeight ?? 'PE'} ${pe} • ${displayLabels.averageValue ?? 'VM'} ${vm}`);
+        parts.push(`${(displayLabels as Record<string, string>).extractedWeight ?? 'PE'} ${pe} • ${(displayLabels as Record<string, string>).averageValue ?? 'VM'} ${vm}`);
       }
       if (inputs.targetWeight) {
-        parts.push(`${displayLabels.targetWeight ?? 'PD'} ${inputs.targetWeight}`);
+        parts.push(`${(displayLabels as Record<string, string>).targetWeight ?? 'PD'} ${inputs.targetWeight}`);
       }
       if (inputs.machineValue) {
-        parts.push(`${displayLabels.machineValue ?? 'VM'} ${inputs.machineValue}`);
+        parts.push(`${(displayLabels as Record<string, string>).machineValue ?? 'VM'} ${inputs.machineValue}`);
       }
       if (inputs.actualWeight) {
-        parts.push(`${displayLabels.actualWeight ?? 'PR'} ${inputs.actualWeight}`);
+        parts.push(`${(displayLabels as Record<string, string>).actualWeight ?? 'PR'} ${inputs.actualWeight}`);
       }
       return parts.join(' • ');
     }
