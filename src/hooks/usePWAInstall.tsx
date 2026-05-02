@@ -42,7 +42,8 @@ const hasUpdate = () => {
 export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [canInstall, setCanInstall] = useState(false);
-  const [hasUpdateAvailable, setHasUpdateAvailableAvailable] = useState(false);
+  const [hasUpdateAvailable, setHasUpdateAvailable] = useState(false);
+  const isInitialized = useRef(false);
 
   const debugInfo = `isStandalone: ${checkIsStandalone()}\n` +
     `installed: ${checkAlreadyInstalled()}\n` +
@@ -50,6 +51,10 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
     `version: ${getAppVersion()}`;
 
   useEffect(() => {
+    // Only run initialization once
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+    
     // Check both display-mode and localStorage
     const isStandalone = checkIsStandalone();
     const alreadyInstalled = checkAlreadyInstalled();
