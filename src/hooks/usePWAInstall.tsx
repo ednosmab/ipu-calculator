@@ -13,24 +13,26 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
   const [canInstall, setCanInstall] = useState(false);
 
   useEffect(() => {
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                         (window.navigator as any).standalone === true;
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const supportsInstall = 'beforeinstallprompt' in window;
     
-    console.log('[PWA] Init - supportsInstall:', supportsInstall, 'isStandalone:', isStandalone, 'isMobile:', isMobile);
+    console.log('[PWA] Init - isStandalone:', isStandalone, 'isMobile:', isMobile);
     
-    // On mobile, assume installable if not standalone (Chrome may not fire event)
+    // Mobile: show install option if not standalone (iOS doesn't fire beforeinstallprompt)
     if (isMobile && !isStandalone) {
       setCanInstall(true);
+      console.log('[PWA] Mobile detected, canInstall set to true');
     }
 
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
       setCanInstall(true);
-      console.log('[PWA] beforeinstallprompt fired!');
+      console.log('[PWA] beforeinstallprompt fired! - canInstall now true');
     };
 
+    // Always listen - Chrome fires this when PWA criteria are met
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     return () => {
