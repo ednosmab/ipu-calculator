@@ -10,7 +10,7 @@ import { Stack } from 'expo-router';
 import Head from 'expo-router/head';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { Platform, Pressable, View } from 'react-native';
+import { Platform, Pressable, View, ScrollView } from 'react-native';
 import { registerBackgroundSync } from '@/core/sync/backgroundSyncService';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 
@@ -37,13 +37,20 @@ function AppContent() {
     ...FontAwesome5.font,
   });
   const [isMounted, setIsMounted] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
   const { updateAvailable, refreshApp, dismissUpdate } = useServiceWorkerUpdate();
-  const { canInstall, install, dismiss } = usePWAInstall();
+  const { canInstall, install, dismiss, debugInfo } = usePWAInstall();
 
   useEffect(() => {
     setIsMounted(true);
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js').catch(console.error);
+      navigator.serviceWorker.register('/service-worker.js')
+        .then((registration) => {
+          console.log('[PWA] Service Worker registered:', registration.scope);
+        })
+        .catch((error) => {
+          console.error('[PWA] Service Worker registration failed:', error);
+        });
     }
   }, []);
 
@@ -87,6 +94,15 @@ function AppContent() {
             <Pressable onPress={dismiss} style={styles.pillClose}>
               <FontAwesome5 name="times" size={14} color={theme.colors.textSecondary} />
             </Pressable>
+            <Pressable onPress={() => setShowDebug(!showDebug)} style={[styles.pillClose, { marginLeft: 8, width: 28, height: 28 }]}>
+              <FontAwesome5 name="bug" size={12} color={theme.colors.textSecondary} />
+            </Pressable>
+          </View>
+        )}
+
+        {showDebug && (
+          <View style={styles.debugContainer}>
+            <Text style={styles.debugText}>{debugInfo}</Text>
           </View>
         )}
 
@@ -149,5 +165,22 @@ const styles = {
     elevation: 5,
     borderWidth: 1,
     borderColor: theme.colors.border,
+  },
+  debugContainer: {
+    position: 'absolute' as const,
+    bottom: 100,
+    left: 10,
+    right: 10,
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.md,
+    borderRadius: theme.roundness.md,
+    borderWidth: 1,
+    borderColor: theme.colors.error,
+    zIndex: 9998,
+  },
+  debugText: {
+    color: theme.colors.textSecondary,
+    fontSize: 10,
+    fontFamily: 'monospace',
   }
 };
