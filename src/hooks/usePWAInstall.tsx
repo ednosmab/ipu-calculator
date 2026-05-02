@@ -27,17 +27,10 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
       console.log('[PWA] iOS detected, canInstall set to true');
     }
 
-    // Android: show install option after a short delay to allow beforeinstallprompt to fire
-    // If it doesn't fire, we still show the button after 3 seconds for manual instructions
+    // Android: show install button immediately (Chrome may not fire beforeinstallprompt)
     if (isAndroid && !isStandalone) {
-      const timer = setTimeout(() => {
-        if (!deferredPrompt) {
-          console.log('[PWA] Android: no beforeinstallprompt after delay, showing manual button');
-        }
-        setCanInstall(true);
-      }, 3000);
-
-      return () => clearTimeout(timer);
+      setCanInstall(true);
+      console.log('[PWA] Android detected, canInstall set to true immediately');
     }
 
     const handleBeforeInstallPrompt = (e: any) => {
