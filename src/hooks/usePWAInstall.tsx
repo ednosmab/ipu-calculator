@@ -16,13 +16,14 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
                          (window.navigator as any).standalone === true;
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
     
-    console.log('[PWA] Init - isStandalone:', isStandalone, 'isMobile:', isMobile);
+    console.log('[PWA] Init - isStandalone:', isStandalone, 'isMobile:', isMobile, 'isIOS:', isIOS);
     
-    // Mobile: show install option if not standalone (iOS doesn't fire beforeinstallprompt)
-    if (isMobile && !isStandalone) {
+    // iOS: show install option immediately (never fires beforeinstallprompt)
+    if (isIOS && !isStandalone) {
       setCanInstall(true);
-      console.log('[PWA] Mobile detected, canInstall set to true');
+      console.log('[PWA] iOS detected, canInstall set to true');
     }
 
     const handleBeforeInstallPrompt = (e: any) => {
@@ -32,7 +33,7 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
       console.log('[PWA] beforeinstallprompt fired! - canInstall now true');
     };
 
-    // Always listen - Chrome fires this when PWA criteria are met
+    // Listen for Chrome/Android - fires when PWA criteria are met
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     return () => {
@@ -51,22 +52,20 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
         setCanInstall(false);
       });
     } else {
-      // Show browser's native install prompt or instructions
-      console.log('[PWA] No deferredPrompt - triggering manual flow');
+      // No deferredPrompt - show manual instructions
+      console.log('[PWA] No deferredPrompt - showing manual instructions');
       
-      // Try to open the browser's install UI
       const isAndroid = /Android/.test(navigator.userAgent);
       const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
       
       if (isAndroid) {
-        // On Android Chrome, the install option is in the menu
-        // Try triggering the browser's UI by re-checking
-        window.location.reload();
+        // Android Chrome: use menu to install
+        window.alert('Para instalar no Android Chrome:\n\n1. Toque nos 3 pontos (⋮) no canto superior\n2. Selecione "Instalar app" ou "Adicionar à tela inicial"');
       } else if (isIOS) {
-        // iOS doesn't support PWA install via API
-        window.alert('Para instalar: Toque no botão Compartilhar (⊞) e selecione "Tela de Início"');
+        // iOS Safari: use share sheet
+        window.alert('Para instalar no iOS:\n\n1. Toque no botão Compartilhar (⊞)\n2. Selecione "Tela de Início"');
       } else {
-        window.alert('Para instalar: Use o menu do navegador (3 pontos ou linhas) e selecione "Instalar App"');
+        window.alert('Para instalar:\n\nUse o menu do navegador e selecione "Instalar App"');
       }
     }
   };
