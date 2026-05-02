@@ -39,7 +39,7 @@ function AppContent() {
   const [isMounted, setIsMounted] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const { updateAvailable, refreshApp, dismissUpdate } = useServiceWorkerUpdate();
-  const { canInstall, install, dismiss, debugInfo } = usePWAInstall();
+  const { canInstall, hasUpdate, install, dismiss, debugInfo } = usePWAInstall();
 
   useEffect(() => {
     setIsMounted(true);
@@ -89,7 +89,7 @@ function AppContent() {
           <View style={styles.pillContainer}>
             <Pressable onPress={install} style={styles.pillButton}>
               <FontAwesome5 name="download" size={14} color={installPillIconColor} style={{ marginRight: 8 }} />
-              <Text style={styles.pillText}>Instalar App</Text>
+              <Text style={styles.pillText}>{hasUpdate ? 'Atualizar App' : 'Instalar App'}</Text>
             </Pressable>
             <Pressable onPress={dismiss} style={styles.pillClose}>
               <FontAwesome5 name="times" size={14} color={theme.colors.textSecondary} />

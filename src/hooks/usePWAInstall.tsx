@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 
 type PWAInstallContextType = {
   canInstall: boolean;
+  hasUpdate: boolean;
   install: () => void;
   dismiss: () => void;
 };
@@ -21,29 +22,47 @@ const checkIsStandalone = () => {
 const getInstalledVersion = () => localStorage.getItem(PWA_VERSION_KEY);
 const getAppVersion = () => process.env.EXPO_PUBLIC_APP_VERSION || '1.0.0';
 
-const checkAlreadyInstalled = () => {
+const checkAlreadyInstalled = (withVersionCheck = true) => {
   const installed = localStorage.getItem(PWA_INSTALL_KEY);
+  if (!withVersionCheck) return installed === 'true';
+  
   const savedVersion = getInstalledVersion();
   const currentVersion = getAppVersion();
   return installed === 'true' && savedVersion === currentVersion;
 };
 
+const hasUpdate = () => {
+  const installed = localStorage.getItem(PWA_INSTALL_KEY);
+  const savedVersion = getInstalledVersion();
+  const currentVersion = getAppVersion();
+  return installed === 'true' && savedVersion !== currentVersion;
+};
+
 export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [canInstall, setCanInstall] = useState(false);
+  const [hasUpdate, setHasUpdate] = useState(false);
 
   useEffect(() => {
     // Check both display-mode and localStorage
     const isStandalone = checkIsStandalone();
     const alreadyInstalled = checkAlreadyInstalled();
+    const updateAvailable = hasUpdate();
     const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
     
-    console.log('[PWA] Init - isStandalone:', isStandalone, 'alreadyInstalled:', alreadyInstalled, 'version:', getAppVersion(), 'isIOS:', isIOS, 'isAndroid:', isAndroid);
+    console.log('[PWA] Init - isStandalone:', isStandalone, 'alreadyInstalled:', alreadyInstalled, 'update:', updateAvailable, 'version:', getAppVersion(), 'isIOS:', isIOS, 'isAndroid:', isAndroid);
     
-    // If already installed, don't show button
+// If already installed, show update button (not re-install)
+    if (updateAvailable) {
+      setHasUpdate(true);
+      console.log('[PWA] Update available, showing update button');
+      return;
+    }
+    
+    // If installed and same version, don't show anything
     if (isStandalone || alreadyInstalled) {
-      console.log('[PWA] Already installed, hiding button');
+      console.log('[PWA] Already same version, hiding button');
       return;
     }
 
@@ -52,6 +71,7 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
       console.log('[PWA] display-mode changed:', e.matches);
       if (e.matches) {
         setCanInstall(false);
+        setHasUpdate(false);
         localStorage.setItem(PWA_INSTALL_KEY, 'true');
         localStorage.setItem(PWA_VERSION_KEY, getAppVersion());
       }
@@ -76,7 +96,7 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
       const handleBeforeInstallPrompt = (e: any) => {
         e.preventDefault();
         setDeferredPrompt(e);
-        if (!checkIsStandalone()) {
+        if (!checkIsStandalone() && !checkAlreadyInstalled()) {
           setCanInstall(true);
           console.log('[PWA] beforeinstallprompt fired!');
         }
@@ -86,7 +106,7 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
       
       // Fallback: show button if event doesn't fire within 3 seconds
       const timeout = setTimeout(() => {
-        if (!checkIsStandalone() && !checkAlreadyInstalled()) {
+        if (!checkIsStandalone() && !checkAlreadyInstalled() && !updateAvailable) {
           setCanInstall(true);
           console.log('[PWA] Android timeout - showing button as fallback');
         } else {
@@ -106,7 +126,7 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      if (!checkIsStandalone()) {
+      if (!checkIsStandalone() && !checkAlreadyInstalled() && !updateAvailable) {
         setCanInstall(true);
         console.log('[PWA] beforeinstallprompt fired!');
       }
@@ -184,10 +204,13 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
 
   const dismiss = () => {
     setCanInstall(false);
+    setHasUpdate(false);
+    localStorage.setItem(PWA_INSTALL_KEY, 'true');
+    localStorage.setItem(PWA_VERSION_KEY, getAppVersion());
   };
 
   return (
-    <PWAInstallContext.Provider value={{ canInstall, install, dismiss }}>
+    <PWAInstallContext.Provider value={{ canInstall, hasUpdate, install, dismiss }}>
       {children}
     </PWAInstallContext.Provider>
   );
