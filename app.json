@@ -30,7 +30,7 @@
       "orientation": "portrait",
       "lang": "pt-BR"
     },
-"plugins": [
+    "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
@@ -40,7 +40,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#0b0c0f"
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
