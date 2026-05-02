@@ -8,9 +8,15 @@ Este documento descreve os próximos passos sugeridos para levar a Calculadora I
 
 | Task | Status |
 |------|--------|
-| Merge refactor → develop | ⏳ pendente |
-| Testar no staging | ⏳ pendente |
+| Merge refactor → develop | ✅ concluído (02/05/2026) |
+| Testar no staging (PWA) | ⏳ bloqueado - Vercel Password Protection |
 | Merge develop → main (produção) | ⏳ pendente |
+
+### ⚠️ Bloqueio Atual
+- **Problema:** Erro 401 ao acessar `manifest.json` no staging
+- **Causa:** Vercel Password Protection ativo no ambiente Preview
+- **Solução pendente:** Desativar proteção em Settings → Security → Standard Protection → Preview: Off
+- **Impacto:** PWA não instala no desktop nem no mobile mientras proteção estiver ativa
 
 ---
 
