@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ipu-calc-__APP_VERSION__';
+const CACHE_NAME = 'ipu-calc-1.1.5';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
