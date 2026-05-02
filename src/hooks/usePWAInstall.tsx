@@ -9,9 +9,16 @@ type PWAInstallContextType = {
 const PWAInstallContext = createContext<PWAInstallContextType | null>(null);
 
 const checkIsStandalone = () => {
+  if (typeof window === 'undefined') return false;
   return window.matchMedia('(display-mode: standalone)').matches ||
          window.matchMedia('(display-mode: fullscreen)').matches ||
          (window.navigator as any).standalone === true;
+};
+
+const checkAlreadyInstalled = () => {
+  // Check localStorage as fallback if display-mode hasn't changed yet
+  const installed = localStorage.getItem('pwa_installed');
+  return installed === 'true';
 };
 
 export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
@@ -19,14 +26,16 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
   const [canInstall, setCanInstall] = useState(false);
 
   useEffect(() => {
+    // Check both display-mode and localStorage
     const isStandalone = checkIsStandalone();
+    const alreadyInstalled = checkAlreadyInstalled();
     const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
     
-    console.log('[PWA] Init - isStandalone:', isStandalone, 'isIOS:', isIOS, 'isAndroid:', isAndroid);
+    console.log('[PWA] Init - isStandalone:', isStandalone, 'alreadyInstalled:', alreadyInstalled, 'isIOS:', isIOS, 'isAndroid:', isAndroid);
     
     // If already installed, don't show button
-    if (isStandalone) {
+    if (isStandalone || alreadyInstalled) {
       console.log('[PWA] Already installed, hiding button');
       return;
     }
@@ -36,6 +45,7 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
       console.log('[PWA] display-mode changed:', e.matches);
       if (e.matches) {
         setCanInstall(false);
+        localStorage.setItem('pwa_installed', 'true');
       }
     };
     const mediaQueryStandalone = window.matchMedia('(display-mode: standalone)');
@@ -47,8 +57,10 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
     
     // iOS: show install option (never fires beforeinstallprompt)
     if (isIOS) {
-      setCanInstall(true);
-      console.log('[PWA] iOS detected, showing install button');
+      if (!checkIsStandalone() && !checkAlreadyInstalled()) {
+        setCanInstall(true);
+        console.log('[PWA] iOS detected, showing install button');
+      }
     }
 
     // Android: wait for beforeinstallprompt event, or show after timeout
@@ -56,17 +68,21 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
       const handleBeforeInstallPrompt = (e: any) => {
         e.preventDefault();
         setDeferredPrompt(e);
-        setCanInstall(true);
-        console.log('[PWA] beforeinstallprompt fired!');
+        if (!checkIsStandalone()) {
+          setCanInstall(true);
+          console.log('[PWA] beforeinstallprompt fired!');
+        }
       };
       
       window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       
       // Fallback: show button if event doesn't fire within 3 seconds
       const timeout = setTimeout(() => {
-        if (!checkIsStandalone()) {
+        if (!checkIsStandalone() && !checkAlreadyInstalled()) {
           setCanInstall(true);
           console.log('[PWA] Android timeout - showing button as fallback');
+        } else {
+          console.log('[PWA] Android timeout - but already installed');
         }
       }, 3000);
       
@@ -82,8 +98,10 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setCanInstall(true);
-      console.log('[PWA] beforeinstallprompt fired!');
+      if (!checkIsStandalone()) {
+        setCanInstall(true);
+        console.log('[PWA] beforeinstallprompt fired!');
+      }
     };
     
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -97,6 +115,8 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
 
   const install = () => {
     console.log('[PWA] Install clicked, deferredPrompt:', !!deferredPrompt);
+    setCanInstall(false);
+    localStorage.setItem('pwa_installed', 'true');
     
     if (deferredPrompt) {
       deferredPrompt.prompt();
