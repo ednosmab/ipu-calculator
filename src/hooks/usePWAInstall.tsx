@@ -10,6 +10,7 @@ const PWAInstallContext = createContext<PWAInstallContextType | null>(null);
 
 const checkIsStandalone = () => {
   return window.matchMedia('(display-mode: standalone)').matches ||
+         window.matchMedia('(display-mode: fullscreen)').matches ||
          (window.navigator as any).standalone === true;
 };
 
@@ -37,8 +38,12 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
         setCanInstall(false);
       }
     };
-    const mediaQuery = window.matchMedia('(display-mode: standalone)');
-    mediaQuery.addEventListener('change', handleDisplayModeChange);
+    const mediaQueryStandalone = window.matchMedia('(display-mode: standalone)');
+    mediaQueryStandalone.addEventListener('change', handleDisplayModeChange);
+    
+    // Also listen for fullscreen mode (common on Android)
+    const mediaQueryFullscreen = window.matchMedia('(display-mode: fullscreen)');
+    mediaQueryFullscreen.addEventListener('change', handleDisplayModeChange);
     
     // iOS: show install option (never fires beforeinstallprompt)
     if (isIOS) {
@@ -67,7 +72,8 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
       
       return () => {
         window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-        mediaQuery.removeEventListener('change', handleDisplayModeChange);
+        mediaQueryStandalone.removeEventListener('change', handleDisplayModeChange);
+        mediaQueryFullscreen.removeEventListener('change', handleDisplayModeChange);
         clearTimeout(timeout);
       };
     }
@@ -84,7 +90,8 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
     
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      mediaQuery.removeEventListener('change', handleDisplayModeChange);
+      mediaQueryStandalone.removeEventListener('change', handleDisplayModeChange);
+      mediaQueryFullscreen.removeEventListener('change', handleDisplayModeChange);
     };
   }, []);
 
