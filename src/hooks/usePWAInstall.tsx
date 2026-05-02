@@ -8,6 +8,9 @@ type PWAInstallContextType = {
 
 const PWAInstallContext = createContext<PWAInstallContextType | null>(null);
 
+const PWA_INSTALL_KEY = 'pwa_installed';
+const PWA_VERSION_KEY = 'pwa_version';
+
 const checkIsStandalone = () => {
   if (typeof window === 'undefined') return false;
   return window.matchMedia('(display-mode: standalone)').matches ||
@@ -15,10 +18,14 @@ const checkIsStandalone = () => {
          (window.navigator as any).standalone === true;
 };
 
+const getInstalledVersion = () => localStorage.getItem(PWA_VERSION_KEY);
+const getAppVersion = () => process.env.EXPO_PUBLIC_APP_VERSION || '1.0.0';
+
 const checkAlreadyInstalled = () => {
-  // Check localStorage as fallback if display-mode hasn't changed yet
-  const installed = localStorage.getItem('pwa_installed');
-  return installed === 'true';
+  const installed = localStorage.getItem(PWA_INSTALL_KEY);
+  const savedVersion = getInstalledVersion();
+  const currentVersion = getAppVersion();
+  return installed === 'true' && savedVersion === currentVersion;
 };
 
 export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
@@ -32,7 +39,7 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
     const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
     
-    console.log('[PWA] Init - isStandalone:', isStandalone, 'alreadyInstalled:', alreadyInstalled, 'isIOS:', isIOS, 'isAndroid:', isAndroid);
+    console.log('[PWA] Init - isStandalone:', isStandalone, 'alreadyInstalled:', alreadyInstalled, 'version:', getAppVersion(), 'isIOS:', isIOS, 'isAndroid:', isAndroid);
     
     // If already installed, don't show button
     if (isStandalone || alreadyInstalled) {
@@ -45,7 +52,8 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
       console.log('[PWA] display-mode changed:', e.matches);
       if (e.matches) {
         setCanInstall(false);
-        localStorage.setItem('pwa_installed', 'true');
+        localStorage.setItem(PWA_INSTALL_KEY, 'true');
+        localStorage.setItem(PWA_VERSION_KEY, getAppVersion());
       }
     };
     const mediaQueryStandalone = window.matchMedia('(display-mode: standalone)');
@@ -116,7 +124,8 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
   const install = () => {
     console.log('[PWA] Install clicked, deferredPrompt:', !!deferredPrompt);
     setCanInstall(false);
-    localStorage.setItem('pwa_installed', 'true');
+    localStorage.setItem(PWA_INSTALL_KEY, 'true');
+    localStorage.setItem(PWA_VERSION_KEY, getAppVersion());
     
     if (deferredPrompt) {
       deferredPrompt.prompt();
