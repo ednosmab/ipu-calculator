@@ -5,6 +5,7 @@ type PWAInstallContextType = {
   hasUpdate: boolean;
   install: () => void;
   dismiss: () => void;
+  debugInfo?: string;
 };
 
 const PWAInstallContext = createContext<PWAInstallContextType | null>(null);
@@ -41,7 +42,12 @@ const hasUpdate = () => {
 export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [canInstall, setCanInstall] = useState(false);
-  const [hasUpdate, setHasUpdate] = useState(false);
+  const [hasUpdateAvailable, setHasUpdateAvailableAvailable] = useState(false);
+
+  const debugInfo = `isStandalone: ${checkIsStandalone()}\n` +
+    `installed: ${checkAlreadyInstalled()}\n` +
+    `update: ${hasUpdate()}\n` +
+    `version: ${getAppVersion()}`;
 
   useEffect(() => {
     // Check both display-mode and localStorage
@@ -55,7 +61,7 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
     
 // If already installed, show update button (not re-install)
     if (updateAvailable) {
-      setHasUpdate(true);
+      setHasUpdateAvailable(true);
       console.log('[PWA] Update available, showing update button');
       return;
     }
@@ -71,7 +77,7 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
       console.log('[PWA] display-mode changed:', e.matches);
       if (e.matches) {
         setCanInstall(false);
-        setHasUpdate(false);
+        setHasUpdateAvailable(false);
         localStorage.setItem(PWA_INSTALL_KEY, 'true');
         localStorage.setItem(PWA_VERSION_KEY, getAppVersion());
       }
@@ -204,13 +210,13 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
 
   const dismiss = () => {
     setCanInstall(false);
-    setHasUpdate(false);
+    setHasUpdateAvailable(false);
     localStorage.setItem(PWA_INSTALL_KEY, 'true');
     localStorage.setItem(PWA_VERSION_KEY, getAppVersion());
   };
 
   return (
-    <PWAInstallContext.Provider value={{ canInstall, hasUpdate, install, dismiss }}>
+    <PWAInstallContext.Provider value={{ canInstall, hasUpdate: hasUpdateAvailable || canInstall, install, dismiss, debugInfo }}>
       {children}
     </PWAInstallContext.Provider>
   );
