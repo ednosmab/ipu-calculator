@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { HomeScreen } from '@/screens/HomeScreen';
+import { HomeScreen } from '@/features/home/screens/HomeScreen';
 
 export default function Page() {
   const router = useRouter();

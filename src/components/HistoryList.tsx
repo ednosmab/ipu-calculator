@@ -92,7 +92,7 @@ export const HistoryList = ({ history, labels, decimals = 2, onItemPress, onClea
                   {formatInputs(item.inputs)}
                 </Text>
               </View>
-              <Text style={styles.result}>{item.result.toFixed(decimals)}</Text>
+              <Text style={styles.result}>{item.result != null ? item.result.toFixed(decimals) : 'N/A'}</Text>
             </View>
           </Pressable>
         ))}

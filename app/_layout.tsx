@@ -1,4 +1,5 @@
-import { ErrorBoundary, Text, theme } from '@/design-system';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { Text, theme } from '@/design-system';
 import { useSyncEngine } from '@/hooks/useSyncEngine';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { UpdateBanner } from '@/components/UpdateBanner';
@@ -20,14 +21,25 @@ const installPillTextColor = theme.colors.primaryText;
 const installPillIconColor = theme.colors.primaryText;
 
 function Fallback({ error }: { error: Error }) {
+  const { t } = useTranslation();
+  const handleReset = () => {
+    // Force page reload to reset ErrorBoundary
+    window.location.reload();
+  };
+
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: theme.spacing.lg, backgroundColor: theme.colors.bg }}>
       <Text style={{ fontSize: theme.typography.sizes.lg, fontWeight: theme.typography.weights.bold, color: theme.colors.error, marginBottom: theme.spacing.sm }}>
         Algo deu errado
       </Text>
-      <Text style={{ fontSize: theme.typography.sizes.md, color: theme.colors.textSecondary, textAlign: 'center' }}>
+      <Text style={{ fontSize: theme.typography.sizes.md, color: theme.colors.textSecondary, textAlign: 'center', marginBottom: theme.spacing.lg }}>
         {error.message}
       </Text>
+      <Button
+        title={t('tryAgain') || 'Tentar novamente'}
+        onPress={handleReset}
+        style={{ minWidth: 180 }}
+      />
     </View>
   );
 }

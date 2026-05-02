@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { theme } from '../theme';
-import { Title } from './Title';
+import { Title } from '@/components/Title';
 
 type Props = {
   title: string;

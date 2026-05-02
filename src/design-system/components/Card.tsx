@@ -5,10 +5,11 @@ import { theme } from '../theme';
 type Props = {
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 };
 
-export const Card = ({ children, style }: Props) => (
-  <View style={[styles.card, style]}>{children}</View>
+export const Card = ({ children, style, testID }: Props) => (
+  <View style={[styles.card, style]} testID={testID}>{children}</View>
 );
 
 const styles = StyleSheet.create({

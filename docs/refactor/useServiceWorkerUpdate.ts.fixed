@@ -13,7 +13,7 @@ export const useServiceWorkerUpdate = () => {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const hasShownRef = useRef(false);
   const lastVersionRef = useRef<string | null>(null);
-  const isInitializedRef = useRef(false); // ✅ Controla inicialização
+  const isInitializedRef = useRef(false); // ✅ NOVO: Controla inicialização
 
   const checkForUpdate = useCallback(async () => {
     if (!navigator.serviceWorker || hasShownRef.current) return;
@@ -55,7 +55,7 @@ export const useServiceWorkerUpdate = () => {
     // ✅ MUDANÇA: Verificar se é uma mudança real, não no primeiro load
     if (!isInitializedRef.current) {
       isInitializedRef.current = true;
-      return;
+      return; // Ignorar primeira mudança de controlador
     }
     
     if (!hasShownRef.current) {
@@ -97,8 +97,7 @@ export const useServiceWorkerUpdate = () => {
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // ✅ MUDANÇA: Remover o setTimeout que causa falso positivo
-    // setTimeout(checkForUpdate, 1000); // ❌ REMOVIDO
+    // ✅ REMOVIDO: setTimeout(checkForUpdate, 1000) que causava falsos positivos
 
     return () => {
       navigator.serviceWorker?.removeEventListener('message', handleSWMessage);

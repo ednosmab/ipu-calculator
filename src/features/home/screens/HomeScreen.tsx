@@ -42,7 +42,6 @@ export const HomeScreen = ({ onGoToCalculator, onGoToCalibration, onGoToModels }
           <Text style={styles.heroTitle}>{t('homeHeroTitle')}</Text>
           <Text variant="helper" style={styles.heroSubtitle}>{t('homeHeroSubtitle')}</Text>
         </Card>
-
         <Button title={t('calculateInjection')} onPress={onGoToCalculator} icon={<FontAwesome5 name="calculator" size={20} color={theme.colors.primaryText} />} />
         <Button title={t('calibrateFlow')} variant="secondary" onPress={onGoToCalibration} icon={<FontAwesome5 name="tint" size={20} color={theme.colors.primary} />} />
 

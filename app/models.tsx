@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { ModelsScreen } from '@/screens/ModelsScreen';
+import { ModelsScreen } from '@/features/models/screens/ModelsScreen';
 import { CalculationModel } from '@/features/models/domain/calculationModel';
 
 export default function Page() {

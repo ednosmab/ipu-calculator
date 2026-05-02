@@ -12,6 +12,7 @@ type Props = {
   onSelect: (model: CalculationModel) => void;
 };
 
+// ✅ NOVO: Helper para formatação segura de tempo
 const formatInjectionTime = (time: number | null | undefined): string => {
   if (time == null) return 'N/A';
   return `${time.toFixed(2).replace('.', ',')}s`;
@@ -60,7 +61,10 @@ export const ModelCard = ({ model, onEdit, onEditTime, onDelete, onSelect }: Pro
           >
             <View style={styles.timeRow}>
               <Text style={styles.timeLabel}>Tempo:</Text>
-              <Text style={styles.timeValue}>{formatInjectionTime(model.inputs.injectionTime)}</Text>
+              {/* ✅ MUDANÇA: Usar helper com validação null */}
+              <Text style={styles.timeValue}>
+                {formatInjectionTime(model.inputs.injectionTime)}
+              </Text>
             </View>
           </TouchableOpacity>
         </View>
