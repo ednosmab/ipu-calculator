@@ -18,142 +18,171 @@ const formatInjectionTime = (time: number | null | undefined): string => {
 };
 
 export const ModelCard = ({ model, onEdit, onEditTime, onDelete, onSelect }: Props) => {
+  const isSyncing = model.syncStatus !== 'synced';
+
   return (
     <Card style={styles.modelCard} testID={`model-card-${model.name}`}>
-      <View style={styles.row}>
-        <View style={{ flex: 1 }}>
-          <TouchableOpacity 
-            onPress={() => onSelect(model)} 
-            activeOpacity={0.7}
-            style={styles.nameContainer}
-          >
-            <Text style={styles.modelName}>{model.name}</Text>
-            {model.localAction && (
-              <View style={[
-                styles.badge,
-                model.localAction === 'created' && styles.badgeCreated,
-                model.localAction === 'edited' && styles.badgeEdited,
-              ]}>
-                <Text style={styles.badgeText}>
-                  {model.localAction === 'created' ? 'Novo' : 'Editado'}
-                </Text>
-              </View>
-            )}
-            <View style={styles.syncStatusRow}>
-              <FontAwesome5 
-                name={model.syncStatus === 'synced' ? "check-circle" : "cloud-upload-alt"} 
-                size={14} 
-                color={model.syncStatus === 'synced' ? theme.colors.success : theme.colors.primary} 
-                style={styles.syncIcon}
-              />
-              {model.syncStatus !== 'synced' && (
-                <Text style={styles.pendingText}>Aguardando rede</Text>
-              )}
-            </View>
-          </TouchableOpacity>
+      <TouchableOpacity 
+        onPress={() => onSelect(model)} 
+        activeOpacity={0.7}
+        style={styles.mainContainer}
+      >
+        <View style={styles.header}>
+          <Text style={styles.modelName} numberOfLines={1}>{model.name}</Text>
+          <View style={styles.statusContainer}>
+            {isSyncing && <Text style={styles.pendingText}>Aguardando rede</Text>}
+            <FontAwesome5 
+              name={isSyncing ? "cloud-upload-alt" : "check-circle"} 
+              size={14} 
+              color={isSyncing ? theme.colors.primary : theme.colors.success} 
+              style={styles.syncIcon}
+            />
+          </View>
+        </View>
+
+        {model.localAction && (
+          <View style={[
+            styles.badge,
+            model.localAction === 'created' && styles.badgeCreated,
+            model.localAction === 'edited' && styles.badgeEdited,
+            model.localAction === 'deleted' && styles.badgeDeleted,
+          ]}>
+            <Text style={model.localAction === 'edited' ? styles.badgeTextDark : styles.badgeText}>
+              {model.localAction === 'created' ? 'Novo' : 
+               model.localAction === 'edited' ? 'Editado' : 'Excluir'}
+            </Text>
+          </View>
+        )}
+
+        <View style={styles.contentRow}>
           <TouchableOpacity 
             onPress={(e) => {
               e.stopPropagation();
               onEditTime(model);
             }}
             activeOpacity={0.7}
+            style={styles.valueContainer}
           >
-            <View style={styles.timeRow}>
-              <Text style={styles.timeLabel}>Tempo:</Text>
-              <Text style={styles.timeValue}>{formatInjectionTime(model.inputs.injectionTime)}</Text>
-            </View>
+            <Text style={styles.timeValue}>{formatInjectionTime(model.inputs.injectionTime)}</Text>
+            <Text style={styles.timeLabel}>Tempo de Injeção</Text>
           </TouchableOpacity>
+
+          <View style={styles.actions}>
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation();
+                onEdit(model);
+              }}
+              style={styles.iconBtn}
+            >
+              <FontAwesome5 name="pen" size={18} color={theme.colors.textSecondary} />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={(e) => {
+                e.stopPropagation();
+                onDelete(model);
+              }}
+              style={styles.iconBtn}
+            >
+              <FontAwesome5 name="trash-alt" size={18} color={theme.colors.error} />
+            </TouchableOpacity>
+          </View>
         </View>
-        <TouchableOpacity
-          onPress={(e) => {
-            e.stopPropagation();
-            onEdit(model);
-          }}
-          style={styles.iconBtn}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <FontAwesome5 name="pen" size={20} color={theme.colors.textSecondary} />
-        </TouchableOpacity>
-        <TouchableOpacity 
-          onPress={(e) => {
-            e.stopPropagation();
-            onDelete(model);
-          }}
-          style={styles.iconBtn}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <FontAwesome5 name="trash-alt" size={20} color={theme.colors.error} />
-        </TouchableOpacity>
-      </View>
+      </TouchableOpacity>
     </Card>
   );
 };
 
 const styles = {
   modelCard: {
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+    padding: theme.spacing.md,
     borderColor: theme.colors.border,
-    minHeight: 98,
-    justifyContent: 'center' as const,
   },
-  row: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-  },
-  nameContainer: {
+  mainContainer: {
     flex: 1,
+  },
+  header: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    marginBottom: theme.spacing.xs,
   },
   modelName: {
     color: theme.colors.text,
     fontSize: theme.typography.sizes.lg,
-    fontWeight: '600' as const,
-    marginBottom: 4,
+    fontWeight: theme.typography.weights.bold,
+    flex: 1,
+    marginRight: theme.spacing.sm,
+  },
+  statusContainer: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+  },
+  syncIcon: {
+    marginLeft: 6,
+  },
+  pendingText: {
+    color: theme.colors.primary,
+    fontSize: 10,
+    fontWeight: theme.typography.weights.medium,
   },
   badge: {
     alignSelf: 'flex-start' as const,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
-    marginBottom: 4,
+    marginBottom: theme.spacing.sm,
   },
   badgeCreated: {
-    backgroundColor: theme.colors.badgeCreated,
+    backgroundColor: theme.colors.success,
   },
   badgeEdited: {
-    backgroundColor: theme.colors.badgeEdited,
+    backgroundColor: theme.colors.warning,
+  },
+  badgeDeleted: {
+    backgroundColor: theme.colors.error,
   },
   badgeText: {
     color: theme.colors.white,
     fontSize: 10,
-    fontWeight: '600' as const,
+    fontWeight: theme.typography.weights.bold,
+    textTransform: 'uppercase' as const,
   },
-  syncStatusRow: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    marginTop: 4,
-  },
-  syncIcon: {
-    marginRight: 4,
-  },
-  pendingText: {
-    color: theme.colors.primary,
+  badgeTextDark: {
+    color: theme.colors.background,
     fontSize: 10,
+    fontWeight: theme.typography.weights.bold,
+    textTransform: 'uppercase' as const,
   },
-  timeRow: {
+  contentRow: {
     flexDirection: 'row' as const,
-    marginTop: 4,
+    justifyContent: 'space-between' as const,
+    alignItems: 'flex-end' as const,
+  },
+  valueContainer: {
+    flex: 1,
+  },
+  timeValue: {
+    color: theme.colors.primary,
+    fontSize: 28,
+    fontWeight: theme.typography.weights.bold,
+    lineHeight: 32,
   },
   timeLabel: {
     color: theme.colors.textSecondary,
-    fontSize: theme.typography.sizes.sm,
-    marginRight: 4,
+    fontSize: 12,
+    marginTop: 2,
   },
-  timeValue: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.sizes.sm,
+  actions: {
+    flexDirection: 'row' as const,
+    gap: theme.spacing.sm,
   },
   iconBtn: {
     padding: 8,
-    marginLeft: 4,
+    backgroundColor: theme.colors.input,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
 };
