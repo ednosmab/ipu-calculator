@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo, ReactNode } from 'react';
 
 type PWAInstallContextType = {
   canInstall: boolean;
@@ -20,10 +20,11 @@ const checkIsStandalone = () => {
          (window.navigator as any).standalone === true;
 };
 
-const getInstalledVersion = () => localStorage.getItem(PWA_VERSION_KEY);
+const getInstalledVersion = () => typeof window !== 'undefined' ? localStorage.getItem(PWA_VERSION_KEY) : null;
 const getAppVersion = () => process.env.EXPO_PUBLIC_APP_VERSION || '1.0.0';
 
 const checkAlreadyInstalled = (withVersionCheck = true) => {
+  if (typeof window === 'undefined') return false;
   const installed = localStorage.getItem(PWA_INSTALL_KEY);
   if (!withVersionCheck) return installed === 'true';
   
@@ -33,6 +34,7 @@ const checkAlreadyInstalled = (withVersionCheck = true) => {
 };
 
 const hasUpdate = () => {
+  if (typeof window === 'undefined') return false;
   const installed = localStorage.getItem(PWA_INSTALL_KEY);
   const savedVersion = getInstalledVersion();
   const currentVersion = getAppVersion();
@@ -45,10 +47,16 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
   const [hasUpdateAvailable, setHasUpdateAvailable] = useState(false);
   const isInitialized = useRef(false);
 
-  const debugInfo = `isStandalone: ${checkIsStandalone()}\n` +
-    `installed: ${checkAlreadyInstalled()}\n` +
-    `update: ${hasUpdate()}\n` +
-    `version: ${getAppVersion()}`;
+  const [debugInfo, setDebugInfo] = useState('');
+
+  useEffect(() => {
+    setDebugInfo(
+      `isStandalone: ${checkIsStandalone()}\n` +
+      `installed: ${checkAlreadyInstalled()}\n` +
+      `update: ${hasUpdate()}\n` +
+      `version: ${getAppVersion()}`
+    );
+  }, []);
 
   useEffect(() => {
     // Only run initialization once
@@ -152,7 +160,7 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  const install = () => {
+  const install = useCallback(() => {
     console.log('[PWA] Install clicked, deferredPrompt:', !!deferredPrompt);
     setCanInstall(false);
     localStorage.setItem(PWA_INSTALL_KEY, 'true');
@@ -176,7 +184,7 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
         showManualInstructions();
       }
     }
-  };
+  }, [deferredPrompt]);
 
   const tryDirectInstall = async () => {
     console.log('[PWA] Trying direct install method for Android');
@@ -213,15 +221,23 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const dismiss = () => {
+  const dismiss = useCallback(() => {
     setCanInstall(false);
     setHasUpdateAvailable(false);
     localStorage.setItem(PWA_INSTALL_KEY, 'true');
     localStorage.setItem(PWA_VERSION_KEY, getAppVersion());
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    canInstall,
+    hasUpdate: hasUpdateAvailable || canInstall,
+    install,
+    dismiss,
+    debugInfo
+  }), [canInstall, hasUpdateAvailable, install, dismiss, debugInfo]);
 
   return (
-    <PWAInstallContext.Provider value={{ canInstall, hasUpdate: hasUpdateAvailable || canInstall, install, dismiss, debugInfo }}>
+    <PWAInstallContext.Provider value={value}>
       {children}
     </PWAInstallContext.Provider>
   );

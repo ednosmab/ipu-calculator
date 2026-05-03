@@ -59,6 +59,7 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
   };
 
   const handleConfirmDelete = async () => {
+    console.log('[ModelsScreen] handleConfirmDelete clicked');
     if (deleteModel) {
       setIsDeleting(true);
       try {

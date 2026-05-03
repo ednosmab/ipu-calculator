@@ -1,9 +1,10 @@
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { Text, theme } from '@/design-system';
+import { DebugPanel } from '@/components/DebugPanel';
+import { TranslationProvider, useTranslation } from '@/i18n/TranslationContext';
+import { Button, Text, theme } from '@/design-system';
 import { useSyncEngine } from '@/hooks/useSyncEngine';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { UpdateBanner } from '@/components/UpdateBanner';
-import { TranslationProvider } from '@/i18n/TranslationContext';
 import { PWAInstallProvider, usePWAInstall } from '@/hooks/usePWAInstall';
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as Font from 'expo-font';
@@ -26,7 +27,6 @@ function Fallback({ error }: { error: Error }) {
     // Force page reload to reset ErrorBoundary
     window.location.reload();
   };
-
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: theme.spacing.lg, backgroundColor: theme.colors.bg }}>
       <Text style={{ fontSize: theme.typography.sizes.lg, fontWeight: theme.typography.weights.bold, color: theme.colors.error, marginBottom: theme.spacing.sm }}>
@@ -106,17 +106,15 @@ function AppContent() {
             <Pressable onPress={dismiss} style={styles.pillClose}>
               <FontAwesome5 name="times" size={14} color={theme.colors.textSecondary} />
             </Pressable>
-            <Pressable onPress={() => setShowDebug(!showDebug)} style={[styles.pillClose, { marginLeft: 8, width: 28, height: 28 }]}>
-              <FontAwesome5 name="bug" size={12} color={theme.colors.textSecondary} />
-            </Pressable>
           </View>
         )}
 
-        {showDebug && (
-          <View style={styles.debugContainer}>
-            <Text style={styles.debugText}>{debugInfo}</Text>
-          </View>
-        )}
+        {/* Debug button - always visible, footer right */}
+        <Pressable onPress={() => setShowDebug(!showDebug)} style={styles.debugButton}>
+          <FontAwesome5 name="bug" size={14} color={theme.colors.textSecondary} />
+        </Pressable>
+
+        <DebugPanel visible={showDebug} debugInfo={debugInfo} />
 
         {updateAvailable && (
           <UpdateBanner onRefresh={refreshApp} onDismiss={dismissUpdate} />
@@ -178,21 +176,23 @@ const styles = {
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  debugContainer: {
+  debugButton: {
     position: 'absolute' as const,
-    bottom: 100,
-    left: 10,
+    bottom: 30,
     right: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: theme.colors.surface,
-    padding: theme.spacing.md,
-    borderRadius: theme.roundness.md,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
     borderWidth: 1,
-    borderColor: theme.colors.error,
-    zIndex: 9998,
+    borderColor: theme.colors.border,
+    zIndex: 9999,
   },
-  debugText: {
-    color: theme.colors.textSecondary,
-    fontSize: 10,
-    fontFamily: 'monospace',
-  }
 };
