@@ -8,6 +8,7 @@ export type CreateModelInput = {
 };
 
 export const createModelUseCase = async (input: CreateModelInput): Promise<CalculationModel> => {
+  console.log('[UseCase] createModelUseCase called');
   const existing = await modelRepository.getByType(input.type);
   const duplicate = existing.find(m => m.name.toUpperCase() === input.name.toUpperCase());
   if (duplicate) {
@@ -31,6 +32,7 @@ export const createModelUseCase = async (input: CreateModelInput): Promise<Calcu
 };
 
 export const updateModelUseCase = async (model: CalculationModel): Promise<boolean> => {
+  console.log('[UseCase] updateModelUseCase called');
   const existing = await modelRepository.getByType(model.type);
   const duplicate = existing.find(m => m.id !== model.id && m.name.toUpperCase() === model.name.toUpperCase());
   if (duplicate) {
@@ -42,6 +44,7 @@ export const updateModelUseCase = async (model: CalculationModel): Promise<boole
 };
 
 export const deleteModelUseCase = async (id: string): Promise<boolean> => {
+  console.log('[UseCase] deleteModelUseCase called');
   return modelRepository.delete(id);
 };
 

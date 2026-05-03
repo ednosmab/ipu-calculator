@@ -32,6 +32,7 @@ export const useRealtimeModels = () => {
     fetchModels(true);
 
     const unsubscribeRepo = modelRepository.subscribe(() => {
+      console.log('[useRealtimeModels] Repository changed, fetching local data...');
       fetchModels(false);
     });
 

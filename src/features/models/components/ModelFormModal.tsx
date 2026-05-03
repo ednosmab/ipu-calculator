@@ -4,6 +4,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { Button, Text, Input, theme } from '@/design-system';
 import { CalculationModel } from '../domain/calculationModel';
 import { InputRef } from '@/design-system/components/Input';
+import { useTranslation } from '@/i18n/TranslationContext';
 
 type Props = {
   visible: boolean;
@@ -36,23 +37,25 @@ export const ModelFormModal = ({
   onSave,
   onClose,
 }: Props) => {
+  const { t } = useTranslation();
+
   return (
     <RNModal visible={visible} animationType="fade" transparent>
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>
-            {editingModel ? (isTimeOnly ? `${editingModel.name} - Editar Tempo` : 'Editar Modelo') : 'Novo Modelo'}
+            {editingModel ? (isTimeOnly ? `${editingModel.name} - ${t('editTime')}` : t('editModel')) : t('newModel')}
           </Text>
           
           <View>
             {!isTimeOnly && (
               <Input
-                label="Nome"
+                label={t('modelName')}
                 value={modelName}
                 onChange={(val) => {
                   onChangeName(val);
                 }}
-                placeholder="Nome do modelo"
+                placeholder={t('modelNamePlaceholder')}
                 keyboardType="default"
                 autoCapitalize="characters"
                 error={nameError}
@@ -60,7 +63,7 @@ export const ModelFormModal = ({
             )}
             <Input
               ref={timeInputRef}
-              label="Tempo de Injeção (segundos)"
+              label={t('injectionTime')}
               value={injectionTime}
               onChange={(val) => {
                 onChangeTime(val);
@@ -72,13 +75,13 @@ export const ModelFormModal = ({
             
             <View style={styles.modalButtons}>
               <Button
-                title="Cancelar"
+                title={t('cancel')}
                 variant="secondary"
                 onPress={onClose}
                 disabled={isSaving}
                 icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />}
               />
-              <Button title="Salvar" onPress={onSave} loading={isSaving} icon={<FontAwesome5 name="check" size={20} color={theme.colors.bg} />} />
+              <Button title={t('save')} onPress={onSave} loading={isSaving} icon={<FontAwesome5 name="check" size={20} color={theme.colors.bg} />} />
             </View>
           </View>
         </View>
@@ -90,7 +93,7 @@ export const ModelFormModal = ({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: theme.colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,

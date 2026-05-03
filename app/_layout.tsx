@@ -1,8 +1,9 @@
-import { ErrorBoundary, Text, theme } from '@/design-system';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { DebugPanel } from '@/components/DebugPanel';
+import { TranslationProvider, useTranslation } from '@/i18n/TranslationContext';
+import { Button, Text, theme } from '@/design-system';
 import { useSyncEngine } from '@/hooks/useSyncEngine';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
-import { UpdateBanner } from '@/components/UpdateBanner';
-import { TranslationProvider } from '@/i18n/TranslationContext';
 import { PWAInstallProvider, usePWAInstall } from '@/hooks/usePWAInstall';
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as Font from 'expo-font';
@@ -20,14 +21,24 @@ const installPillTextColor = theme.colors.primaryText;
 const installPillIconColor = theme.colors.primaryText;
 
 function Fallback({ error }: { error: Error }) {
+  const { t } = useTranslation();
+  const handleReset = () => {
+    // Force page reload to reset ErrorBoundary
+    window.location.reload();
+  };
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: theme.spacing.lg, backgroundColor: theme.colors.bg }}>
       <Text style={{ fontSize: theme.typography.sizes.lg, fontWeight: theme.typography.weights.bold, color: theme.colors.error, marginBottom: theme.spacing.sm }}>
         Algo deu errado
       </Text>
-      <Text style={{ fontSize: theme.typography.sizes.md, color: theme.colors.textSecondary, textAlign: 'center' }}>
+      <Text style={{ fontSize: theme.typography.sizes.md, color: theme.colors.textSecondary, textAlign: 'center', marginBottom: theme.spacing.lg }}>
         {error.message}
       </Text>
+      <Button
+        title={t('tryAgain') || 'Tentar novamente'}
+        onPress={handleReset}
+        style={{ minWidth: 180 }}
+      />
     </View>
   );
 }
@@ -38,8 +49,25 @@ function AppContent() {
   });
   const [isMounted, setIsMounted] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
-  const { updateAvailable, refreshApp, dismissUpdate } = useServiceWorkerUpdate();
-  const { canInstall, hasUpdate, install, dismiss, debugInfo } = usePWAInstall();
+  const { updateAvailable, dismissUpdate } = useServiceWorkerUpdate();
+  const { canInstall, isStandalone, install, dismiss, debugInfo } = usePWAInstall();
+
+  const showPwaPill = canInstall || (isStandalone && updateAvailable);
+  const pwaPillLabel = (isStandalone && updateAvailable) ? 'Atualizar App' : 'Instalar App';
+
+  const handlePwaAction = () => {
+    if (isStandalone && updateAvailable) {
+      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        alert('Uma nova versão está disponível!\n\nPara aplicar as novidades, feche o aplicativo completamente e abra-o novamente.');
+      } else {
+        alert('Uma nova versão está disponível!\n\nFeche o aplicativo e abra-o novamente para atualizar para a versão mais recente.');
+      }
+      dismissUpdate();
+    } else {
+      install();
+    }
+  };
 
   useEffect(() => {
     setIsMounted(true);
@@ -85,30 +113,35 @@ function AppContent() {
       <ErrorBoundary fallback={({ error }: { error: Error }) => <Fallback error={error} />}>
         <Stack screenOptions={{ headerShown: false }} />
 
-        {canInstall && (
+        {showPwaPill && (
           <View style={styles.pillContainer}>
-            <Pressable onPress={install} style={styles.pillButton}>
-              <FontAwesome5 name="download" size={14} color={installPillIconColor} style={{ marginRight: 8 }} />
-              <Text style={styles.pillText}>{hasUpdate ? 'Atualizar App' : 'Instalar App'}</Text>
+            <Pressable onPress={handlePwaAction} style={styles.pillButton}>
+              <FontAwesome5 
+                name={(isStandalone && updateAvailable) ? "sync-alt" : "download"} 
+                size={14} 
+                color={installPillIconColor} 
+                style={{ marginRight: 8 }} 
+              />
+              <Text style={styles.pillText}>{pwaPillLabel}</Text>
             </Pressable>
-            <Pressable onPress={dismiss} style={styles.pillClose}>
+            <Pressable 
+              onPress={() => {
+                dismiss();
+                if (updateAvailable) dismissUpdate();
+              }} 
+              style={styles.pillClose}
+            >
               <FontAwesome5 name="times" size={14} color={theme.colors.textSecondary} />
             </Pressable>
-            <Pressable onPress={() => setShowDebug(!showDebug)} style={[styles.pillClose, { marginLeft: 8, width: 28, height: 28 }]}>
-              <FontAwesome5 name="bug" size={12} color={theme.colors.textSecondary} />
-            </Pressable>
           </View>
         )}
 
-        {showDebug && (
-          <View style={styles.debugContainer}>
-            <Text style={styles.debugText}>{debugInfo}</Text>
-          </View>
-        )}
+        {/* Debug button - always visible, footer right */}
+        <Pressable onPress={() => setShowDebug(!showDebug)} style={styles.debugButton}>
+          <FontAwesome5 name="bug" size={14} color={theme.colors.textSecondary} />
+        </Pressable>
 
-        {updateAvailable && (
-          <UpdateBanner onRefresh={refreshApp} onDismiss={dismissUpdate} />
-        )}
+        <DebugPanel visible={showDebug} debugInfo={debugInfo} />
       </ErrorBoundary>
     </TranslationProvider>
   );
@@ -166,21 +199,23 @@ const styles = {
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  debugContainer: {
+  debugButton: {
     position: 'absolute' as const,
-    bottom: 100,
-    left: 10,
+    bottom: 30,
     right: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: theme.colors.surface,
-    padding: theme.spacing.md,
-    borderRadius: theme.roundness.md,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
     borderWidth: 1,
-    borderColor: theme.colors.error,
-    zIndex: 9998,
+    borderColor: theme.colors.border,
+    zIndex: 9999,
   },
-  debugText: {
-    color: theme.colors.textSecondary,
-    fontSize: 10,
-    fontFamily: 'monospace',
-  }
 };

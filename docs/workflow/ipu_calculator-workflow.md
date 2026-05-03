@@ -150,6 +150,39 @@ npm run test:e2e         # Playwright E2E (realtime sync)
 
 ---
 
+## 🐛 Debug Panel (Maio 2026)
+
+O DebugPanel é um componente isolado no layout para captura e visualização de erros da aplicação.
+
+### Funcionalidades
+- **Captura Global**: `window.onerror`, `unhandledrejection`, override de `console.error` e `console.warn`
+- **Sempre Ativo**: O componente permanece montado mesmo quando oculto (para não perder erros)
+- **Controle de Visibilidade**: Prop `visible` controla exibição via `display: none`
+- **Logs Persistentes**: Armazena até 100 logs com timestamp e tipo (error/warn/info)
+- **Status de Rede**: Exibe se o app está online/offline
+- **PWA Info**: Exibe informações de debug do PWA (isStandalone, installed, update, version)
+- **Limpeza**: Botão para limpar logs manualmente
+- **Contador**: Exibe quantidade de erros no cabeçalho
+
+### Como Usar
+1. O botão de **inseto (bug icon)** no PWA pill alterna a visibilidade
+2. Quando `visible=true`: painel aparece com logs e informações
+3. Quando `visible=false`: painel oculto com `display: none` (continua capturando)
+
+### Arquivos
+| Arquivo | Descrição |
+| :--- | :--- |
+| `src/components/DebugPanel.tsx` | Componente isolado |
+| `app/_layout.tsx` | Integração via `<DebugPanel visible={showDebug} debugInfo={debugInfo} />` |
+
+### Comportamento Técnico
+- **NÃO desmonta**: Mantém `display: none` para preservar captura de erros
+- **Captura completa**: Intercepta erros JS, Promises rejeitadas e logs de console
+- **Restauração**: Ao desmontar, restaura `console.error` e `console.warn` originais
+- **Z-Index**: 9998 (abaixo do PWA pill, acima do conteúdo)
+
+---
+
 ## 🧪 Teste de Usabilidade - Check
 
 Antes do teste, execute:

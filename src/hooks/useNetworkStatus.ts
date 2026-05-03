@@ -1,6 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 
+const verifyActualInternet = async (): Promise<boolean> => {
+  if (typeof window === 'undefined') return true;
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    
+    await fetch('https://www.google.com/favicon.ico', { 
+      mode: 'no-cors', 
+      cache: 'no-store',
+      signal: controller.signal 
+    });
+    
+    clearTimeout(timeoutId);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
 const checkConnection = (state: NetInfoState): boolean => {
   if (typeof window !== 'undefined' && navigator.onLine !== undefined) {
     return navigator.onLine;
@@ -13,23 +32,31 @@ export const useNetworkStatus = () => {
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // Web: use native browser events
+    // Web: use native browser events + real connectivity check
     if (typeof window !== 'undefined') {
-      const updateConnection = (connected: boolean) => {
-        setIsConnected(connected);
+      const check = async () => {
+        if (!navigator.onLine) {
+          setIsConnected(false);
+        } else {
+          const hasInternet = await verifyActualInternet();
+          setIsConnected(hasInternet);
+        }
       };
 
-      updateConnection(navigator.onLine);
+      check();
 
-      const handleOnline = () => updateConnection(true);
-      const handleOffline = () => updateConnection(false);
+      window.addEventListener('online', check);
+      window.addEventListener('offline', check);
 
-      window.addEventListener('online', handleOnline);
-      window.addEventListener('offline', handleOffline);
+      // Heartbeat: check every 10s if supposedly online
+      const interval = setInterval(() => {
+        if (navigator.onLine) check();
+      }, 10000);
 
       return () => {
-        window.removeEventListener('online', handleOnline);
-        window.removeEventListener('offline', handleOffline);
+        window.removeEventListener('online', check);
+        window.removeEventListener('offline', check);
+        clearInterval(interval);
       };
     }
 

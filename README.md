@@ -1,118 +1,128 @@
-# IPU Calculator
+# 💎 Calculadora IPU
+> Precisão Industrial em Alta Performance, Online ou Offline.
 
 [![CI](https://github.com/ednosmab/ipu-calculator/actions/workflows/ci.yml/badge.svg)](https://github.com/ednosmab/ipu-calculator/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-98.94%25-brightgreen)](https://github.com/ednosmab/ipu-calculator)
+**Version:** 1.2.0 | **License:** Proprietary | **Platform:** PWA / Mobile (Expo)
 
-📚 **Overview**
+---
 
-IPU Calculator is a mobile and web application built with React Native and Expo, designed to standardize and automate calculations in the injection process of sanitary seats.
+## 🎯 Proposta de Valor
+A **Calculadora IPU** é uma ferramenta de alta precisão projetada para o ambiente industrial, focada em eliminar erros de cálculo manual e garantir a consistência técnica no processamento de poliuretano. 
 
-The project focuses on clean architecture, scalability, and maintainability, making it suitable for real-world industrial scenarios.
+A aplicação prioriza a **confiabilidade matemática** acima de tudo, suportada por uma infraestrutura resiliente que garante disponibilidade total em ambientes com conectividade instável.
 
-🚀 **Features**
+---
 
-- IPU calculation
-- Calibration flow
-- Modular architecture (feature-based)
-- Design System
-- Internationalization (i18n) - PT/EN
-- Error handling with global ErrorBoundary + LogService
-- Auto-scroll to result after calculation
-- Cross-platform (Android, iOS, Web)
+## 🧠 O Coração da Aplicação (Core Engines)
 
-🧩 **Architecture**
+A inteligência do projeto reside em dois motores de cálculo fundamentais, isolados em camadas de domínio puro para garantir precisão absoluta:
 
-The project follows a modular and scalable structure:
+### 1. Motor de Cálculo de Injeção de IPU
+Calcula o índice de injeção necessário com base na massa combinada de Isocianato e Poliol.
+- **Fórmula:** `ipu = (isocyanate + polyol) / REFERENCE_DIVISOR`
+- **Uso:** Determinação instantânea do tempo de injeção para controle de qualidade.
 
-```
-src/
-├── core/              # Shared logic (calculations, parsers, validators, logging)
-├── features/          # Business features (ipu, calibration)
-│   ├── ipu/
-│   │   ├── domain/    # calculateIPU, ipuSchema
-│   │   ├── hooks/     # useIPUCalculator
-│   │   └── screens/   # IPUScreen
-│   └── calibration/
-│       ├── domain/    # calculateCalibration, calibrationSchema
-│       ├── hooks/     # useCalibration
-│       └── screens/   # CalibrationScreen
-├── hooks/             # Custom hooks (useCalculatorLogic)
-├── design-system/     # UI components and tokens
-└── i18n/              # Translations (PT/EN)
+### 2. Motor de Calibração de Vazão de IPU
+Utiliza a **Regra de Três Industrial** para corrigir os valores de máquina com base no peso real extraído vs. o peso desejado em processos de IPU.
+- **Fórmula:** `correctedValue = (targetWeight * machineValue) / actualWeight`
+- **Uso:** Ajuste fino de bombas e injetoras para evitar desperdício.
+
+```mermaid
+graph TD
+    A[Entrada de Dados] --> B{Motor de Cálculo}
+    B -->|IPU| C[Processamento de Massa]
+    B -->|Calibração| D[Regra de Três Corretiva]
+    C --> E[Resultado de Precisão]
+    D --> E
+    E --> F[Persistência e Histórico]
 ```
 
-**Principles**
-- Separation of concerns (UI ↔ Business Logic)
-- Domain-driven structure
-- Reusable Design System components
-- Typed with TypeScript + Zod
+---
 
-📖 **Testing**
+## 🏗️ Pilares Arquiteturais (A "Armadura")
 
-The project uses Jest with two strategies:
+Embora os cálculos sejam o coração, a robustez da Calculadora IPU é garantida por quatro pilares técnicos:
 
-- Unit tests → business logic
-- Integration tests → components and hooks
+### 📱 PWA Industrial (Offline-First)
+- **Disponibilidade Total:** Funciona 100% sem internet através de Service Workers altamente otimizados.
+- **Sincronização Desacoplada:** Persistência local imediata (Optimistic UI) com sincronização em background para o Supabase.
 
-| Metric | Status |
-|--------|--------|
-| Coverage | **98.94%** |
-| Tests | **31 passing** |
-| Lint | **0 errors** |
+### 🏛️ Clean Architecture
+- **Domínio Isolado:** Regras de negócio protegidas de dependências externas.
+- **Camada de Infraestrutura:** Repositórios com travas atômicas (Mutex) para evitar corrupção de dados durante acessos simultâneos.
 
-Run tests:
+### 🎨 Design System Industrial
+- **UI de Alta Performance:** Interface escura (OLED optimized), com tipografia de alta legibilidade e elementos táteis otimizados para uso com luvas ou em ambientes de fábrica.
+- **Tokens Semânticos:** Consistência visual absoluta via Design System próprio.
 
+### 🌍 i18n Nativo
+- Suporte nativo a Português e Inglês, com detecção automática e troca dinâmica sem recarregar o app.
+
+---
+
+## 🛠️ Stack Tecnológica
+
+- **Core:** React Native (Expo) + TypeScript
+- **Web:** Expo Router + Next.js (Optimized PWA)
+- **Persistência:** AsyncStorage (Local) + Supabase (Remote)
+- **Testes:** Jest + React Native Testing Library (88 testes integrados)
+- **Estilos:** Vanilla CSS (Web) / StyleSheet (Native) com Design System Atômico.
+
+---
+
+## 🚀 Como Executar
+
+### Pré-requisitos
+- Node.js 20+
+- NPM ou Yarn
+
+### Instalação
+```bash
+git clone https://github.com/ednosmab/ipu-calculator.git
+cd ipu-calculator
+npm install
+```
+
+### Desenvolvimento
+```bash
+npx expo start
+```
+
+### Testes
 ```bash
 npm test
 ```
 
-🛠️ **Tech Stack**
+---
 
-- React Native
-- Expo
-- TypeScript
-- Expo Router
-- Jest
-- Zod
-- React Context (i18n)
+## 📜 Protocolos de Skill (Documentation as Code)
+O projeto é guiado por protocolos rigorosos localizados em `./docs/skill/`:
+- [SKILL: Architectural Integrity & Dependency Guard](docs/skill/architectural_integrity_protocol.md)
+- [Background Sync Orchestration Protocol](docs/skill/background_sync_orchestration.md)
+- [SKILL: Cache Versioning Protocol](docs/skill/cache_versioning_protocol.md)
+- [🛠️ Skill: Arquiteto Clean Code & International Standard](docs/skill/clean_code_architect.md)
+- [Codebase Hygiene Protocol](docs/skill/codebase_hygiene_protocol.md)
+- [🧠 Skill: Design System & Product Refinement](docs/skill/design-system-master.md)
+- [Design System Tokenization Protocol](docs/skill/design_system_tokenization_protocol.md)
+- [Documentation as Code Protocol](docs/skill/documentation_as_code_protocol.md)
+- [SKILL: Error Handling & Observability](docs/skill/error_handling_observability.md)
+- [SKILL: Git Workflow & Commit Standard](docs/skill/git_workflow.md)
+- [i18n Integration Protocol](docs/skill/i18n_integration_protocol.md)
+- [SKILL: i18n Protocol (Internacionalização)](docs/skill/i18n_protocol.md)
+- [SKILL: Model Persistence & Atomic Write Protocol](docs/skill/model_persistence_protocol.md)
+- [SKILL: Network Connectivity Protocol (Web & Mobile)](docs/skill/network_connectivity_protocol.md)
+- [SKILL: Optimistic UI & Sync Indicators](docs/skill/optimistic_ui_sync_indicators.md)
+- [SKILL: Desenvolvimento de Feature com Arquitetura e Testes](docs/skill/principal_skill.md)
+- [SKILL: PWA Lifecycle & Update Protocol](docs/skill/pwa_lifecycle_protocol.md)
+- [SKILL: Resilient Error Handling & UI Recovery](docs/skill/resilient_error_handling.md)
+- [SKILL: Schema Migration & Data Evolution Protocol](docs/skill/schema_migration_protocol.md)
+- [SKILL: Sync Engine & Offline-First Architecture](docs/skill/sync_offline_architecture.md)
+- [SKILL: Testing Protocol](docs/skill/testing_protocol.md)
+---
 
-📦 **Installation**
+## 🔒 Propriedade Intelectual
+Este software é **Proprietário**. Todos os direitos são reservados ao autor do projeto. O acesso, uso, cópia ou distribuição de qualquer parte desta aplicação é estritamente proibido sem autorização prévia por escrito.
+---
 
-```bash
-npm install
-```
-
-🚀 **Running the project**
-
-```bash
-npm run start
-```
-
-**Platforms**
-- Android: `npm run android`
-- iOS: `npm run ios`
-- Web: `npm run web`
-
-🏗️ **Build**
-
-```bash
-npm run build
-```
-
-🛡️ **Quality Assurance**
-
-- CI/CD with GitHub Actions
-- ESLint for code quality
-- Jest for automated testing
-- ErrorBoundary + LogService for error monitoring
-
-📈 **Future Improvements**
-
-- Advanced accessibility (a11y)
-- Local persistence (history)
-- Snapshot tests for Design System
-- Offline-first support
-
-👨‍💻 **Author**
-
-Edson Garcia - [GitHub](https://github.com/ednosmab)
+> **Orquestração e Visão Técnica:** [Edson]
+> **Desenvolvimento Assistido:** Antigravity Architect AI & OpenCode Team
