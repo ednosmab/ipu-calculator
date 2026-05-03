@@ -1,4 +1,4 @@
-# 💎 Astra: IPU Industrial Calculator
+# 💎 Calculadora IPU
 > Precisão Industrial em Alta Performance, Online ou Offline.
 
 [![CI](https://github.com/ednosmab/ipu-calculator/actions/workflows/ci.yml/badge.svg)](https://github.com/ednosmab/ipu-calculator/actions/workflows/ci.yml)
@@ -7,7 +7,7 @@
 ---
 
 ## 🎯 Proposta de Valor
-O **Astra** é uma ferramenta de alta precisão projetada para o ambiente industrial, focada em eliminar erros de cálculo manual e garantir a consistência técnica no processamento de poliuretano. 
+A **Calculadora IPU** é uma ferramenta de alta precisão projetada para o ambiente industrial, focada em eliminar erros de cálculo manual e garantir a consistência técnica no processamento de poliuretano. 
 
 A aplicação prioriza a **confiabilidade matemática** acima de tudo, suportada por uma infraestrutura resiliente que garante disponibilidade total em ambientes com conectividade instável.
 
@@ -41,7 +41,7 @@ graph TD
 
 ## 🏗️ Pilares Arquiteturais (A "Armadura")
 
-Embora os cálculos sejam o coração, a robustez do Astra é garantida por quatro pilares técnicos:
+Embora os cálculos sejam o coração, a robustez da Calculadora IPU é garantida por quatro pilares técnicos:
 
 ### 📱 PWA Industrial (Offline-First)
 - **Disponibilidade Total:** Funciona 100% sem internet através de Service Workers altamente otimizados.
@@ -118,7 +118,6 @@ O projeto é guiado por protocolos rigorosos localizados em `./docs/skill/`:
 - [SKILL: Schema Migration & Data Evolution Protocol](docs/skill/schema_migration_protocol.md)
 - [SKILL: Sync Engine & Offline-First Architecture](docs/skill/sync_offline_architecture.md)
 - [SKILL: Testing Protocol](docs/skill/testing_protocol.md)
-
 ---
 
 ## 🔒 Propriedade Intelectual

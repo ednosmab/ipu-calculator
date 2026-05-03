@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "IPU Calculator",
+    "name": "Calculadora IPU",
     "slug": "calculadora-ipu",
     "version": "1.2.0",
     "orientation": "portrait",
@@ -22,8 +22,8 @@
     "web": {
       "output": "static",
       "favicon": "./assets/images/icon.png",
-      "name": "Calculadora IPU e Vazão",
-      "shortName": "Calc IPU",
+      "name": "Calculadora IPU",
+      "shortName": "Calculadora IPU",
       "themeColor": "#0b0c0f",
       "backgroundColor": "#0b0c0f",
       "display": "standalone",

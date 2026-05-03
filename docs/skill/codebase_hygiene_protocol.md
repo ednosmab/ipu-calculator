@@ -1,6 +1,6 @@
 # Codebase Hygiene Protocol
 
-Este protocolo define os padrões de limpeza, segurança e organização física do repositório para manter a manutenibilidade e a segurança do projeto Astra.
+Este protocolo define os padrões de limpeza, segurança e organização física do repositório para manter a manutenibilidade e a segurança do projeto.
 
 ## 🛡️ Segurança e Arquivos Sensíveis
 - **Certificados e Chaves:** Nunca versionar arquivos `.pem`, `.key` ou qualquer certificado SSL/TLS na raiz ou subpastas. O ambiente de desenvolvimento deve ser agnóstico a certificados físicos (usar proxies ou variáveis de ambiente).

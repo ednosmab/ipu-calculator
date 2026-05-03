@@ -85,7 +85,7 @@ en: {
 | Valor da máquina | `machineValue` | Machine Value |
 | Peso real | `actualWeight` | Actual Weight |
 
-Estes termos são os oficiais do domínio Astra. Não usar sinônimos ou abreviações.
+Estes termos são os oficiais do domínio do projeto. Não usar sinônimos ou abreviações.
 
 ---
 
