@@ -48,9 +48,10 @@ export const useModelForm = ({ models }: UseModelFormProps) => {
   };
 
   const handleSave = async () => {
-    console.log('[useModelForm] handleSave called');
+    console.log('[useModelForm] handleSave called, isTimeOnly:', isTimeOnly);
     const nameUpper = modelName.trim().toUpperCase();
-    if (!nameUpper) {
+    
+    if (!isTimeOnly && !nameUpper) {
       setNameError('Nome é obrigatório');
       return;
     }
@@ -62,12 +63,14 @@ export const useModelForm = ({ models }: UseModelFormProps) => {
       return;
     }
 
-    const isDuplicate = models.some(
-      m => m.name.toUpperCase() === nameUpper && m.id !== editingModel?.id
-    );
-    if (isDuplicate) {
-      setNameError('Já existe um modelo com este nome');
-      return;
+    if (!isTimeOnly) {
+      const isDuplicate = models.some(
+        m => m.name.toUpperCase() === nameUpper && m.id !== editingModel?.id
+      );
+      if (isDuplicate) {
+        setNameError('Já existe um modelo com este nome');
+        return;
+      }
     }
     
     setTimeError('');
@@ -76,9 +79,10 @@ export const useModelForm = ({ models }: UseModelFormProps) => {
     setIsSaving(true);
     try {
       if (editingModel) {
+        const finalName = isTimeOnly ? editingModel.name : nameUpper;
         await updateModelUseCase({
           ...editingModel,
-          name: nameUpper,
+          name: finalName,
           inputs: { injectionTime: timeNum },
           updatedAt: Date.now(),
         });
