@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ipu-calc-1.1.5';
+const CACHE_NAME = 'ipu-calc-1.1.8';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -13,7 +13,6 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(ASSETS_TO_CACHE))
   );
-  self.skipWaiting();
 });
 
 // Bug #4 Fix: Network-first with fallback to cache.

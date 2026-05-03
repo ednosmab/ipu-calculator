@@ -4,7 +4,6 @@ import { TranslationProvider, useTranslation } from '@/i18n/TranslationContext';
 import { Button, Text, theme } from '@/design-system';
 import { useSyncEngine } from '@/hooks/useSyncEngine';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
-import { UpdateBanner } from '@/components/UpdateBanner';
 import { PWAInstallProvider, usePWAInstall } from '@/hooks/usePWAInstall';
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as Font from 'expo-font';
@@ -50,8 +49,25 @@ function AppContent() {
   });
   const [isMounted, setIsMounted] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
-  const { updateAvailable, refreshApp, dismissUpdate } = useServiceWorkerUpdate();
-  const { canInstall, hasUpdate, install, dismiss, debugInfo } = usePWAInstall();
+  const { updateAvailable, dismissUpdate } = useServiceWorkerUpdate();
+  const { canInstall, isStandalone, install, dismiss, debugInfo } = usePWAInstall();
+
+  const showPwaPill = canInstall || (isStandalone && updateAvailable);
+  const pwaPillLabel = (isStandalone && updateAvailable) ? 'Atualizar App' : 'Instalar App';
+
+  const handlePwaAction = () => {
+    if (isStandalone && updateAvailable) {
+      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        alert('Uma nova versão está disponível!\n\nPara aplicar as novidades, feche o aplicativo completamente e abra-o novamente.');
+      } else {
+        alert('Uma nova versão está disponível!\n\nFeche o aplicativo e abra-o novamente para atualizar para a versão mais recente.');
+      }
+      dismissUpdate();
+    } else {
+      install();
+    }
+  };
 
   useEffect(() => {
     setIsMounted(true);
@@ -97,13 +113,24 @@ function AppContent() {
       <ErrorBoundary fallback={({ error }: { error: Error }) => <Fallback error={error} />}>
         <Stack screenOptions={{ headerShown: false }} />
 
-        {canInstall && (
+        {showPwaPill && (
           <View style={styles.pillContainer}>
-            <Pressable onPress={install} style={styles.pillButton}>
-              <FontAwesome5 name="download" size={14} color={installPillIconColor} style={{ marginRight: 8 }} />
-              <Text style={styles.pillText}>{hasUpdate ? 'Atualizar App' : 'Instalar App'}</Text>
+            <Pressable onPress={handlePwaAction} style={styles.pillButton}>
+              <FontAwesome5 
+                name={(isStandalone && updateAvailable) ? "sync-alt" : "download"} 
+                size={14} 
+                color={installPillIconColor} 
+                style={{ marginRight: 8 }} 
+              />
+              <Text style={styles.pillText}>{pwaPillLabel}</Text>
             </Pressable>
-            <Pressable onPress={dismiss} style={styles.pillClose}>
+            <Pressable 
+              onPress={() => {
+                dismiss();
+                if (updateAvailable) dismissUpdate();
+              }} 
+              style={styles.pillClose}
+            >
               <FontAwesome5 name="times" size={14} color={theme.colors.textSecondary} />
             </Pressable>
           </View>
@@ -115,10 +142,6 @@ function AppContent() {
         </Pressable>
 
         <DebugPanel visible={showDebug} debugInfo={debugInfo} />
-
-        {updateAvailable && (
-          <UpdateBanner onRefresh={refreshApp} onDismiss={dismissUpdate} />
-        )}
       </ErrorBoundary>
     </TranslationProvider>
   );
