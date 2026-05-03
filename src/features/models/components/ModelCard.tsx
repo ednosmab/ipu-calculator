@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { Card, Text, theme } from '@/design-system';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { Text, Card, theme } from '@/design-system';
+import React from 'react';
+import { TouchableOpacity, View } from 'react-native';
 import { CalculationModel } from '../domain/calculationModel';
 
 type Props = {
@@ -22,19 +22,15 @@ export const ModelCard = ({ model, onEdit, onEditTime, onDelete, onSelect }: Pro
 
   return (
     <Card style={styles.modelCard} testID={`model-card-${model.name}`}>
-      <TouchableOpacity 
-        onPress={() => onSelect(model)} 
-        activeOpacity={0.7}
-        style={styles.mainContainer}
-      >
+      <View style={styles.mainContainer}>
         <View style={styles.header}>
           <Text style={styles.modelName} numberOfLines={1}>{model.name}</Text>
           <View style={styles.statusContainer}>
             {isSyncing && <Text style={styles.pendingText}>Aguardando rede</Text>}
-            <FontAwesome5 
-              name={isSyncing ? "cloud-upload-alt" : "check-circle"} 
-              size={14} 
-              color={isSyncing ? theme.colors.primary : theme.colors.success} 
+            <FontAwesome5
+              name={isSyncing ? "cloud-upload-alt" : "check-circle"}
+              size={14}
+              color={isSyncing ? theme.colors.primary : theme.colors.success}
               style={styles.syncIcon}
             />
           </View>
@@ -48,14 +44,14 @@ export const ModelCard = ({ model, onEdit, onEditTime, onDelete, onSelect }: Pro
             model.localAction === 'deleted' && styles.badgeDeleted,
           ]}>
             <Text style={model.localAction === 'edited' ? styles.badgeTextDark : styles.badgeText}>
-              {model.localAction === 'created' ? 'Novo' : 
-               model.localAction === 'edited' ? 'Editado' : 'Excluir'}
+              {model.localAction === 'created' ? 'Novo' :
+                model.localAction === 'edited' ? 'Editado' : 'Excluir'}
             </Text>
           </View>
         )}
 
         <View style={styles.contentRow}>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={(e) => {
               e.stopPropagation();
               onEditTime(model);
@@ -77,7 +73,7 @@ export const ModelCard = ({ model, onEdit, onEditTime, onDelete, onSelect }: Pro
             >
               <FontAwesome5 name="pen" size={18} color={theme.colors.textSecondary} />
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={(e) => {
                 e.stopPropagation();
                 onDelete(model);
@@ -88,8 +84,8 @@ export const ModelCard = ({ model, onEdit, onEditTime, onDelete, onSelect }: Pro
             </TouchableOpacity>
           </View>
         </View>
-      </TouchableOpacity>
-    </Card>
+      </View>
+    </Card >
   );
 };
 
