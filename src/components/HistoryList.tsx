@@ -1,0 +1,162 @@
+import { StyleSheet, View, Pressable } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { theme, Text, Card, HStack } from '@/design-system';
+import { CalculationHistory } from '@/features/history/domain/calculationHistory';
+
+type Props = {
+  history: CalculationHistory[];
+  labels?: Record<string, string>;
+  decimals?: number;
+  onItemPress?: (item: CalculationHistory) => void;
+  onClear?: () => void;
+};
+
+export const HistoryList = ({ history, labels, decimals = 2, onItemPress, onClear }: Props) => {
+  if (history.length === 0) {
+    return null;
+  }
+
+  const defaultLabels = history[0]?.type === 'ipu'
+    ? { isocyanate: 'Iso', polyol: 'Pol' }
+    : {
+        extractedWeight: 'Peso extraído',
+        averageValue: 'Valor média',
+        targetWeight: 'Peso desejado',
+        machineValue: 'Valor máquina',
+        actualWeight: 'Peso real',
+      };
+
+  const displayLabels: Record<string, string> = (labels ?? defaultLabels) as Record<string, string>;
+
+  const formatInputs = (inputs: Record<string, number>) => {
+    const keys = Object.keys(inputs);
+    if (keys.length === 2) {
+      const key1 = keys[0];
+      const key2 = keys[1];
+      const label1 = (displayLabels as Record<string, string>)[key1] ?? key1;
+      const label2 = (displayLabels as Record<string, string>)[key2] ?? key2;
+      return `${label1} ${inputs[key1]} • ${label2} ${inputs[key2]}`;
+    }
+    if (keys.length === 5) {
+      const pe = inputs.extractedWeight;
+      const vm = inputs.averageValue;
+      const hasHelper = pe > 0 && vm > 0;
+      
+      const parts: string[] = [];
+      if (hasHelper) {
+        parts.push(`${(displayLabels as Record<string, string>).extractedWeight ?? 'PE'} ${pe} • ${(displayLabels as Record<string, string>).averageValue ?? 'VM'} ${vm}`);
+      }
+      if (inputs.targetWeight) {
+        parts.push(`${(displayLabels as Record<string, string>).targetWeight ?? 'PD'} ${inputs.targetWeight}`);
+      }
+      if (inputs.machineValue) {
+        parts.push(`${(displayLabels as Record<string, string>).machineValue ?? 'VM'} ${inputs.machineValue}`);
+      }
+      if (inputs.actualWeight) {
+        parts.push(`${(displayLabels as Record<string, string>).actualWeight ?? 'PR'} ${inputs.actualWeight}`);
+      }
+      return parts.join(' • ');
+    }
+    return '';
+  };
+
+  return (
+    <View style={styles.container}>
+      <HStack style={styles.header}>
+        <Text style={styles.title}>CÁLCULOS RECENTES</Text>
+        {onClear && (
+          <Pressable onPress={onClear}>
+            <HStack gap="xs">
+              <FontAwesome5 name="eraser" size={14} color={theme.colors.textSecondary} />
+              <Text style={styles.clearBtn}>Limpar</Text>
+            </HStack>
+          </Pressable>
+        )}
+      </HStack>
+
+      <Card style={styles.listCard}>
+        {history.slice(0, 10).map((item, index) => (
+          <Pressable
+            key={item.id}
+            onPress={() => onItemPress?.(item)}
+            style={({ pressed }) => [
+              styles.item,
+              index < Math.min(history.length, 10) - 1 && styles.itemDivider,
+              pressed && styles.itemPressed,
+            ]}
+          >
+            <Text style={styles.resultLabel}>Resultado</Text>
+            <View style={styles.row}>
+              <View style={styles.inputs}>
+                <Text style={styles.inputText}>
+                  {formatInputs(item.inputs)}
+                </Text>
+              </View>
+              <Text style={styles.result}>{item.result.toFixed(decimals)}</Text>
+            </View>
+          </Pressable>
+        ))}
+      </Card>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    marginTop: theme.spacing.lg,
+  },
+  header: {
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.sm,
+  },
+  title: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.sizes.sm,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  clearBtn: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.sizes.sm,
+  },
+  listCard: {
+    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: 0,
+  },
+  item: {
+    padding: theme.spacing.md,
+  },
+  itemDivider: {
+    borderBottomWidth: theme.borderWidth.thin,
+    borderBottomColor: 'rgba(44, 48, 54, 0.65)',
+  },
+  resultLabel: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.sizes.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: theme.spacing.xs,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  itemPressed: {
+    backgroundColor: theme.colors.primaryDim,
+  },
+  inputs: {
+    flex: 1,
+  },
+  inputText: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.sizes.sm,
+    lineHeight: 18,
+  },
+  result: {
+    color: theme.colors.primary,
+    fontSize: theme.typography.sizes.md,
+    fontWeight: theme.typography.weights.bold,
+    marginLeft: theme.spacing.sm,
+  },
+});

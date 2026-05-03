@@ -2,26 +2,28 @@ import { StyleSheet, View } from 'react-native';
 import { theme, Card, Text } from '@/design-system';
 
 type Props = {
-  result: string;
+  result: string | null;
+  unit?: string;
 };
 
-export const ResultCard = ({ result }: Props) => (
+export const ResultCard = ({ result, unit = 'g' }: Props) => (
   <Card style={styles.card}>
     <Text variant="label" style={styles.label}>Valor Calculado</Text>
     <View style={styles.valueContainer}>
-      <Text variant="body" weight="bold" style={styles.value}>{result}</Text>
+      <View style={styles.valueRow}>
+        <Text variant="body" weight="bold" style={styles.value}>{result ?? '—'}</Text>
+        {result !== null && <Text style={styles.unit}>{unit}</Text>}
+      </View>
     </View>
-    <Text style={styles.unit}>unidades</Text>
   </Card>
 );
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: theme.colors.successBg,
-    padding: theme.spacing.xl,
+    padding: theme.spacing.lg,
     borderRadius: theme.roundness.lg,
-    marginTop: theme.spacing.md,
-    marginBottom: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
     borderWidth: theme.borderWidth.thick,
     borderColor: theme.colors.success,
   },
@@ -33,16 +35,22 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   valueContainer: {
-    marginTop: theme.spacing.xs,
+    marginTop: theme.spacing.sm,
+  },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
   },
   value: {
-    fontSize: 36,
+    fontSize: 40,
     color: theme.colors.success,
     fontWeight: theme.typography.weights.bold,
+    lineHeight: 44,
   },
   unit: {
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.textSecondary,
-    marginTop: theme.spacing.xs,
+    marginLeft: theme.spacing.xs,
+    marginBottom: theme.spacing.xs,
   },
 });

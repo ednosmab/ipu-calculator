@@ -28,7 +28,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    logService.error('ErrorBoundary caught an error', error, {
+    logService.error('ErrorBoundary caught error', error, {
       componentStack: errorInfo.componentStack,
     });
   }

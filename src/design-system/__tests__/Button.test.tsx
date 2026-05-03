@@ -1,9 +1,6 @@
 import { render } from '@testing-library/react-native';
 import { Button } from '../components/Button';
 
-global.__ExpoImportMetaRegistry = global.__ExpoImportMetaRegistry || {};
-global.structuredClone = global.structuredClone || ((val: any) => JSON.parse(JSON.stringify(val)));
-
 describe('Button Snapshot Tests', () => {
   it('renders primary button correctly', () => {
     const { toJSON } = render(

@@ -1,71 +1,63 @@
-/**
- * LogService for structured error logging.
- * 
- * Currently logs to console. 
- * Can be extended to integrate with Sentry, LogRocket, etc.
- */
+export type LogLevel = 'info' | 'warn' | 'error';
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
-
-export type LogEntry = {
+export interface LogEntry {
   level: LogLevel;
   message: string;
-  timestamp: Date;
-  context?: Record<string, unknown>;
   error?: Error;
-};
+  timestamp: number;
+  context?: Record<string, unknown>;
+}
 
-const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
-  debug: 0,
-  info: 1,
-  warn: 2,
-  error: 3,
-};
+type LogHandler = (entry: LogEntry) => void;
 
 class LogService {
-  private minLevel: LogLevel = 'info';
+  private handlers: LogHandler[] = [];
 
-  setMinLevel(level: LogLevel) {
-    this.minLevel = level;
+  addHandler(handler: LogHandler): void {
+    this.handlers.push(handler);
   }
 
-  private shouldLog(level: LogLevel): boolean {
-    return LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[this.minLevel];
+  removeHandler(handler: LogHandler): void {
+    this.handlers = this.handlers.filter(h => h !== handler);
   }
 
-  private formatEntry(entry: LogEntry): string {
-    const timestamp = entry.timestamp.toISOString();
-    const context = entry.context ? ` ${JSON.stringify(entry.context)}` : '';
-    const error = entry.error ? ` ${entry.error.message}` : '';
-    return `[${timestamp}] [${entry.level.toUpperCase()}] ${entry.message}${context}${error}`;
-  }
+  private log(level: LogLevel, message: string, error?: Error, context?: Record<string, unknown>): void {
+    const entry: LogEntry = {
+      level,
+      message,
+      error,
+      timestamp: Date.now(),
+      context,
+    };
 
-  debug(message: string, context?: Record<string, unknown>) {
-    if (this.shouldLog('debug')) {
-      console.debug(this.formatEntry({ level: 'debug', message, timestamp: new Date(), context }));
+    this.handlers.forEach(handler => {
+      try {
+        handler(entry);
+      } catch (err) {
+        console.error('LogService handler error:', err);
+      }
+    });
+
+    const prefix = level === 'error' ? '❌' : level === 'warn' ? '⚠️' : 'ℹ️';
+    if (level === 'error') {
+      console.error(`${prefix} [${level.toUpperCase()}] ${message}`, error, context);
+    } else if (level === 'warn') {
+      console.warn(`${prefix} [${level.toUpperCase()}] ${message}`, context);
+    } else {
+      console.log(`${prefix} [${level.toUpperCase()}] ${message}`, context);
     }
   }
 
-  info(message: string, context?: Record<string, unknown>) {
-    if (this.shouldLog('info')) {
-      console.info(this.formatEntry({ level: 'info', message, timestamp: new Date(), context }));
-    }
+  info(message: string, context?: Record<string, unknown>): void {
+    this.log('info', message, undefined, context);
   }
 
-  warn(message: string, context?: Record<string, unknown>) {
-    if (this.shouldLog('warn')) {
-      console.warn(this.formatEntry({ level: 'warn', message, timestamp: new Date(), context }));
-    }
+  warn(message: string, context?: Record<string, unknown>): void {
+    this.log('warn', message, undefined, context);
   }
 
-  error(message: string, error?: Error, context?: Record<string, unknown>) {
-    if (this.shouldLog('error')) {
-      console.error(this.formatEntry({ level: 'error', message, timestamp: new Date(), context, error }));
-    }
-  }
-
-  logError(error: Error, context?: Record<string, unknown>) {
-    this.error(error.message, error, context);
+  error(message: string, error?: Error, context?: Record<string, unknown>): void {
+    this.log('error', message, error, context);
   }
 }
 

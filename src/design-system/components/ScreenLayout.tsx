@@ -14,7 +14,7 @@ type Props = {
 
 export const ScreenLayout = ({ title, children, footer, centered, style }: Props) => (
   <View style={[styles.container, style]}>
-    <VStack gap="lg" style={styles.content} align={centered ? 'center' : undefined}>
+    <VStack gap="lg" style={[styles.content, centered && { alignItems: 'center' }]}>
       <Title>{title}</Title>
       <View style={styles.body}>{children}</View>
     </VStack>

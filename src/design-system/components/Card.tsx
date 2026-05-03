@@ -13,7 +13,7 @@ export const Card = ({ children, style }: Props) => (
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: theme.colors.card,
+    backgroundColor: theme.colors.surface,
     borderRadius: theme.roundness.md,
     padding: theme.spacing.lg, // Padronizado para blocos conforme Fase 4
     borderWidth: theme.borderWidth.thin,

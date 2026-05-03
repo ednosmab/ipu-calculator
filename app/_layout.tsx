@@ -1,6 +1,23 @@
-import { Stack } from 'expo-router';
-import { ErrorBoundary, theme, View, Text } from '@/design-system';
+import { ErrorBoundary, Text, theme } from '@/design-system';
+import { useSyncEngine } from '@/hooks/useSyncEngine';
+import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
+import { UpdateBanner } from '@/components/UpdateBanner';
 import { TranslationProvider } from '@/i18n/TranslationContext';
+import { PWAInstallProvider, usePWAInstall } from '@/hooks/usePWAInstall';
+import { FontAwesome5 } from '@expo/vector-icons';
+import * as Font from 'expo-font';
+import { Stack } from 'expo-router';
+import Head from 'expo-router/head';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect, useState } from 'react';
+import { Platform, Pressable, View } from 'react-native';
+import { registerBackgroundSync } from '@/core/sync/backgroundSyncService';
+import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+
+SplashScreen.preventAutoHideAsync();
+
+const installPillTextColor = theme.colors.primaryText;
+const installPillIconColor = theme.colors.primaryText;
 
 function Fallback({ error }: { error: Error }) {
   return (
@@ -15,12 +32,122 @@ function Fallback({ error }: { error: Error }) {
   );
 }
 
-export default function RootLayout() {
+function AppContent() {
+  const [loaded, error] = Font.useFonts({
+    ...FontAwesome5.font,
+  });
+  const [isMounted, setIsMounted] = useState(false);
+  const { updateAvailable, refreshApp, dismissUpdate } = useServiceWorkerUpdate();
+  const { canInstall, install, dismiss } = usePWAInstall();
+
+  useEffect(() => {
+    setIsMounted(true);
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js').catch(console.error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (loaded || error) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded, error]);
+
+  useSyncEngine();
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      registerBackgroundSync().catch(console.error);
+    }
+  }, []);
+
+  if (!isMounted || (!loaded && !error)) {
+    return <LoadingSkeleton />;
+  }
+
   return (
     <TranslationProvider>
+      <Head>
+        <title>Calculadora IPU</title>
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/assets/images/icon.png" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+      </Head>
       <ErrorBoundary fallback={({ error }: { error: Error }) => <Fallback error={error} />}>
         <Stack screenOptions={{ headerShown: false }} />
+
+        {canInstall && (
+          <View style={styles.pillContainer}>
+            <Pressable onPress={install} style={styles.pillButton}>
+              <FontAwesome5 name="download" size={14} color={installPillIconColor} style={{ marginRight: 8 }} />
+              <Text style={styles.pillText}>Instalar App</Text>
+            </Pressable>
+            <Pressable onPress={dismiss} style={styles.pillClose}>
+              <FontAwesome5 name="times" size={14} color={theme.colors.textSecondary} />
+            </Pressable>
+          </View>
+        )}
+
+        {updateAvailable && (
+          <UpdateBanner onRefresh={refreshApp} onDismiss={dismissUpdate} />
+        )}
       </ErrorBoundary>
     </TranslationProvider>
   );
 }
+
+export default function RootLayout() {
+  return (
+    <PWAInstallProvider>
+      <AppContent />
+    </PWAInstallProvider>
+  );
+}
+
+const styles = {
+  pillContainer: {
+    position: 'absolute' as const,
+    bottom: 30,
+    alignSelf: 'center' as const,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    zIndex: 9999,
+  },
+  pillButton: {
+    backgroundColor: theme.colors.primary,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  pillText: {
+    color: installPillTextColor,
+    fontWeight: 'bold' as const,
+    fontSize: 14,
+    letterSpacing: 0.5,
+  },
+  pillClose: {
+    backgroundColor: theme.colors.surface,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    marginLeft: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  }
+};

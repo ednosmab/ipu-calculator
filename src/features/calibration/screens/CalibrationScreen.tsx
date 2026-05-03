@@ -1,7 +1,10 @@
+import { logService } from '@/core/logging/LogService';
+import { InputRef } from '@/design-system/components/Input';
 import { Button, Input, Card, theme, Toggle, HStack, VStack, Text } from '@/design-system';
 import { ResultCard } from '@/components/ResultCard';
+import { HistoryList } from '@/components/HistoryList';
 import { ScreenLayout, ScreenLayoutRef } from '@/components/ScreenLayout';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import React, { useRef } from 'react';
 import { useCalibration } from '../hooks/useCalibration';
 import { useTranslation } from '@/i18n/TranslationContext';
@@ -14,6 +17,11 @@ type Props = {
 
 export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
   const screenRef = useRef<ScreenLayoutRef>(null);
+  const extractedWeightRef = useRef<InputRef>({ focus: () => {}, current: null });
+  const averageValueRef = useRef<InputRef>({ focus: () => {}, current: null });
+  const targetWeightRef = useRef<InputRef>({ focus: () => {}, current: null });
+  const machineValueRef = useRef<InputRef>({ focus: () => {}, current: null });
+  const actualWeightRef = useRef<InputRef>({ focus: () => {}, current: null });
   const { t } = useTranslation();
   const {
     targetWeight,
@@ -33,11 +41,41 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
     fieldErrors,
     calculate,
     clear,
+    history,
+    clearHistory,
+    fillFromHistory,
   } = useCalibration();
 
   const handleCalculate = () => {
-    calculate();
-    setTimeout(() => screenRef.current?.scrollToTop(), 150);
+    logService.info('Calibration calculation started', { targetWeight, machineValue, actualWeight });
+    
+    const calcResult = calculate();
+    
+    if (calcResult.hasErrors) {
+      logService.warn('Validation failed', { fieldErrors: calcResult.fieldErrors });
+      
+      // Prioritize focus based on what's visible and wrong
+      if (isHelperActive) {
+        if (calcResult.fieldErrors.extractedWeight) {
+          extractedWeightRef.current?.focus();
+          return;
+        }
+        if (calcResult.fieldErrors.averageValue) {
+          averageValueRef.current?.focus();
+          return;
+        }
+      }
+
+      if (calcResult.fieldErrors.targetWeight) {
+        targetWeightRef.current?.focus();
+      } else if (calcResult.fieldErrors.machineValue) {
+        machineValueRef.current?.focus();
+      } else if (calcResult.fieldErrors.actualWeight) {
+        actualWeightRef.current?.focus();
+      }
+    } else {
+      setTimeout(() => screenRef.current?.scrollToTop(), 150);
+    }
   };
 
   return (
@@ -45,24 +83,25 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
       ref={screenRef}
       title={t('calibrateFlow')}
       footer={
-        <HStack>
+        <HStack gap="sm" style={{ width: '100%' }}>
           <Button
             title={t('back')}
             variant="secondary"
             onPress={goBack}
-            icon={<Ionicons name="arrow-back" size={20} color={theme.colors.text} />}
             style={{ flex: 1 }}
+            icon={<FontAwesome5 name="arrow-left" size={20} color={theme.colors.textSecondary} />}
           />
           <Button
             title={t('goToCalculator')}
             onPress={goToCalculator}
             style={{ flex: 1 }}
+            icon={<FontAwesome5 name="calculator" size={20} color={theme.colors.primaryText} />}
           />
         </HStack>
       }
     >
       <VStack gap="lg">
-        {result !== null && <ResultCard result={result} />}
+        <ResultCard result={result} />
 
         <Card style={styles.helperCard}>
           <Text weight="medium">{t('weightHelper')}</Text>
@@ -76,14 +115,18 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
           <Card>
             <VStack>
               <Input
+                ref={extractedWeightRef}
                 label={t('extractedWeight')}
                 value={extractedWeight}
                 onChange={setExtractedWeight}
+                error={fieldErrors.extractedWeight ?? undefined}
               />
               <Input
+                ref={averageValueRef}
                 label={t('averageValue')}
                 value={averageValue}
                 onChange={setAverageValue}
+                error={fieldErrors.averageValue ?? undefined}
               />
             </VStack>
           </Card>
@@ -92,6 +135,7 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
         <Card>
           <VStack>
             <Input
+              ref={targetWeightRef}
               label={t('targetWeight')}
               value={targetWeight}
               onChange={setTargetWeight}
@@ -99,6 +143,7 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
             />
 
             <Input
+              ref={machineValueRef}
               label={t('machineValue')}
               value={machineValue}
               onChange={setMachineValue}
@@ -106,6 +151,7 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
             />
 
             <Input
+              ref={actualWeightRef}
               label={t('actualWeight')}
               value={actualWeight}
               onChange={setActualWeight}
@@ -117,9 +163,11 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
         {error && <Text variant="error" style={styles.error}>{error}</Text>}
 
         <VStack gap="sm">
-          <Button title={t('calculateAdjustment')} onPress={handleCalculate} />
-          <Button title={t('clear')} variant="secondary" onPress={clear} />
+          <Button title={t('calculateAdjustment')} onPress={handleCalculate} icon={<FontAwesome5 name="cog" size={20} color={theme.colors.primaryText} />} />
+          <Button title={t('clear')} variant="secondary" onPress={clear} icon={<FontAwesome5 name="eraser" size={20} color={theme.colors.textSecondary} />} />
         </VStack>
+
+        <HistoryList history={history} decimals={3} onItemPress={fillFromHistory} onClear={clearHistory} />
       </VStack>
     </ScreenLayout>
   );

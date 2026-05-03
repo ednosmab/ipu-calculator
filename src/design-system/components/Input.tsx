@@ -1,34 +1,54 @@
-import { useState } from 'react';
+import { useState, forwardRef, useRef, useImperativeHandle } from 'react';
 import { KeyboardTypeOptions, StyleSheet, TextInput, View } from 'react-native';
 import { theme } from '../theme';
 import { Text } from './Text';
 
+export type InputRef = {
+  focus: () => void;
+  current: TextInput | null;
+} | null;
+
 type Props = {
-  label: string;
+  label?: string;
   value: string;
   onChange: (text: string) => void;
   keyboardType?: KeyboardTypeOptions;
+  placeholder?: string;
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  error?: string;
+  helperText?: string;
 };
 
-export const Input = ({ 
-  label, 
-  value, 
-  onChange, 
-  keyboardType = "numeric",
+export const Input = forwardRef<InputRef, Props>(({
+  label,
+  value,
+  onChange,
+  keyboardType = "decimal-pad",
+  placeholder = "0.00",
+  autoCapitalize,
   error,
   helperText
-}: Props) => {
+}, ref) => {
   const [isFocused, setIsFocused] = useState(false);
+  const internalRef = useRef<TextInput>(null);
+
+  useImperativeHandle(ref, () => ({
+    focus: () => internalRef.current?.focus(),
+    current: internalRef.current
+  }));
 
   return (
     <View style={styles.container}>
-      <Text variant="label" weight="medium">{label}</Text>
+      {label && <Text variant="label" weight="medium" style={styles.label}>{label}</Text>}
       <TextInput
+        accessibilityLabel={label}
+        ref={internalRef}
         value={value}
         onChangeText={onChange}
         keyboardType={keyboardType}
-        placeholder="0.00"
+        placeholder={placeholder}
         placeholderTextColor={theme.colors.inputPlaceholder}
+        autoCapitalize={autoCapitalize}
         style={[
           styles.input,
           isFocused && styles.inputFocused,
@@ -41,10 +61,16 @@ export const Input = ({
       {!!helperText && !error && <Text variant="helper">{helperText}</Text>}
     </View>
   );
-};
+});
+
+Input.displayName = 'Input';
 
 const styles = StyleSheet.create({
   container: { marginBottom: theme.spacing.md, gap: theme.spacing.xs },
+  label: {
+    color: theme.colors.text,
+    opacity: 0.78,
+  },
   input: {
     backgroundColor: theme.colors.input,
     borderColor: theme.colors.border,

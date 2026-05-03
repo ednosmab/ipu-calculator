@@ -1,0 +1,98 @@
+import { supabase } from '@/core/infra/supabaseClient';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
+import { fetchRemoteModelsUseCase } from '../application/fetchRemoteModelsUseCase';
+import { CalculationModel } from '../domain/calculationModel';
+import { modelRepository } from '../infra/modelRepository';
+
+export const useRealtimeModels = () => {
+  const [models, setModels] = useState<CalculationModel[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState(Date.now());
+  const lastSyncTime = useRef(0);
+  const appState = useRef(AppState.currentState);
+
+  const fetchModels = useCallback(async (fromRemote = false) => {
+    if (fromRemote) {
+      const now = Date.now();
+      if (now - lastSyncTime.current < 1000) {
+        return;
+      }
+      lastSyncTime.current = now;
+      await fetchRemoteModelsUseCase();
+    }
+    const data = await modelRepository.getAll();
+    setModels(data);
+    setLastUpdate(Date.now());
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    console.log('[useRealtimeModels] Initializing...');
+    fetchModels(true);
+
+    const unsubscribeRepo = modelRepository.subscribe(() => {
+      fetchModels(false);
+    });
+
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        fetchModels(true);
+      }
+      appState.current = nextAppState;
+    };
+
+    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+
+    // Web: visibility change detection
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchModels(true);
+      }
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    try {
+      channel = supabase.channel('realtime-models');
+
+      channel.on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'models' },
+        (payload) => {
+          fetchModels(true);
+        }
+      );
+
+      channel.subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('[useRealtimeModels]: Realtime indisponível. Operando em modo local.');
+        } else if (status === 'SUBSCRIBED') {
+          console.log('[useRealtimeModels]: Realtime conectado com sucesso.');
+        }
+      });
+    } catch (e) {
+      console.warn('[useRealtimeModels]: Erro ao configurar realtime, operando offline:', e);
+    }
+
+    return () => {
+      unsubscribeRepo();
+      appStateSubscription.remove();
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [fetchModels]);
+
+  return { models, isLoading, lastUpdate };
+};

@@ -3,51 +3,100 @@ import { calculateCalibration } from "../domain/calculateCalibration";
 import { calibrationSchema } from "../domain/calibrationSchema";
 import { useCalculatorLogic } from "@/hooks/useCalculatorLogic";
 import { parseNumber } from "@/core/parsers/numberParser";
+import { saveCalculationUseCase } from "@/features/history/application/saveCalculationUseCase";
+import { historyRepository } from "@/features/history/infra/historyRepository";
+import { CalculationHistory } from "@/features/history/domain/calculationHistory";
 
 export const useCalibration = () => {
-  const logic = useCalculatorLogic({
-    inputs: ['targetWeight', 'machineValue', 'actualWeight'],
-    calculateFn: (tW, mV, aW) => calculateCalibration(tW, mV, aW),
-    validationSchema: calibrationSchema,
-  });
-
-  const [extractedWeight, setExtractedWeight] = useState('');
-  const [averageValue, setAverageValue] = useState('');
+  const [history, setHistory] = useState<CalculationHistory[]>([]);
   const [isHelperActive, setIsHelperActive] = useState(false);
 
+  const loadHistory = async () => {
+    const data = await historyRepository.getAll();
+    setHistory(data.filter(h => h.type === 'calibration'));
+  };
+
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
+  const logic = useCalculatorLogic({
+    inputs: ['targetWeight', 'machineValue', 'actualWeight', 'extractedWeight', 'averageValue'],
+    calculateFn: (tW, mV, aW) => calculateCalibration(tW, mV, aW),
+    validationSchema: isHelperActive 
+      ? calibrationSchema 
+      : calibrationSchema.omit({ extractedWeight: true, averageValue: true }),
+    onSuccess: async (inputs, result) => {
+      await saveCalculationUseCase({
+        type: 'calibration',
+        inputs,
+        result,
+      });
+      await loadHistory();
+    },
+  });
+
   // Auto-calculate actualWeight when extractedWeight or averageValue changes
+  // #05 Fix: removed `logic` from dependencies to prevent unnecessary re-renders
   useEffect(() => {
     if (!isHelperActive) return;
 
-    const numExtracted = parseNumber(extractedWeight) / 100; // Divide by 100
-    const numAverage = parseNumber(averageValue);
+    const numExtracted = parseNumber(logic.inputs.extractedWeight) / 100; // Divide by 100
+    const numAverage = parseNumber(logic.inputs.averageValue);
 
     if (numExtracted > 0 && numAverage > 0) {
       const result = numExtracted / numAverage;
       logic.setInputValue('actualWeight', result.toFixed(3));
     }
-  }, [extractedWeight, averageValue, isHelperActive, logic]);
+  }, [logic.inputs.extractedWeight, logic.inputs.averageValue, isHelperActive]);
 
   const toggleHelper = (value: boolean) => {
     setIsHelperActive(value);
     if (!value) {
-      setExtractedWeight('');
-      setAverageValue('');
+      logic.setInputValue('extractedWeight', '');
+      logic.setInputValue('averageValue', '');
     }
+  };
+
+  const clearHistory = async () => {
+    await historyRepository.clear('calibration');
+    await loadHistory();
+  };
+
+  const [pendingCalculate, setPendingCalculate] = useState(false);
+
+  // #07 Fix: trigger calculate after setState has applied the new input values
+  useEffect(() => {
+    if (pendingCalculate) {
+      logic.calculate();
+      setPendingCalculate(false);
+    }
+  }, [pendingCalculate, logic.calculate]);
+
+  const fillFromHistory = (item: CalculationHistory) => {
+    logic.setInputValue('targetWeight', item.inputs.targetWeight?.toString() ?? '');
+    logic.setInputValue('machineValue', item.inputs.machineValue?.toString() ?? '');
+    logic.setInputValue('actualWeight', item.inputs.actualWeight?.toString() ?? '');
+    logic.setInputValue('extractedWeight', item.inputs.extractedWeight?.toString() ?? '');
+    logic.setInputValue('averageValue', item.inputs.averageValue?.toString() ?? '');
+    if (item.inputs.extractedWeight && item.inputs.averageValue) {
+      setIsHelperActive(true);
+    }
+    setPendingCalculate(true);
   };
 
   return {
     targetWeight: logic.inputs.targetWeight,
     machineValue: logic.inputs.machineValue,
     actualWeight: logic.inputs.actualWeight,
-    extractedWeight,
-    averageValue,
+    extractedWeight: logic.inputs.extractedWeight,
+    averageValue: logic.inputs.averageValue,
     isHelperActive,
     setTargetWeight: (val: string) => logic.setInputValue('targetWeight', val),
     setMachineValue: (val: string) => logic.setInputValue('machineValue', val),
     setActualWeight: (val: string) => logic.setInputValue('actualWeight', val),
-    setExtractedWeight,
-    setAverageValue,
+    setExtractedWeight: (val: string) => logic.setInputValue('extractedWeight', val),
+    setAverageValue: (val: string) => logic.setInputValue('averageValue', val),
     setIsHelperActive: toggleHelper,
     result: logic.result,
     error: logic.error,
@@ -55,9 +104,10 @@ export const useCalibration = () => {
     calculate: logic.calculate,
     clear: () => {
       logic.clear();
-      setExtractedWeight('');
-      setAverageValue('');
       setIsHelperActive(false);
     },
+    history,
+    clearHistory,
+    fillFromHistory,
   };
 };

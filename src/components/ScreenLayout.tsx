@@ -1,8 +1,10 @@
 import React, { ReactNode, useRef, useImperativeHandle, forwardRef, useCallback } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { theme } from '@/design-system';
 import { Title } from '@/components/Title';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 export type ScreenLayoutRef = {
   scrollToTop: () => void;
@@ -15,13 +17,16 @@ type Props = {
   centered?: boolean;
   scrollable?: boolean;
   rightHeader?: ReactNode;
+  headerTitle?: ReactNode;
+  onBack?: () => void;
 };
 
 const ScreenLayout = forwardRef<ScreenLayoutRef, Props>(function ScreenLayout(
-  { title, children, footer, centered = false, scrollable = true, rightHeader },
+  { title, children, footer, centered = false, scrollable = true, rightHeader, headerTitle, onBack },
   ref
 ) {
   const scrollViewRef = useRef<ScrollView>(null);
+  const isConnected = useNetworkStatus();
 
   useImperativeHandle(ref, useCallback(() => ({
     scrollToTop: () => {
@@ -30,15 +35,25 @@ const ScreenLayout = forwardRef<ScreenLayoutRef, Props>(function ScreenLayout(
   }), []));
 
   const ContentWrapper = scrollable ? ScrollView : View;
+  const showOfflineIcon = isConnected === false;
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
         <View style={styles.header}>
-          <View style={styles.headerPlaceholder} />
-          <Title>{title}</Title>
+          <View style={styles.headerLeft}>
+            {onBack && (
+              <Pressable onPress={onBack}>
+                <FontAwesome5 name="arrow-left" size={24} color={theme.colors.text} />
+              </Pressable>
+            )}
+          </View>
+          {headerTitle ?? <Title>{title}</Title>}
           <View style={styles.headerRight}>
             {rightHeader}
+            {showOfflineIcon && (
+              <FontAwesome5 name="wifi" size={16} color={theme.colors.error} />
+            )}
           </View>
         </View>
         <ContentWrapper
@@ -85,7 +100,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: theme.spacing.md,
+    paddingTop: theme.spacing.sm,
+    paddingBottom: theme.spacing.sm,
+  },
+  headerLeft: {
+    width: 60,
   },
   headerPlaceholder: {
     width: 60,
@@ -97,6 +116,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'flex-start',
+    paddingBottom: theme.spacing.md,
   },
   viewContent: {
     flex: 1,
@@ -108,6 +128,11 @@ const styles = StyleSheet.create({
   bottomMenu: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
     marginTop: theme.spacing.md,
+    paddingTop: theme.spacing.sm,
+    borderTopWidth: theme.borderWidth.thin,
+    borderTopColor: 'rgba(44, 48, 54, 0.45)',
   },
 });

@@ -1,13 +1,57 @@
+import { useState, useEffect } from 'react';
 import { calculateIPU } from "../domain/calculateIPU";
 import { ipuSchema } from "../domain/ipuSchema";
 import { useCalculatorLogic } from "@/hooks/useCalculatorLogic";
+import { saveCalculationUseCase } from "@/features/history/application/saveCalculationUseCase";
+import { historyRepository } from "@/features/history/infra/historyRepository";
+import { CalculationHistory } from "@/features/history/domain/calculationHistory";
 
 export const useIPUCalculator = () => {
+  const [history, setHistory] = useState<CalculationHistory[]>([]);
+
+  const loadHistory = async () => {
+    const data = await historyRepository.getAll();
+    setHistory(data.filter(h => h.type === 'ipu'));
+  };
+
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
   const logic = useCalculatorLogic({
     inputs: ['isocyanate', 'polyol'],
     calculateFn: (isocyanate, polyol) => calculateIPU(isocyanate, polyol),
     validationSchema: ipuSchema,
+    onSuccess: async (inputs, result) => {
+      await saveCalculationUseCase({
+        type: 'ipu',
+        inputs,
+        result,
+      });
+      await loadHistory();
+    },
   });
+
+  const clearHistory = async () => {
+    await historyRepository.clear('ipu');
+    await loadHistory();
+  };
+
+  const [pendingCalculate, setPendingCalculate] = useState(false);
+
+  // #07 Fix: trigger calculate after setState has applied the new input values
+  useEffect(() => {
+    if (pendingCalculate) {
+      logic.calculate();
+      setPendingCalculate(false);
+    }
+  }, [pendingCalculate, logic.calculate]);
+
+  const fillFromHistory = (item: CalculationHistory) => {
+    logic.setInputValue('isocyanate', item.inputs.isocyanate?.toString() ?? '');
+    logic.setInputValue('polyol', item.inputs.polyol?.toString() ?? '');
+    setPendingCalculate(true);
+  };
 
   return {
     isocyanate: logic.inputs.isocyanate,
@@ -19,5 +63,8 @@ export const useIPUCalculator = () => {
     fieldErrors: logic.fieldErrors,
     calculate: logic.calculate,
     clear: logic.clear,
+    history,
+    clearHistory,
+    fillFromHistory,
   };
 };
