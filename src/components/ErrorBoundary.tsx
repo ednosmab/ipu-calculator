@@ -6,6 +6,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 
 interface Props {
   children: ReactNode;
+  fallback?: (props: { error: Error }) => ReactNode;
 }
 
 interface State {
@@ -34,7 +35,10 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   render() {
-    if (this.state.hasError) {
+    if (this.state.hasError && this.state.error) {
+      if (this.props.fallback) {
+        return this.props.fallback({ error: this.state.error });
+      }
       return (
         <View style={styles.container}>
           <FontAwesome5 name="exclamation-triangle" size={48} color={theme.colors.error} />

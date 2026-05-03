@@ -23,6 +23,8 @@ export const theme = {
      badgeEdited: '#FF9500',
      white: '#FFFFFF',
      black: '#000000',
+     overlay: 'rgba(0, 0, 0, 0.7)',
+     warning: '#FF9500',
    },
   spacing: {
     xs: 4,

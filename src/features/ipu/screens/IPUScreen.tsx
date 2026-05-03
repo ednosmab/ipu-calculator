@@ -147,7 +147,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
               value={isocyanate}
               onChange={setIsocyanate}
               error={fieldErrors.isocyanate ?? undefined}
-              keyboardType="numeric"
+              keyboardType="decimal-pad"
             />
             <Input
               ref={polyolRef}
@@ -155,7 +155,7 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
               value={polyol}
               onChange={setPolyol}
               error={fieldErrors.polyol ?? undefined}
-              keyboardType="numeric"
+              keyboardType="decimal-pad"
             />
           </VStack>
         </Card>

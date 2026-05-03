@@ -44,3 +44,10 @@ app-example
 
 # coverage
 coverage/
+
+# Playwright
+playwright-report/
+test-results/
+
+# Arquivos temporários e pessoais
+scratch/

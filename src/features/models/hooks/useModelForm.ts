@@ -48,6 +48,7 @@ export const useModelForm = ({ models }: UseModelFormProps) => {
   };
 
   const handleSave = async () => {
+    console.log('[useModelForm] handleSave called');
     const nameUpper = modelName.trim().toUpperCase();
     if (!nameUpper) {
       setNameError('Nome é obrigatório');

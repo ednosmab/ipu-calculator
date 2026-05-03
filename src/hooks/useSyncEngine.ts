@@ -6,61 +6,52 @@ import { schemaMigrationService } from '@/features/models/application/schemaMigr
 import { processPendingDeletesUseCase, processPendingEditsUseCase } from '@/features/models/application/syncModelsUseCase';
 import { logger } from '@/core/logging/logger';
 
+import { useNetworkStatus } from './useNetworkStatus';
+
 const runSync = async () => {
   logger.info('[SyncEngine] Iniciando sincronização...');
-  await syncModelsUseCase();
-  await fetchRemoteModelsUseCase();
-  await processPendingDeletesUseCase();
-  await processPendingEditsUseCase();
-  logger.info('[SyncEngine] Sincronização concluída');
+  try {
+    await syncModelsUseCase();
+    await fetchRemoteModelsUseCase();
+    await processPendingDeletesUseCase();
+    await processPendingEditsUseCase();
+    logger.info('[SyncEngine] Sincronização concluída');
+  } catch (error) {
+    logger.error('[SyncEngine] Erro durante runSync:', error);
+  }
 };
 
 export const useSyncEngine = () => {
-  const isFirstRun = useRef(true);
+  const isConnected = useNetworkStatus();
+  const prevConnected = useRef<boolean | null>(null);
+  const isInitialized = useRef(false);
 
   useEffect(() => {
     const init = async () => {
+      if (isInitialized.current) return;
+      isInitialized.current = true;
+      
       try {
         const migration = await schemaMigrationService.migrateIfNeeded();
         if (migration.migrated) {
           logger.info(`[Migration] ${migration.count} modelos pendentes marcados para re-sync`);
         }
-
         await runSync();
       } catch (error) {
         logger.error('[SyncEngine] Erro na inicialização:', error);
-      } finally {
-        // Bug #3 Fix: isFirstRun must be set here, not inside handleOnline
-        isFirstRun.current = false;
       }
     };
 
-    init();
-
-    const handleOnline = () => {
-      if (!isFirstRun.current) {
-        logger.info('[SyncEngine] Conexão restabelecida, iniciando sincronização...');
-        runSync().catch((error) => logger.error('[SyncEngine] Erro na sincronização:', error));
-      }
-    };
-
-    // Web: use native browser events
-    if (typeof window !== 'undefined') {
-      window.addEventListener('online', handleOnline);
-      return () => window.removeEventListener('online', handleOnline);
+    if (isConnected === true) {
+      init();
     }
+  }, [isConnected]);
 
-    // Mobile: use NetInfo
-    const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
-      if (state.isConnected && state.isInternetReachable) {
-        if (!isFirstRun.current) {
-          logger.info('[SyncEngine] Conexão restabelecida, iniciando sincronização...');
-          runSync().catch((error) => logger.error('[SyncEngine] Erro na sincronização:', error));
-        }
-        isFirstRun.current = false;
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
+  useEffect(() => {
+    if (prevConnected.current === false && isConnected === true) {
+      logger.info('[SyncEngine] Conexão restabelecida, iniciando sincronização...');
+      runSync();
+    }
+    prevConnected.current = isConnected;
+  }, [isConnected]);
 };

@@ -3,6 +3,7 @@ import { View, Modal as RNModal, StyleSheet } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Button, Text, theme } from '@/design-system';
 import { CalculationModel } from '../domain/calculationModel';
+import { useTranslation } from '@/i18n/TranslationContext';
 
 type Props = {
   model: CalculationModel | null;
@@ -12,17 +13,19 @@ type Props = {
 };
 
 export const ModelDeleteModal = ({ model, isDeleting, onConfirm, onCancel }: Props) => {
+  const { t } = useTranslation();
+  
   return (
     <RNModal visible={!!model} transparent>
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Excluir Modelo</Text>
+          <Text style={styles.modalTitle}>{t('deleteModel')}</Text>
           <Text style={styles.modalText}>
-            Deseja excluir o modelo &quot;{model?.name}&quot;?
+            {t('confirmDeletion')} &quot;{model?.name}&quot;?
           </Text>
           <View style={styles.modalButtons}>
-            <Button title="Cancelar" variant="secondary" onPress={onCancel} disabled={isDeleting} icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />} />
-            <Button title="Excluir" onPress={onConfirm} loading={isDeleting} icon={<FontAwesome5 name="trash" size={20} color={theme.colors.bg} />} />
+            <Button title={t('cancel')} variant="secondary" onPress={onCancel} disabled={isDeleting} icon={<FontAwesome5 name="times" size={20} color={theme.colors.textSecondary} />} />
+            <Button title={t('delete')} onPress={onConfirm} loading={isDeleting} icon={<FontAwesome5 name="trash" size={20} color={theme.colors.bg} />} />
           </View>
         </View>
       </View>
@@ -33,7 +36,7 @@ export const ModelDeleteModal = ({ model, isDeleting, onConfirm, onCancel }: Pro
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: theme.colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,

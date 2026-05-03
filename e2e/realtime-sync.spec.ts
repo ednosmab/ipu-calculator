@@ -59,7 +59,7 @@ async function createModel(page: Page, name: string, time: string) {
 
 // Helper: delete a model by name to clean up
 async function deleteModelByName(page: Page, name: string) {
-  const modelCard = page.locator(`text=${name}`).first();
+  const modelCard = page.getByTestId(`model-card-${name}`).first();
   if (!(await modelCard.isVisible().catch(() => false))) return;
 
   // Find the trash icon within the same card row
@@ -119,17 +119,17 @@ test.describe('Realtime Sync: Two Clients', () => {
     await goToModels(pageB);
 
     // --- Step 2: Verify model does NOT exist on User B's screen ---
-    const modelTextB = pageB.locator(`text=${MODEL_NAME}`);
-    await expect(modelTextB).not.toBeVisible({ timeout: 3_000 });
+    const modelCardB = pageB.getByTestId(`model-card-${MODEL_NAME}`);
+    await expect(modelCardB).not.toBeVisible({ timeout: 3_000 });
 
     // --- Step 3: User A creates a new model ---
     await createModel(pageA, MODEL_NAME, INJECTION_TIME);
 
     // Verify it appeared on User A's own screen
-    await expect(pageA.locator(`text=${MODEL_NAME}`)).toBeVisible({ timeout: 10_000 });
+    await expect(pageA.getByTestId(`model-card-${MODEL_NAME}`)).toBeVisible({ timeout: 10_000 });
 
     // --- Step 4: User B should see the new model appear (Realtime) ---
     // We give up to 15 seconds for the WebSocket event to propagate
-    await expect(pageB.locator(`text=${MODEL_NAME}`)).toBeVisible({ timeout: 15_000 });
+    await expect(pageB.getByTestId(`model-card-${MODEL_NAME}`)).toBeVisible({ timeout: 15_000 });
   });
 });

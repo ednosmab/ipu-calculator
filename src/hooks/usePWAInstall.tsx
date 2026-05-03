@@ -1,88 +1,134 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo, ReactNode } from 'react';
 
 type PWAInstallContextType = {
   canInstall: boolean;
+  isStandalone: boolean;
   install: () => void;
   dismiss: () => void;
+  debugInfo?: string;
 };
 
 const PWAInstallContext = createContext<PWAInstallContextType | null>(null);
 
+const checkIsStandalone = () => {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(display-mode: standalone)').matches ||
+         window.matchMedia('(display-mode: fullscreen)').matches ||
+         (window.navigator as any).standalone === true;
+};
+
 export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [canInstall, setCanInstall] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const isInitialized = useRef(false);
+  const [debugInfo, setDebugInfo] = useState('');
 
   useEffect(() => {
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                         (window.navigator as any).standalone === true;
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const standalone = checkIsStandalone();
+    setIsStandalone(standalone);
+    setDebugInfo(
+      `isStandalone: ${standalone}\n` +
+      `platform: ${navigator.platform}\n` +
+      `agent: ${navigator.userAgent.slice(0, 50)}...`
+    );
+  }, []);
+
+  useEffect(() => {
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+    
+    const standalone = checkIsStandalone();
     const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
     
-    console.log('[PWA] Init - isStandalone:', isStandalone, 'isMobile:', isMobile, 'isIOS:', isIOS, 'isAndroid:', isAndroid);
+    console.log('[PWA] Init - isStandalone:', standalone, 'isIOS:', isIOS, 'isAndroid:', isAndroid);
     
-    // iOS: show install option immediately (never fires beforeinstallprompt)
-    if (isIOS && !isStandalone) {
-      setCanInstall(true);
-      console.log('[PWA] iOS detected, canInstall set to true');
-    }
+    if (standalone) return;
 
-    // Android: show install button immediately (Chrome may not fire beforeinstallprompt)
-    if (isAndroid && !isStandalone) {
+    const handleDisplayModeChange = (e: MediaQueryListEvent) => {
+      console.log('[PWA] display-mode changed:', e.matches);
+      setIsStandalone(e.matches);
+      if (e.matches) setCanInstall(false);
+    };
+
+    const mediaQueryStandalone = window.matchMedia('(display-mode: standalone)');
+    mediaQueryStandalone.addEventListener('change', handleDisplayModeChange);
+    
+    if (isIOS && !standalone) {
       setCanInstall(true);
-      console.log('[PWA] Android detected, canInstall set to true immediately');
     }
 
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
+      console.log('[PWA] beforeinstallprompt fired!');
       setDeferredPrompt(e);
       setCanInstall(true);
-      console.log('[PWA] beforeinstallprompt fired! - canInstall now true');
     };
-
-    // Listen for Chrome/Android - fires when PWA criteria are met
+    
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
+    let fallbackTimeout: any;
+    if (isAndroid && !standalone) {
+      fallbackTimeout = setTimeout(() => {
+        if (!checkIsStandalone()) {
+          setCanInstall(true);
+          console.log('[PWA] Android fallback enabled');
+        }
+      }, 5000);
+    }
+    
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      mediaQueryStandalone.removeEventListener('change', handleDisplayModeChange);
+      if (fallbackTimeout) clearTimeout(fallbackTimeout);
     };
   }, []);
 
-  const install = () => {
-    console.log('[PWA] Install clicked, deferredPrompt:', !!deferredPrompt);
-    
+  const install = useCallback(() => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then((result: any) => {
-        console.log(`[PWA] User chose: ${result.outcome}`);
+        console.log(`[PWA] User choice: ${result.outcome}`);
         setDeferredPrompt(null);
         setCanInstall(false);
+      }).catch((error: any) => {
+        console.log('[PWA] Prompt error:', error);
+        showManualInstructions();
       });
     } else {
-      // No deferredPrompt - show manual instructions
-      console.log('[PWA] No deferredPrompt - showing manual instructions');
-      
-      const isAndroid = /Android/.test(navigator.userAgent);
-      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-      
-      if (isAndroid) {
-        // Android Chrome: use menu to install
-        window.alert('Para instalar no Android Chrome:\n\n1. Toque nos 3 pontos (⋮) no canto superior\n2. Selecione "Instalar app" ou "Adicionar à tela inicial"');
-      } else if (isIOS) {
-        // iOS Safari: use share sheet
-        window.alert('Para instalar no iOS:\n\n1. Toque no botão Compartilhar (⊞)\n2. Selecione "Tela de Início"');
-      } else {
-        window.alert('Para instalar:\n\nUse o menu do navegador e selecione "Instalar App"');
-      }
+      showManualInstructions();
     }
-  };
+  }, [deferredPrompt]);
 
-  const dismiss = () => {
+  const showManualInstructions = useCallback(() => {
+    const isAndroid = /Android/.test(navigator.userAgent);
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    
+    if (isAndroid) {
+      window.alert('Para instalar no Android:\n\n1. Toque nos 3 pontos (⋮)\n2. Selecione "Instalar app"');
+    } else if (isIOS) {
+      window.alert('Para instalar no iPhone:\n\n1. Toque em Compartilhar\n2. Selecione "Adicionar à Tela de Início"');
+    } else {
+      window.alert('Use o menu do navegador para instalar o App.');
+    }
     setCanInstall(false);
-  };
+  }, []);
+
+  const dismiss = useCallback(() => {
+    setCanInstall(false);
+  }, []);
+
+  const value = useMemo(() => ({
+    canInstall,
+    isStandalone,
+    install,
+    dismiss,
+    debugInfo
+  }), [canInstall, isStandalone, install, dismiss, debugInfo]);
 
   return (
-    <PWAInstallContext.Provider value={{ canInstall, install, dismiss }}>
+    <PWAInstallContext.Provider value={value}>
       {children}
     </PWAInstallContext.Provider>
   );
