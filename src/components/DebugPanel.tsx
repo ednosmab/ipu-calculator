@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { theme } from '@/design-system';
+import { CACHE_VERSION } from '@/core/versioning/cacheVersion';
 
 type LogEntry = {
   type: 'error' | 'warn' | 'info';
@@ -162,6 +163,8 @@ export const DebugPanel = ({ visible, debugInfo }: DebugPanelProps) => {
         <Text style={styles.infoText}>Online (state): {isOnline ? 'Sim' : 'Não'}</Text>
         <Text style={styles.infoText}>Online (direct): {typeof navigator !== 'undefined' && navigator.onLine ? 'Sim' : 'Não'}</Text>
         <Text style={styles.infoText}>Logs: {logs.length}</Text>
+        <Text style={styles.infoText}>App Version: {CACHE_VERSION.SW}</Text>
+        <Text style={styles.infoText}>Schema: {CACHE_VERSION.SCHEMA}</Text>
 
         {debugInfo && (
           <>
@@ -279,6 +282,6 @@ const styles = {
     color: theme.colors.error,
   },
   logWarn: {
-    color: '#FF9500',
+    color: theme.colors.warning,
   },
 };

@@ -126,3 +126,41 @@ jest.mock('@/core/logging/LogService', () => ({
     debug: jest.fn(),
   },
 }));
+
+// Mock para i18n useTranslation
+jest.mock('@/i18n/TranslationContext', () => {
+  const actual = jest.requireActual('@/i18n/TranslationContext');
+  const ptLabels: Record<string, string> = {
+    isocyanate: 'Isocianato',
+    polyol: 'Poliol',
+    calculateInjection: 'Calcular Injeção',
+    saveAsModel: 'Salvar como Modelo',
+    modelName: 'Nome do Modelo',
+    save: 'Salvar',
+    cancel: 'Cancelar',
+    delete: 'Excluir',
+    deleteModel: 'Excluir Modelo',
+    calibrateFlow: 'Calibrar Vazão',
+    weightHelper: 'Assistente de Peso Real',
+    extractedWeight: 'Peso extraído',
+    averageValue: 'Valor Média',
+    targetWeight: 'Peso desejado',
+    machineValue: 'Valor da máquina',
+    actualWeight: 'Peso real',
+    calculateAdjustment: 'Calcular Ajuste',
+    clear: 'Limpar',
+    back: 'Voltar',
+    goToCalculator: 'Calcular Injeção',
+    goToCalibration: 'Calibrar Vazão',
+    result: 'Valor Calculado',
+  };
+
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key: string) => ptLabels[key] || key,
+      language: 'pt',
+      toggleLanguage: jest.fn(),
+    }),
+  };
+});

@@ -1,11 +1,19 @@
 import { fetchRemoteModelsUseCase } from '../application/fetchRemoteModelsUseCase';
 import { modelRepository } from '../infra/modelRepository';
+import { modelSyncService } from '../infra/modelSyncService';
 import { CalculationModel } from '../domain/calculationModel';
 
 jest.mock('../infra/modelRepository', () => ({
   modelRepository: {
     getAll: jest.fn(),
-    saveWithTTL: jest.fn(),
+    saveWithLock: jest.fn(),
+  },
+}));
+
+jest.mock('../infra/modelSyncService', () => ({
+  modelSyncService: {
+    syncToRemote: jest.fn(),
+    deleteFromRemote: jest.fn(),
   },
 }));
 
@@ -53,7 +61,7 @@ describe('Last Write Wins', () => {
 
     await fetchRemoteModelsUseCase();
 
-    expect(modelRepository.saveWithTTL).toHaveBeenCalledWith(
+    expect(modelRepository.saveWithLock).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
           name: 'Modelo do Supabase', // remote wins
@@ -73,7 +81,7 @@ describe('Last Write Wins', () => {
 
     await fetchRemoteModelsUseCase();
 
-    expect(modelRepository.saveWithTTL).toHaveBeenCalledWith(
+    expect(modelRepository.saveWithLock).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
           name: 'Modelo Local Antigo', // local wins

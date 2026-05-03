@@ -117,13 +117,13 @@ const styles = {
     marginBottom: 4,
   },
   badgeCreated: {
-    backgroundColor: '#4A90D9',
+    backgroundColor: theme.colors.badgeCreated,
   },
   badgeEdited: {
-    backgroundColor: '#FF9500',
+    backgroundColor: theme.colors.badgeEdited,
   },
   badgeText: {
-    color: '#FFFFFF',
+    color: theme.colors.white,
     fontSize: 10,
     fontWeight: '600' as const,
   },

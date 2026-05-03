@@ -133,6 +133,6 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.md,
     paddingTop: theme.spacing.sm,
     borderTopWidth: theme.borderWidth.thin,
-    borderTopColor: 'rgba(44, 48, 54, 0.45)',
+    borderTopColor: theme.colors.border,
   },
 });

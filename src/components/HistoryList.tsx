@@ -2,6 +2,7 @@ import { StyleSheet, View, Pressable } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { theme, Text, Card, HStack } from '@/design-system';
 import { CalculationHistory } from '@/features/history/domain/calculationHistory';
+import { useTranslation } from '@/i18n/TranslationContext';
 
 type Props = {
   history: CalculationHistory[];
@@ -12,6 +13,8 @@ type Props = {
 };
 
 export const HistoryList = ({ history, labels, decimals = 2, onItemPress, onClear }: Props) => {
+  const { t } = useTranslation();
+
   if (history.length === 0) {
     return null;
   }
@@ -19,11 +22,11 @@ export const HistoryList = ({ history, labels, decimals = 2, onItemPress, onClea
   const defaultLabels = history[0]?.type === 'ipu'
     ? { isocyanate: 'Iso', polyol: 'Pol' }
     : {
-        extractedWeight: 'Peso extraído',
-        averageValue: 'Valor média',
-        targetWeight: 'Peso desejado',
-        machineValue: 'Valor máquina',
-        actualWeight: 'Peso real',
+        extractedWeight: t('extractedWeightShort'),
+        averageValue: t('averageValueShort'),
+        targetWeight: t('targetWeightShort'),
+        machineValue: t('machineValueShort'),
+        actualWeight: t('actualWeightShort'),
       };
 
   const displayLabels: Record<string, string> = (labels ?? defaultLabels) as Record<string, string>;
@@ -63,12 +66,12 @@ export const HistoryList = ({ history, labels, decimals = 2, onItemPress, onClea
   return (
     <View style={styles.container}>
       <HStack style={styles.header}>
-        <Text style={styles.title}>CÁLCULOS RECENTES</Text>
+        <Text style={styles.title}>{t('recentCalculations')}</Text>
         {onClear && (
           <Pressable onPress={onClear}>
             <HStack gap="xs">
               <FontAwesome5 name="eraser" size={14} color={theme.colors.textSecondary} />
-              <Text style={styles.clearBtn}>Limpar</Text>
+              <Text style={styles.clearBtn}>{t('clear')}</Text>
             </HStack>
           </Pressable>
         )}
@@ -85,7 +88,7 @@ export const HistoryList = ({ history, labels, decimals = 2, onItemPress, onClea
               pressed && styles.itemPressed,
             ]}
           >
-            <Text style={styles.resultLabel}>Resultado</Text>
+            <Text style={styles.resultLabel}>{t('result')}</Text>
             <View style={styles.row}>
               <View style={styles.inputs}>
                 <Text style={styles.inputText}>
@@ -128,7 +131,7 @@ const styles = StyleSheet.create({
   },
   itemDivider: {
     borderBottomWidth: theme.borderWidth.thin,
-    borderBottomColor: 'rgba(44, 48, 54, 0.65)',
+    borderBottomColor: theme.colors.border,
   },
   resultLabel: {
     color: theme.colors.textSecondary,

@@ -1,6 +1,15 @@
 import { modelRepository } from '../infra/modelRepository';
 import { asyncStorageClient, STORAGE_KEYS } from '@/core/storage/asyncStorageClient';
 import { CalculationModel } from '../domain/calculationModel';
+import { CACHE_VERSION } from '@/core/versioning/cacheVersion';
+
+// Mock sync service to prevent background syncs from changing status during tests
+jest.mock('../infra/modelSyncService', () => ({
+  modelSyncService: {
+    syncToRemote: jest.fn().mockReturnValue(new Promise(() => {})), // Never resolves to keep status 'pending'
+    deleteFromRemote: jest.fn().mockResolvedValue(false),
+  },
+}));
 
 const mockModel: CalculationModel = {
   id: 'test-123',
@@ -25,6 +34,7 @@ const saveWithTTL = async (models: CalculationModel[]) => {
   const cache = {
     data: models,
     expiresAt: Date.now() + 48 * 60 * 60 * 1000,
+    schemaVersion: CACHE_VERSION.SCHEMA,
   };
   await asyncStorageClient.set(STORAGE_KEYS.MODELS, cache);
 };
@@ -32,6 +42,7 @@ const saveWithTTL = async (models: CalculationModel[]) => {
 describe('ModelRepository Sync', () => {
   beforeEach(async () => {
     await asyncStorageClient.remove(STORAGE_KEYS.MODELS);
+    jest.clearAllMocks();
   });
 
   afterEach(async () => {

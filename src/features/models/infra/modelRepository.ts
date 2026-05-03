@@ -92,10 +92,34 @@ const _saveToStorage = async (data: CalculationModel[]): Promise<boolean> => {
   return asyncStorageClient.set(STORAGE_KEYS.MODELS, cache);
 };
 
+/**
+ * INTERNAL USE ONLY: Handles background sync and status update.
+ */
+const _handleBackgroundSync = (model: CalculationModel) => {
+  modelSyncService.syncToRemote(model).then(async (isSynced) => {
+    if (isSynced) {
+      await withWriteLock(async () => {
+        const current = await getAll();
+        const updatedSynced = current.map(m => 
+          m.id === model.id ? { ...m, syncStatus: 'synced' as const, localAction: null } : m
+        );
+        await _saveToStorage(updatedSynced);
+        notify();
+      }, 'sync-status-update');
+    }
+  }).catch(err => logger.error('[modelRepository] Background sync error:', err));
+};
+
 const create = async (model: CalculationModel): Promise<boolean> => {
+  const modelToSave: CalculationModel = { 
+    ...model, 
+    syncStatus: 'pending', 
+    localAction: 'created' 
+  };
+  
   const localSuccess = await withWriteLock(async () => {
     const existing = await getAll();
-    const updatedLocal = [model, ...existing];
+    const updatedLocal = [modelToSave, ...existing];
     const success = await _saveToStorage(updatedLocal);
 
     if (success) notify();
@@ -103,59 +127,43 @@ const create = async (model: CalculationModel): Promise<boolean> => {
   }, 'create-local');
 
   if (localSuccess) {
-    modelSyncService.syncToRemote(model).then(async (isSynced) => {
-      if (isSynced) {
-        await withWriteLock(async () => {
-          const current = await getAll();
-          const updatedSynced = current.map(m => 
-            m.id === model.id ? { ...m, syncStatus: 'synced' as const, localAction: null } : m
-          );
-          await _saveToStorage(updatedSynced);
-          notify();
-        }, 'create-sync-status');
-      }
-    }).catch(err => logger.error('[modelRepository] Error in background create sync', err));
+    _handleBackgroundSync(modelToSave);
   }
 
   return localSuccess;
 };
 
 const update = async (model: CalculationModel): Promise<boolean> => {
+  const modelToSave: CalculationModel = { 
+    ...model, 
+    syncStatus: 'pending', 
+    localAction: 'edited' 
+  };
+
   const localSuccess = await withWriteLock(async () => {
     const existing = await getAll();
     
     // Update or Add
-    const exists = existing.some(m => m.id === model.id);
+    const exists = existing.some(m => m.id === modelToSave.id);
     let updatedLocal: CalculationModel[];
     
     if (exists) {
-      updatedLocal = existing.map(m => m.id === model.id ? model : m);
+      updatedLocal = existing.map(m => m.id === modelToSave.id ? modelToSave : m);
     } else {
-      updatedLocal = [model, ...existing];
+      updatedLocal = [modelToSave, ...existing];
     }
 
     const success = await _saveToStorage(updatedLocal);
 
     if (success) {
-      await pendingOpsService.addPendingEdit(createPendingOperation('update', model));
+      await pendingOpsService.addPendingEdit(createPendingOperation('update', modelToSave));
       notify();
     }
     return success;
   }, 'update-local');
 
   if (localSuccess) {
-    modelSyncService.syncToRemote(model).then(async (isSynced) => {
-      if (isSynced) {
-        await withWriteLock(async () => {
-          const current = await getAll();
-          const updatedSynced = current.map(m => 
-            m.id === model.id ? { ...m, syncStatus: 'synced' as const, localAction: null } : m
-          );
-          await _saveToStorage(updatedSynced);
-          notify();
-        }, 'update-sync-status');
-      }
-    }).catch(err => logger.error('[modelRepository] Error in background update sync', err));
+    _handleBackgroundSync(modelToSave);
   }
 
   return localSuccess;
