@@ -19,13 +19,9 @@ A inteligência do projeto reside em dois motores de cálculo fundamentais, isol
 
 ### 1. Motor de Cálculo de Injeção de IPU
 Calcula o índice de injeção necessário com base na massa combinada de Isocianato e Poliol.
-- **Fórmula:** `ipu = (isocyanate + polyol) / REFERENCE_DIVISOR`
-- **Uso:** Determinação instantânea do tempo de injeção para controle de qualidade.
 
 ### 2. Motor de Calibração de Vazão de IPU
 Utiliza a **Regra de Três Industrial** para corrigir os valores de máquina com base no peso real extraído vs. o peso desejado em processos de IPU.
-- **Fórmula:** `correctedValue = (targetWeight * machineValue) / actualWeight`
-- **Uso:** Ajuste fino de bombas e injetoras para evitar desperdício.
 
 ```mermaid
 graph TD

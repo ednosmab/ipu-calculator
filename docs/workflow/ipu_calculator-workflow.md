@@ -75,6 +75,9 @@ npm run build
 ## ⚠️ Lembretes Importantes
 - **Nunca faça commit direto na `main`**: Use sempre o fluxo de merge para evitar quebrar o app oficial.
 - **Variáveis de Ambiente**: Se adicionar uma nova chave no `.env` local, lembre-se de adicioná-la também no painel da Vercel (*Settings > Environment Variables*).
+- **Configuração de Ambiente**: Use a variável `EXPO_PUBLIC_APP_ENV` para diferenciar os ambientes.
+  - `staging`: Habilita ferramentas de debug (ex: Debug Panel). Deve ser configurada no painel da Vercel para o ambiente de Preview/Staging.
+  - `production`: Desabilita ferramentas de debug para o usuário final.
 - **Conflitos**: Se houver conflito no merge, o VS Code avisará. Resolva os conflitos, salve os arquivos e complete o commit.
 - **Lint + Testes antes do Push**: Execute `npm run lint` e `npm test` localmente antes de fazer push para evitar falhas no CI.
 - **Porta presa**: Antes de iniciar o serve, verifique se a porta está livre.
