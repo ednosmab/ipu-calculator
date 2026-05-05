@@ -112,12 +112,12 @@ Adicionar documentação sobre a variável `EXPO_PUBLIC_APP_ENV` e a configuraç
 
 ## Verificação
 
-- [ ] Clicar em "Instalar App" → pill fecha e não reaparece
-- [ ] Clicar em X (dismiss) → pill fecha e não reaparece
-- [ ] Navegar para Calculator, Calibration, Models → pill NÃO aparece
-- [ ] Na Home → pill aparece se `canInstall = true`
-- [ ] Em produção: besourinho NÃO aparece
-- [ ] Em staging (`EXPO_PUBLIC_APP_ENV=staging`): besourinho aparece
+- [x] Clicar em "Instalar App" → pill fecha e não reaparece
+- [x] Clicar em X (dismiss) → pill fecha e não reaparece
+- [x] Navegar para Calculator, Calibration, Models → pill NÃO aparece
+- [x] Na Home → pill aparece se `canInstall = true`
+- [x] Em produção: besourinho NÃO aparece
+- [x] Em staging (`EXPO_PUBLIC_APP_ENV=staging`): besourinho aparece
 
 > [!IMPORTANT]
 > A variável `EXPO_PUBLIC_APP_ENV=staging` precisa ser configurada no painel da Vercel para o ambiente de Preview/Staging. Confirme se isso está alinhado com o setup atual.
