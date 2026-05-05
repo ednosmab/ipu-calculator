@@ -5,6 +5,7 @@ type PWAInstallContextType = {
   isStandalone: boolean;
   install: () => void;
   dismiss: () => void;
+  resetDismissStatus: () => void;
   debugInfo?: string;
 };
 
@@ -22,6 +23,7 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
   const [canInstall, setCanInstall] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const isInitialized = useRef(false);
+  const isDismissed = useRef(localStorage.getItem('pwa_install_dismissed') === 'true');
   const [debugInfo, setDebugInfo] = useState('');
 
   useEffect(() => {
@@ -61,6 +63,7 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
 
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
+      if (isDismissed.current) return;
       console.log('[PWA] beforeinstallprompt fired!');
       setDeferredPrompt(e);
       setCanInstall(true);
@@ -68,31 +71,22 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
     
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    let fallbackTimeout: any;
-    if (isAndroid && !standalone) {
-      fallbackTimeout = setTimeout(() => {
-        if (!checkIsStandalone()) {
-          setCanInstall(true);
-          console.log('[PWA] Android fallback enabled');
-        }
-      }, 5000);
-    }
-    
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       mediaQueryStandalone.removeEventListener('change', handleDisplayModeChange);
-      if (fallbackTimeout) clearTimeout(fallbackTimeout);
     };
   }, []);
 
   const install = useCallback(() => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((result: any) => {
-        console.log(`[PWA] User choice: ${result.outcome}`);
-        setDeferredPrompt(null);
-        setCanInstall(false);
-      }).catch((error: any) => {
+       deferredPrompt.userChoice.then((result: any) => {
+         console.log(`[PWA] User choice: ${result.outcome}`);
+         setDeferredPrompt(null);
+         setCanInstall(false);
+         isDismissed.current = true;
+         localStorage.setItem('pwa_install_dismissed', 'true');
+       }).catch((error: any) => {
         console.log('[PWA] Prompt error:', error);
         showManualInstructions();
       });
@@ -113,10 +107,20 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
       window.alert('Use o menu do navegador para instalar o App.');
     }
     setCanInstall(false);
+    isDismissed.current = true;
+    localStorage.setItem('pwa_install_dismissed', 'true');
   }, []);
 
   const dismiss = useCallback(() => {
+    isDismissed.current = true;
+    localStorage.setItem('pwa_install_dismissed', 'true');
     setCanInstall(false);
+  }, []);
+
+  const resetDismissStatus = useCallback(() => {
+    isDismissed.current = false;
+    localStorage.removeItem('pwa_install_dismissed');
+    setCanInstall(true);
   }, []);
 
   const value = useMemo(() => ({
@@ -124,8 +128,9 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
     isStandalone,
     install,
     dismiss,
+    resetDismissStatus,
     debugInfo
-  }), [canInstall, isStandalone, install, dismiss, debugInfo]);
+  }), [canInstall, isStandalone, install, dismiss, resetDismissStatus, debugInfo]);
 
   return (
     <PWAInstallContext.Provider value={value}>
