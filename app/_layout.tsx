@@ -17,9 +17,6 @@ import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 
 SplashScreen.preventAutoHideAsync();
 
-const installPillTextColor = theme.colors.primaryText;
-const installPillIconColor = theme.colors.primaryText;
-
 function Fallback({ error }: { error: Error }) {
   const { t } = useTranslation();
   const handleReset = () => {
@@ -44,30 +41,14 @@ function Fallback({ error }: { error: Error }) {
 }
 
 function AppContent() {
+  const isStaging = process.env.EXPO_PUBLIC_APP_ENV === 'staging';
   const [loaded, error] = Font.useFonts({
     ...FontAwesome5.font,
   });
   const [isMounted, setIsMounted] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const { updateAvailable, dismissUpdate } = useServiceWorkerUpdate();
-  const { canInstall, isStandalone, install, dismiss, debugInfo } = usePWAInstall();
-
-  const showPwaPill = canInstall || (isStandalone && updateAvailable);
-  const pwaPillLabel = (isStandalone && updateAvailable) ? 'Atualizar App' : 'Instalar App';
-
-  const handlePwaAction = () => {
-    if (isStandalone && updateAvailable) {
-      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-      if (isIOS) {
-        alert('Uma nova versão está disponível!\n\nPara aplicar as novidades, feche o aplicativo completamente e abra-o novamente.');
-      } else {
-        alert('Uma nova versão está disponível!\n\nFeche o aplicativo e abra-o novamente para atualizar para a versão mais recente.');
-      }
-      dismissUpdate();
-    } else {
-      install();
-    }
-  };
+  const { debugInfo } = usePWAInstall();
 
   useEffect(() => {
     setIsMounted(true);
@@ -113,33 +94,12 @@ function AppContent() {
       <ErrorBoundary fallback={({ error }: { error: Error }) => <Fallback error={error} />}>
         <Stack screenOptions={{ headerShown: false }} />
 
-        {showPwaPill && (
-          <View style={styles.pillContainer}>
-            <Pressable onPress={handlePwaAction} style={styles.pillButton}>
-              <FontAwesome5 
-                name={(isStandalone && updateAvailable) ? "sync-alt" : "download"} 
-                size={14} 
-                color={installPillIconColor} 
-                style={{ marginRight: 8 }} 
-              />
-              <Text style={styles.pillText}>{pwaPillLabel}</Text>
-            </Pressable>
-            <Pressable 
-              onPress={() => {
-                dismiss();
-                if (updateAvailable) dismissUpdate();
-              }} 
-              style={styles.pillClose}
-            >
-              <FontAwesome5 name="times" size={14} color={theme.colors.textSecondary} />
-            </Pressable>
-          </View>
+        {/* Debug button — staging only */}
+        {isStaging && (
+          <Pressable onPress={() => setShowDebug(!showDebug)} style={styles.debugButton}>
+            <FontAwesome5 name="bug" size={14} color={theme.colors.textSecondary} />
+          </Pressable>
         )}
-
-        {/* Debug button - always visible, footer right */}
-        <Pressable onPress={() => setShowDebug(!showDebug)} style={styles.debugButton}>
-          <FontAwesome5 name="bug" size={14} color={theme.colors.textSecondary} />
-        </Pressable>
 
         <DebugPanel visible={showDebug} debugInfo={debugInfo} />
       </ErrorBoundary>
@@ -156,49 +116,6 @@ export default function RootLayout() {
 }
 
 const styles = {
-  pillContainer: {
-    position: 'absolute' as const,
-    bottom: 30,
-    alignSelf: 'center' as const,
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    zIndex: 9999,
-  },
-  pillButton: {
-    backgroundColor: theme.colors.primary,
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  pillText: {
-    color: installPillTextColor,
-    fontWeight: 'bold' as const,
-    fontSize: 14,
-    letterSpacing: 0.5,
-  },
-  pillClose: {
-    backgroundColor: theme.colors.surface,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    marginLeft: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
   debugButton: {
     position: 'absolute' as const,
     bottom: 30,

@@ -1,10 +1,13 @@
 import { ScreenLayout } from '@/components/ScreenLayout';
-import { Button, Card, Text, VStack } from '@/design-system';
+import { Button, Card, Text, VStack, HStack } from '@/design-system';
+import { Title } from '@/components/Title';
 import { theme } from '@/design-system/theme';
 import { useTranslation } from '@/i18n/TranslationContext';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { FontAwesome5 } from '@expo/vector-icons';
-import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import React, { useState } from 'react';
+import { Pressable, StyleSheet, View, Modal } from 'react-native';
 
 type Props = {
   onGoToCalculator: () => void;
@@ -14,6 +17,26 @@ type Props = {
 
 export const HomeScreen = ({ onGoToCalculator, onGoToCalibration, onGoToModels }: Props) => {
   const { language, toggleLanguage, t } = useTranslation();
+  const { canInstall, isStandalone, install, dismiss, resetDismissStatus } = usePWAInstall();
+  const { updateAvailable, dismissUpdate } = useServiceWorkerUpdate();
+  const [showSettings, setShowSettings] = useState(false);
+
+  const showPwaPill = canInstall || (isStandalone && updateAvailable);
+  const pwaPillLabel = (isStandalone && updateAvailable) ? 'Atualizar App' : 'Instalar App';
+
+  const handlePwaAction = () => {
+    if (isStandalone && updateAvailable) {
+      const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        alert('Uma nova versão está disponível!\n\nPara aplicar as novidades, feche o aplicativo completamente e abra-o novamente.');
+      } else {
+        alert('Uma nova versão está disponível!\n\nFeche o aplicativo e abra-o novamente para atualizar para a versão mais recente.');
+      }
+      dismissUpdate();
+    } else {
+      install();
+    }
+  };
 
   const HeaderTitle = language === 'pt'
     ? (
@@ -32,8 +55,19 @@ export const HomeScreen = ({ onGoToCalculator, onGoToCalibration, onGoToModels }
     </Pressable>
   );
 
+  const FooterSettings = (
+    <Pressable onPress={() => setShowSettings(true)} style={styles.settingsButton}>
+      <FontAwesome5 name="cog" size={20} color={theme.colors.text} />
+    </Pressable>
+  );
+
   return (
-    <ScreenLayout title={t('appTitle')} rightHeader={LanguageToggle} headerTitle={HeaderTitle}>
+    <ScreenLayout 
+      title={t('appTitle')} 
+      rightHeader={LanguageToggle} 
+      headerTitle={HeaderTitle}
+      footer={FooterSettings}
+    >
       <VStack gap="md" style={styles.content}>
         <Card style={styles.heroCard}>
           <View style={styles.heroIconWrap}>
@@ -53,6 +87,60 @@ export const HomeScreen = ({ onGoToCalculator, onGoToCalibration, onGoToModels }
           {t('homeFooterTagline')}
         </Text>
       </VStack>
+
+      {showPwaPill && (
+        <View style={styles.pillContainer}>
+          <Pressable onPress={handlePwaAction} style={styles.pillButton}>
+            <FontAwesome5 
+              name={(isStandalone && updateAvailable) ? "sync-alt" : "download"} 
+              size={14} 
+              color={theme.colors.primaryText} 
+              style={{ marginRight: 8 }} 
+            />
+            <Text style={styles.pillText}>{pwaPillLabel}</Text>
+          </Pressable>
+          <Pressable 
+            onPress={() => {
+              dismiss();
+              if (updateAvailable) dismissUpdate();
+            }} 
+            style={styles.pillClose}
+          >
+            <FontAwesome5 name="times" size={14} color={theme.colors.textSecondary} />
+          </Pressable>
+        </View>
+      )}
+
+      <Modal
+        transparent
+        visible={showSettings}
+        animationType="fade"
+        onRequestClose={() => setShowSettings(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Card style={styles.modalCard}>
+            <VStack gap="md">
+              <Text variant="title" style={{ textAlign: 'center' }}>Configurações</Text>
+              
+              <Button 
+                title="Instalar App" 
+                variant="secondary" 
+                onPress={() => {
+                  install();
+                  setShowSettings(false);
+                }}
+                icon={<FontAwesome5 name="download" size={16} color={theme.colors.primary} />}
+              />
+
+              <Button 
+                title="Fechar" 
+                variant="secondary" 
+                onPress={() => setShowSettings(false)} 
+              />
+            </VStack>
+          </Card>
+        </View>
+      </Modal>
     </ScreenLayout>
   );
 };
@@ -134,5 +222,72 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.md,
     letterSpacing: 0.5,
     paddingHorizontal: theme.spacing.sm,
+  },
+  footerTaglineText: {
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.textSecondary,
+    letterSpacing: 0.5,
+    flex: 1,
+  },
+  settingsButton: {
+    padding: theme.spacing.xs,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: theme.spacing.xs,
+  },
+  pillContainer: {
+    position: 'absolute',
+    bottom: 20,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  pillButton: {
+    backgroundColor: theme.colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  pillText: {
+    color: theme.colors.primaryText,
+    fontWeight: 'bold',
+    fontSize: 14,
+    letterSpacing: 0.5,
+  },
+  pillClose: {
+    backgroundColor: theme.colors.surface,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.lg,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 400,
+    padding: theme.spacing.lg,
   },
 });
