@@ -49,5 +49,8 @@ coverage/
 playwright-report/
 test-results/
 
+# Supabase CLI temp files
+supabase/.temp/
+
 # Arquivos temporários e pessoais
 scratch/
