@@ -1,10 +1,15 @@
+// ===== CORREÇÃO RÁPIDA #2: useRealtimeModels.ts =====
+// Aguardar AuthProvider finalizar antes de buscar modelos
+
+// src/features/models/hooks/useRealtimeModels.ts
+
 import { supabase } from '@/core/infra/supabaseClient';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { fetchRemoteModelsUseCase } from '../application/fetchRemoteModelsUseCase';
 import { CalculationModel } from '../domain/calculationModel';
 import { modelRepository } from '../infra/modelRepository';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth'; // ✅ NOVO: Importar useAuth
 
 export const useRealtimeModels = () => {
   const [models, setModels] = useState<CalculationModel[]>([]);
@@ -13,10 +18,12 @@ export const useRealtimeModels = () => {
   const lastSyncTime = useRef(0);
   const appState = useRef(AppState.currentState);
 
+  // ✅ NOVO: Obter estado de autenticação
   const { isLoading: authLoading, user, profile } = useAuth();
 
   const fetchModels = useCallback(
     async (fromRemote = false) => {
+      // ✅ NOVO: Se AuthProvider ainda está carregando, não faz nada
       if (authLoading) {
         console.log('[useRealtimeModels] Esperando AuthProvider finalizar...');
         return;
@@ -29,12 +36,14 @@ export const useRealtimeModels = () => {
         }
         lastSyncTime.current = now;
 
+        // ✅ NOVO: Só sincroniza se há usuário autenticado
         if (!user) {
           console.warn('[useRealtimeModels] Sem usuário autenticado; ignorando sync remota');
           setIsLoading(false);
           return;
         }
 
+        // ✅ NOVO: Log antes de sincronizar
         console.log('[useRealtimeModels] Sincronizando modelos remotos...', {
           userId: user.id,
           userRole: profile?.role,
@@ -52,21 +61,24 @@ export const useRealtimeModels = () => {
       setLastUpdate(Date.now());
       setIsLoading(false);
     },
-    [authLoading, user, profile]
+    [authLoading, user, profile] // ✅ NOVO: Adicionar dependências
   );
 
   useEffect(() => {
+    // ✅ NOVO: Log de inicialização
     console.log('[useRealtimeModels] Inicializando...', {
       authLoading,
       hasUser: !!user,
       userRole: profile?.role,
     });
 
+    // ✅ NOVO: Só inicia se AuthProvider finalizou
     if (authLoading) {
       console.log('[useRealtimeModels] AuthProvider ainda carregando, aguardando...');
       return;
     }
 
+    // Se não há usuário, marca como não carregando
     if (!user) {
       console.warn('[useRealtimeModels] Nenhum usuário; não sincronizando');
       setIsLoading(false);
@@ -93,6 +105,7 @@ export const useRealtimeModels = () => {
 
     const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
 
+    // Web: visibility change detection
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         console.log('[useRealtimeModels] Aba ficou visível');
@@ -139,7 +152,7 @@ export const useRealtimeModels = () => {
         supabase.removeChannel(channel);
       }
     };
-  }, [authLoading, user, profile, fetchModels]);
+  }, [authLoading, user, profile, fetchModels]); // ✅ NOVO: Adicionar dependências
 
   return { models, isLoading, lastUpdate };
 };

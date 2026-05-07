@@ -24,6 +24,21 @@ jest.mock('../infra/modelRepository', () => ({
   },
 }));
 
+jest.mock('@/hooks/useAuth', () => ({
+  useAuth: jest.fn(() => {
+    const authState = {
+      isLoading: false,
+      user: { id: 'user-001' },
+      profile: { role: 'admin' },
+    };
+    return authState;
+  }),
+}));
+
+jest.mock('../application/fetchRemoteModelsUseCase', () => ({
+  fetchRemoteModelsUseCase: jest.fn(),
+}));
+
 // Mock do canal Supabase Realtime
 const mockSubscribeFn = jest.fn();
 const mockOnFn = jest.fn();
@@ -161,7 +176,7 @@ describe('useRealtimeModels', () => {
       // Dados carregados inicialmente continuam disponíveis
       expect(result.current.models).toEqual([mockModel]);
       expect(warnSpy).toHaveBeenCalledWith(
-        '[useRealtimeModels]: Realtime indisponível. Operando em modo local.'
+        '[useRealtimeModels] Realtime indisponível. Operando em modo local.'
       );
 
       warnSpy.mockRestore();
@@ -194,20 +209,17 @@ describe('useRealtimeModels', () => {
       it('should refetch models when the local repository notifies a change', async () => {
         const updatedModels = [{ ...mockModel, name: 'Atualizado Localmente' }];
 
-        // Clear any existing mock implementations and set up fresh ones
         jest.clearAllMocks();
-        // We need three mockResolvedValueOnce calls:
-        // 1. First call in fetchRemoteModelsUseCase (initial load)
-        // 2. Second call in fetchModels after fetchRemoteModelsUseCase (still initial load) 
-        // 3. Third call when localCallback is triggered (after local change)
         (modelRepository.getAll as jest.Mock)
-          .mockResolvedValueOnce([mockModel])      // First call: initial load in fetchRemoteModelsUseCase
-          .mockResolvedValueOnce([mockModel])      // Second call: initial load in fetchModels (after fetchRemoteModelsUseCase)
-          .mockResolvedValueOnce(updatedModels);   // Third call: after local change
+          .mockResolvedValueOnce([mockModel])
+          .mockResolvedValueOnce([mockModel])
+          .mockResolvedValueOnce([mockModel])
+          .mockResolvedValueOnce(updatedModels)
+          .mockResolvedValueOnce(updatedModels);
         let localCallback: (() => void) | null = null;
         (modelRepository.subscribe as jest.Mock).mockImplementation((cb: () => void) => {
           localCallback = cb;
-          return jest.fn(); // retorna unsubscribe
+          return jest.fn();
         });
 
         const { result } = renderHook(() => useRealtimeModels());
@@ -217,7 +229,6 @@ describe('useRealtimeModels', () => {
           localCallback?.();
         });
 
-        // Wait for the state update to propagate after localCallback
         await waitFor(() => {
           expect(result.current.models[0].name).toBe('Atualizado Localmente');
         });

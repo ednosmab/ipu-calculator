@@ -1,3 +1,6 @@
+// ===== CORREÇÃO RÁPIDA #1: edgeFunctionsClient.ts =====
+// Adicionar debug logging e validação de token
+
 // src/core/api/edgeFunctionsClient.ts
 // Cliente centralizado para chamadas às Edge Functions do Supabase
 
@@ -23,6 +26,7 @@ async function fetchWithAuth<T = unknown>(
 ): Promise<EdgeFunctionResponse<T>> {
   const token = await getAuthToken();
 
+  // ✅ DEBUG: Log se há token
   console.log(`[edgeFunctionsClient] ${endpoint}`, {
     hasToken: !!token,
     tokenLength: token?.length ?? 0,
@@ -35,6 +39,7 @@ async function fetchWithAuth<T = unknown>(
     ...(options.headers as Record<string, string>),
   };
 
+  // ✅ NOVO: Validar que token existe
   if (!token) {
     console.warn(`[edgeFunctionsClient] ⚠️ Nenhum token disponível para ${endpoint}`);
     return {
@@ -62,6 +67,7 @@ async function fetchWithAuth<T = unknown>(
 
     const data = await response.json();
 
+    // ✅ NOVO: Log detalhado de resposta
     console.log(`[edgeFunctionsClient] ${endpoint} ${response.status}`, {
       ok: response.ok,
       status: response.status,
@@ -99,6 +105,7 @@ async function fetchWithAuth<T = unknown>(
 }
 
 export const edgeFunctionsClient = {
+  // Models
   async syncModel(model: {
     id: string;
     name: string;
@@ -145,6 +152,7 @@ export const edgeFunctionsClient = {
       return result.data;
     }
 
+    // ✅ NOVO: Log se retornar vazio
     if (!result.ok) {
       console.warn(`[edgeFunctionsClient] getModels falhou: ${result.error}`);
     }
@@ -152,6 +160,7 @@ export const edgeFunctionsClient = {
     return [];
   },
 
+  // Auth
   async validateSession(): Promise<{ profile?: { id: string; name: string; role: string; active: boolean }; valid: boolean }> {
     const result = await fetchWithAuth<{ profile: { id: string; name: string; role: string; active: boolean } }>(
       '/auth-validate',
