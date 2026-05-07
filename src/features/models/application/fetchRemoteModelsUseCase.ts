@@ -1,18 +1,11 @@
-import { supabase } from '@/core/infra/supabaseClient';
+import { edgeFunctionsClient } from '@/core/api/edgeFunctionsClient';
 import { modelRepository } from '../infra/modelRepository';
 import { CalculationModel } from '../domain/calculationModel';
 
 export const fetchRemoteModelsUseCase = async (): Promise<void> => {
   try {
-    const { data, error } = await supabase
-      .from('models')
-      .select('*');
+    const data = await edgeFunctionsClient.getModels();
 
-    if (error) {
-      return;
-    }
-
-    // Bug #1 Fix: move local data reading and merging into a locked operation
     await modelRepository.saveWithLock(await (async () => {
       const localModels = await modelRepository.getAll();
       let updated: CalculationModel[] = [...localModels];
@@ -32,7 +25,6 @@ export const fetchRemoteModelsUseCase = async (): Promise<void> => {
         for (const rm of remoteModels) {
           const localIndex = updated.findIndex(m => m.id === rm.id);
           if (localIndex >= 0) {
-            // Remote only updates if newer
             if (rm.updatedAt > updated[localIndex].updatedAt) {
               updated[localIndex] = rm;
             }
@@ -43,8 +35,6 @@ export const fetchRemoteModelsUseCase = async (): Promise<void> => {
       }
 
       const remoteIds = data ? new Set(data.map(m => m.id)) : new Set<string>();
-      // Remove only 'synced' that no longer exist remotely
-      // Preserve 'pending' models for later sync
       return updated.filter(m =>
         m.syncStatus === 'pending' || remoteIds.has(m.id)
       );

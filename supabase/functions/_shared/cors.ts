@@ -1,8 +1,14 @@
 // supabase/functions/_shared/cors.ts
 // CORS restrito ao domínio configurado — nunca usar '*' em produção
 
+const ALLOWED_ORIGIN = Deno.env.get('ALLOWED_ORIGIN');
+
+if (!ALLOWED_ORIGIN) {
+  console.error('[CORS] ALLOWED_ORIGIN não configurado — Edge Function pode estar vulnerável');
+}
+
 export const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGIN') ?? '*',
+  'Access-Control-Allow-Origin': ALLOWED_ORIGIN ?? 'null',
   'Access-Control-Allow-Headers': 'authorization, content-type',
   'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS',
 };

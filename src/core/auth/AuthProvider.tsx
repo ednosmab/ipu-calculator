@@ -23,10 +23,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ]);
 
         if (storedToken && storedProfileRaw) {
-          const storedProfile: UserProfile = JSON.parse(storedProfileRaw);
-          setSession({ access_token: storedToken });
-          setUser({ id: storedProfile.id });
-          setProfile(storedProfile);
+          // Valida o token e obtém profile fresco do servidor
+          // para garantir que o role e status continuam válidos
+          try {
+            const res = await fetch(`${API_BASE}/auth-validate`, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${storedToken}`,
+                'Content-Type': 'application/json',
+              },
+            });
+
+            if (res.ok) {
+              const { profile: freshProfile } = await res.json();
+              const parsedProfile: UserProfile = JSON.parse(storedProfileRaw);
+
+              // Atualiza com dados frescos do servidor
+              setSession({ access_token: storedToken });
+              setUser({ id: freshProfile.id });
+              setProfile(freshProfile);
+
+              // Persiste o profile atualizado no storage
+              await sessionStorage.setProfile(JSON.stringify(freshProfile));
+            } else {
+              // Token invalidado pelo servidor (ex: role mudou, conta suspensa)
+              console.warn('[Auth] Sessão invalidada pelo servidor, limpando local');
+              await sessionStorage.clearAll();
+            }
+          } catch (validateError) {
+            // Fallback: usa o profile cacheado se a validação falhar
+            // (ex: offline, Edge Function indisponível)
+            console.warn('[Auth] Falha na validação, usando cache:', validateError);
+            const storedProfile: UserProfile = JSON.parse(storedProfileRaw);
+            setSession({ access_token: storedToken });
+            setUser({ id: storedProfile.id });
+            setProfile(storedProfile);
+          }
         }
       } catch (e) {
         console.warn('[Auth] Falha ao restaurar sessão:', e);

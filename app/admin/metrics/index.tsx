@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Pressable, FlatList } from 'react-native';
 import { useAdminMetrics } from '@/hooks/admin/useAdminMetrics';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { Button } from '@/design-system';
 import { MetricCard } from '@/components/admin/MetricCard';
 import { LoginChart } from '@/components/admin/LoginChart';
@@ -12,7 +13,12 @@ import { TopModelsList } from '@/components/admin/TopModelsList';
 import { theme } from '@/design-system';
 
 export default function MetricsScreen() {
+  const { isAuthorized } = useRequireAuth('admin');
   const { metrics, isLoading, error, refetch } = useAdminMetrics();
+
+  if (!isAuthorized) {
+    return null;
+  }
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = () => {

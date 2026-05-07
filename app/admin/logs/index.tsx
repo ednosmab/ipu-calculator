@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Pressable, FlatList } from 'react-native';
 import { useAdminLogs } from '@/hooks/admin/useAdminLogs';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { Button } from '@/design-system';
 import { LogTable } from '@/components/admin/LogTable';
 import { LogFilters } from '@/components/admin/LogFilters';
@@ -11,7 +12,12 @@ import { ExportCsvButton } from '@/components/admin/ExportCsvButton';
 import { theme } from '@/design-system';
 
 export default function LogsScreen() {
+  const { isAuthorized } = useRequireAuth('admin');
   const { logs, total, page, setPage, isLoading, error, refetch } = useAdminLogs();
+
+  if (!isAuthorized) {
+    return null;
+  }
   const [filters, setFilters] = useState({});
   const [refreshing, setRefreshing] = useState(false);
 
