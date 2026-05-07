@@ -15,19 +15,24 @@ Deno.serve(async (req: Request) => {
   try {
     const { user, profile } = await requireAuth(req, 'viewer');
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    
+    // Busca profile via fetch direto (bypass RLS)
+    const profileRes = await fetch(
+      `${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}&select=id,name,role,active,last_seen`,
+      {
+        headers: {
+          'apikey': serviceKey,
+          'Authorization': `Bearer ${serviceKey}`,
+        },
+      }
     );
+    
+    const profiles = await profileRes.json();
+    const freshProfile = profiles?.[0];
 
-    // Busca dados frescos do profile no banco
-    const { data: freshProfile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id, name, role, active, last_seen')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError || !freshProfile) {
+    if (!freshProfile) {
       throw new AuthError('UNAUTHORIZED', 401);
     }
 

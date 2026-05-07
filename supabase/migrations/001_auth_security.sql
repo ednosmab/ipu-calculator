@@ -18,13 +18,19 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   last_seen  timestamptz
 );
 
--- RLS: profiles — somente o próprio usuário lê; admin lê todos via Edge Function (service key)
+-- RLS: profiles — permite leitura com service role key
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "profiles_select_own" ON public.profiles;
 CREATE POLICY "profiles_select_own" ON public.profiles
   FOR SELECT TO authenticated
   USING (id = auth.uid());
+
+-- Policy para service role (bypass)
+DROP POLICY IF EXISTS "profiles_select_service_role" ON public.profiles;
+CREATE POLICY "profiles_select_service_role" ON public.profiles
+  FOR SELECT TO service_role
+  USING (true);
 
 -- -------------------------------------------------------------
 -- 2. RLS NA TABELA: models

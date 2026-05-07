@@ -19,21 +19,20 @@ import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 SplashScreen.preventAutoHideAsync();
 
 function Fallback({ error }: { error: Error }) {
-  const { t } = useTranslation();
   const handleReset = () => {
     // Force page reload to reset ErrorBoundary
     window.location.reload();
   };
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: theme.spacing.lg, backgroundColor: theme.colors.bg }}>
-      <Text style={{ fontSize: theme.typography.sizes.lg, fontWeight: theme.typography.weights.bold, color: theme.colors.error, marginBottom: theme.spacing.sm }}>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: '#f5f5f5' }}>
+      <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#dc3545', marginBottom: 8 }}>
         Algo deu errado
       </Text>
-      <Text style={{ fontSize: theme.typography.sizes.md, color: theme.colors.textSecondary, textAlign: 'center', marginBottom: theme.spacing.lg }}>
+      <Text style={{ fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 24 }}>
         {error.message}
       </Text>
       <Button
-        title={t('tryAgain') || 'Tentar novamente'}
+        title="Tentar novamente"
         onPress={handleReset}
         style={{ minWidth: 180 }}
       />
@@ -83,28 +82,30 @@ function AppContent() {
   }
 
   return (
-    <TranslationProvider>
-      <Head>
-        <title>Calculadora IPU</title>
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/assets/images/icon.png" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-      </Head>
-      <ErrorBoundary fallback={({ error }: { error: Error }) => <Fallback error={error} />}>
-        <Stack screenOptions={{ headerShown: false }} />
+    <AuthProvider>
+      <TranslationProvider>
+        <Head>
+          <title>Calculadora IPU</title>
+          <link rel="manifest" href="/manifest.json" />
+          <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+          <link rel="apple-touch-icon" href="/assets/images/icon.png" />
+          <meta name="mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+        </Head>
+        <ErrorBoundary fallback={({ error }: { error: Error }) => <Fallback error={error} />}>
+          <Stack screenOptions={{ headerShown: false }} />
 
-        {/* Debug button — staging only */}
-        {isStaging && (
-          <Pressable onPress={() => setShowDebug(!showDebug)} style={styles.debugButton}>
-            <FontAwesome5 name="bug" size={14} color={theme.colors.textSecondary} />
-          </Pressable>
-        )}
+          {/* Debug button — staging only */}
+          {isStaging && (
+            <Pressable onPress={() => setShowDebug(!showDebug)} style={styles.debugButton}>
+              <FontAwesome5 name="bug" size={14} color={theme.colors.textSecondary} />
+            </Pressable>
+          )}
 
-        <DebugPanel visible={showDebug} debugInfo={debugInfo} />
-      </ErrorBoundary>
-    </TranslationProvider>
+          <DebugPanel visible={showDebug} debugInfo={debugInfo} />
+        </ErrorBoundary>
+      </TranslationProvider>
+    </AuthProvider>
   );
 }
 
@@ -124,7 +125,7 @@ const styles = {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: '#121418',
     justifyContent: 'center' as const,
     alignItems: 'center' as const,
     shadowColor: '#000',
@@ -133,7 +134,7 @@ const styles = {
     shadowRadius: 4,
     elevation: 5,
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: '#2C3036',
     zIndex: 9999,
   },
 };

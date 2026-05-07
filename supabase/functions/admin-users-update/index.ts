@@ -33,7 +33,7 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      Deno.env.get('SUPABASE_SECRET_KEYS')!
     );
 
     // Monta apenas os campos que foram fornecidos
@@ -69,7 +69,7 @@ Deno.serve(async (req: Request) => {
       req,
     });
 
-    return ok({ success: true });
+    return ok({ success: true }, 200, req.headers.get('origin'));
   } catch (error) {
     if (error instanceof AuthError) return err(error.code, error.status);
     console.error('[admin-users-update] Erro inesperado:', error);

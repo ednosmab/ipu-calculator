@@ -17,7 +17,7 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      Deno.env.get('SUPABASE_SECRET_KEYS')!
     );
 
     const now = new Date();
@@ -69,7 +69,7 @@ Deno.serve(async (req: Request) => {
         totalUsers: totalUsers ?? 0,
       },
       loginsByDay,
-    });
+    }, 200, req.headers.get('origin'));
   } catch (error) {
     if (error instanceof AuthError) return err(error.code, error.status);
     console.error('[admin-metrics] Erro inesperado:', error);

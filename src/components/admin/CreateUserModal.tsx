@@ -148,28 +148,25 @@ export const CreateUserModal = ({ visible, onRequestClose, onCreateUser }: Props
                 </View>
               ))}
             </View>
-            {/* In a real implementation, we would use a proper select component */}
-            {/* For simplicity, we're using radio buttons or a custom select */}
-          </View>
-          
+          </VStack>
+
           {errors.submit && (
             <Text style={styles.errorText}>{errors.submit}</Text>
           )}
-          
-            <View style={styles.actions}>
-              <Button
-                title="Cancelar"
-                onPress={onRequestClose}
-                style={styles.cancelButton}
-              />
-              <Button
-                title="Criar usuário"
-                onPress={handleSubmit}
-                loading={isSubmitting}
-                style={styles.submitButton}
-              />
-            </View>
-          </VStack>
+
+          <View style={styles.actions}>
+            <Button
+              title="Cancelar"
+              onPress={onRequestClose}
+              style={styles.cancelButton}
+            />
+            <Button
+              title="Criar usuário"
+              onPress={handleSubmit}
+              loading={isSubmitting}
+              style={styles.submitButton}
+            />
+          </View>
         </View>
       </KeyboardAvoidingView>
     </View>

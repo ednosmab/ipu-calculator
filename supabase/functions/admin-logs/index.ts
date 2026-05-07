@@ -28,7 +28,7 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      Deno.env.get('SUPABASE_SECRET_KEYS')!
     );
 
     let query = supabase
@@ -52,7 +52,7 @@ Deno.serve(async (req: Request) => {
 
     void user; // usado apenas para autorização
 
-    return ok({ logs: data, total: count, page, pageSize: PAGE_SIZE });
+    return ok({ logs: data, total: count, page, pageSize: PAGE_SIZE }, 200, req.headers.get('origin'));
   } catch (error) {
     if (error instanceof AuthError) return err(error.code, error.status);
     console.error('[admin-logs] Erro inesperado:', error);

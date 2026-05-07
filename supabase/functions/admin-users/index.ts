@@ -17,7 +17,7 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      Deno.env.get('SUPABASE_SECRET_KEYS')!
     );
 
     // ── GET: lista de usuários ──────────────────────────────────
@@ -48,10 +48,10 @@ Deno.serve(async (req: Request) => {
         req,
       });
 
-      return ok(result);
+return ok(result, 200, req.headers.get('origin'));
     }
 
-    // ── POST: criar novo usuário ────────────────────────────────
+    // ── POST: criar novo usuário
     if (req.method === 'POST') {
       const { name, email, password, role = 'viewer' } = await req.json();
 
@@ -96,7 +96,8 @@ Deno.serve(async (req: Request) => {
 
       return ok(
         { id: newUser.user.id, name, email, role, active: true },
-        201
+        201,
+        req.headers.get('origin')
       );
     }
 

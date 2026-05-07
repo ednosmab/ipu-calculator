@@ -1,25 +1,35 @@
 // supabase/functions/_shared/cors.ts
-// CORS restrito ao domínio configurado — nunca usar '*' em produção
+// CORS restrito aos domínios configurados — nunca usar '*' em produção
 
-const ALLOWED_ORIGIN = Deno.env.get('ALLOWED_ORIGIN');
+const PROD_ORIGIN = Deno.env.get('ALLOWED_ORIGIN') ?? 'https://ipu-calculator.vercel.app';
+const STAGING_ORIGIN = Deno.env.get('ALLOWED_ORIGIN_STAGING') ?? 'https://ipu-calculator-staging.vercel.app';
 
-if (!ALLOWED_ORIGIN) {
-  console.error('[CORS] ALLOWED_ORIGIN não configurado — Edge Function pode estar vulnerável');
-}
+const validOrigins = [PROD_ORIGIN, STAGING_ORIGIN];
 
 export const corsHeaders = {
-  'Access-Control-Allow-Origin': ALLOWED_ORIGIN ?? 'null',
   'Access-Control-Allow-Headers': 'authorization, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
 };
 
-/**
- * Trata preflight OPTIONS e retorna null para outros métodos.
- * Toda Edge Function deve chamar isso primeiro.
- */
 export function handleCors(req: Request): Response | null {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers: corsHeaders });
+    const origin = req.headers.get('origin') ?? '';
+    const allowedOrigin = validOrigins.includes(origin) ? origin : validOrigins[0];
+    return new Response(null, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        'Access-Control-Allow-Origin': allowedOrigin,
+      },
+    });
   }
   return null;
+}
+
+export function getCorsHeaders(origin?: string | null) {
+  const allowedOrigin = origin && validOrigins.includes(origin) ? origin : validOrigins[0];
+  return {
+    ...corsHeaders,
+    'Access-Control-Allow-Origin': allowedOrigin,
+  };
 }

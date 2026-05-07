@@ -35,25 +35,39 @@ export async function requireAuth(
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
   if (!token) throw new AuthError('UNAUTHORIZED', 401);
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  
+  // Valida token usando fetch direto
+  const userRes = await fetch(
+    `${supabaseUrl}/auth/v1/user`,
+    {
+      headers: {
+        'apikey': serviceKey,
+        'Authorization': `Bearer ${token}`,
+      },
+    }
   );
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser(token);
-
-  if (userError || !user) throw new AuthError('UNAUTHORIZED', 401);
-
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('role, active, name')
-    .eq('id', user.id)
-    .single();
-
-  if (profileError || !profile) throw new AuthError('UNAUTHORIZED', 401);
+  
+  if (!userRes.ok) throw new AuthError('UNAUTHORIZED', 401);
+  
+  const user = await userRes.json();
+  
+  // Busca profile via fetch direto
+  const profileRes = await fetch(
+    `${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}&select=role,active,name`,
+    {
+      headers: {
+        'apikey': serviceKey,
+        'Authorization': `Bearer ${serviceKey}`,
+      },
+    }
+  );
+  
+  const profiles = await profileRes.json();
+  const profile = profiles?.[0];
+  
+  if (!profile) throw new AuthError('UNAUTHORIZED', 401);
   if (!profile.active) throw new AuthError('ACCOUNT_SUSPENDED', 403);
 
   const userRoleIndex = ROLE_HIERARCHY.indexOf(profile.role as Role);
