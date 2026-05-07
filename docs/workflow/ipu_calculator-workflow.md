@@ -102,7 +102,7 @@ await AsyncStorage.removeItem('schema_version');
 
 Execute os testes com Jest:
 ```bash
-npm test              # roda todos os testes (85 testes)
+npm test              # roda todos os testes (100 testes)
 npm test -- --watch  # modo watch (reativa ao salvar)
 npm test -- --coverage  # com coverage report
 
@@ -116,7 +116,7 @@ npm run test:e2e         # Playwright E2E (realtime sync)
 
 | Script | Descrição |
 | :--- | :--- |
-| `test` | Todos os testes (85 testes) |
+| `test` | Todos os testes (100 testes) |
 | `test -- --watch` | Watch mode |
 | `test -- --coverage` | Relatório de cobertura |
 | `test:lint` | Design system |
@@ -253,10 +253,9 @@ Frontend (Expo/React Native)
   │       └─ admin-*(GET)           - Logs, métricas
   │
   └─→ RLS (Supabase) ──→ Políticas no banco
-          ├─ models: SELECT (viewer+), CRUD (editor+)
-          ├─ profiles: own profile only
-          ├─ access_logs: admin only
-          └─ usage_metrics: admin only
+├─ models: SELECT (viewer+), CRUD (editor+)
+           ├─ profiles: own profile only
+           └─ access_logs: admin only
 ```
 
 ### Ameaças e Mitigações
@@ -298,7 +297,7 @@ SUPABASE_SERVICE_ROLE_KEY=<chave>
 
 ### Testes de Segurança
 
-Ver `docs/autentication/plan/security-testing-plan.md` para estratégia completa.
+Ver `docs/autentication/plain/security-testing-plan.md` para estratégia completa.
 
 **Níveis:**
 - Unitários (Jest): `edgeFunctionsClient`, `modelSyncService`, `AuthProvider`
