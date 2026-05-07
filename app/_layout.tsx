@@ -1,4 +1,5 @@
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { AuthProvider } from '@/core/auth/AuthProvider';
 import { DebugPanel } from '@/components/DebugPanel';
 import { TranslationProvider, useTranslation } from '@/i18n/TranslationContext';
 import { Button, Text, theme } from '@/design-system';
