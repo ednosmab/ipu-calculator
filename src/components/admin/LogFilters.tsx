@@ -3,8 +3,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, Switch } from 'react-native';
-import { HStack, VStack, Button, Text as DSText, Input } from '@/design-system';
-import { theme } from '@/design-system';
+import { HStack, VStack, Button, Text as DSText, Input , theme } from '@/design-system';
 
 interface Props {
   filters: {

@@ -3,18 +3,17 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, Switch, Modal, TextInput } from 'react-native';
-import { HStack, VStack, Button, Text as DSText, Input } from '@/design-system';
-import { theme } from '@/design-system';
+import { HStack, VStack, Button, Text as DSText, Input , theme } from '@/design-system';
 
 interface Props {
-  users: Array<{
+  users: {
     id: string;
     name: string;
     email: string;
     role: 'viewer' | 'editor' | 'admin';
     active: boolean;
     last_seen: string | null;
-  }>;
+  }[];
   onRefresh?: () => void;
   refreshing?: boolean;
 }
@@ -27,7 +26,7 @@ export const UserTable = ({ users, onRefresh, refreshing }: Props) => {
   const [editError, setEditError] = React.useState<string | null>(null);
   const [isSaving, setIsSaving] = React.useState(false);
 
-  const roles: Array<{ label: string; value: 'viewer' | 'editor' | 'admin' }> = [
+  const roles: { label: string; value: 'viewer' | 'editor' | 'admin' }[] = [
     { label: 'Visualizador', value: 'viewer' },
     { label: 'Editor', value: 'editor' },
     { label: 'Administrador', value: 'admin' },

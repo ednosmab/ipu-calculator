@@ -5,10 +5,9 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useAdminMetrics } from '@/hooks/admin/useAdminMetrics';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
-import { Button } from '@/design-system';
+import { Button , theme } from '@/design-system';
 import { MetricCard } from '@/components/admin/MetricCard';
 import { LoginChart } from '@/components/admin/LoginChart';
-import { theme } from '@/design-system';
 
 export default function MetricsScreen() {
   const { isAuthorized } = useRequireAuth('admin');

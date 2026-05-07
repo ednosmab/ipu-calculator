@@ -3,8 +3,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Button as DSButton } from '@/design-system';
-import { theme } from '@/design-system';
+import { Button as DSButton , theme } from '@/design-system';
 
 interface Props {
   filters: {

@@ -3,8 +3,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
-import { HStack, VStack, Button as DSButton } from '@/design-system';
-import { theme } from '@/design-system';
+import { HStack, VStack, Button as DSButton , theme } from '@/design-system';
 
 interface LogItem {
   id: string;

@@ -5,20 +5,19 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Pressable, FlatList } from 'react-native';
 import { useAdminUsers } from '@/hooks/admin/useAdminUsers';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
-import { Button } from '@/design-system';
+import { Button , theme } from '@/design-system';
 import { UserTable } from '@/components/admin/UserTable';
 import { CreateUserModal } from '@/components/admin/CreateUserModal';
-import { theme } from '@/design-system';
 
 export default function UsersScreen() {
   const { isAuthorized } = useRequireAuth('admin');
   const { users, isLoading, error, createUser, refetch } = useAdminUsers();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   if (!isAuthorized) {
     return null;
   }
-  const [modalVisible, setModalVisible] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
 
   const handleCreateUser = async (userData: {
     name: string;

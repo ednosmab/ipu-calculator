@@ -9,7 +9,7 @@ interface MetricsData {
   activeUsers30Days: number;
   totalModels: number;
   totalUsers: number;
-  loginsPerDay: Array<{ day: string; logins: number }>;
+  loginsPerDay: { day: string; logins: number }[];
 }
 
 export function useAdminMetrics() {

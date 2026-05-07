@@ -3,33 +3,41 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { HStack, VStack } from '@/design-system';
-import * as FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import { theme } from '@/design-system';
+import { HStack, VStack, theme } from '@/design-system';
+import {
+  FaUsers,
+  FaCalculator,
+  FaList,
+  FaChartLine,
+  FaChartBar,
+  FaCircle,
+} from '@expo/vector-icons/FontAwesome5';
+
+type IconName = 'users' | 'calculator' | 'list' | 'chart-line' | 'chart-bar';
 
 interface Props {
   title: string;
   value: string;
-  icon: 'users' | 'calculator' | 'list' | 'chart-line' | 'chart-bar';
+  icon: IconName;
   color: string;
 }
 
-const iconMap: Record<string, any> = {
-  users: FontAwesome5.users,
-  calculator: FontAwesome5.calculator,
-  list: FontAwesome5.list,
-  'chart-line': FontAwesome5.chartLine,
-  'chart-bar': FontAwesome5.chartBar,
+const iconMap: Record<IconName, React.ComponentType<any>> = {
+  users: FaUsers,
+  calculator: FaCalculator,
+  list: FaList,
+  'chart-line': FaChartLine,
+  'chart-bar': FaChartBar,
 };
 
 export const MetricCard = ({ title, value, icon, color }: Props) => {
-  const Icon = iconMap[icon] || FontAwesome5.circle;
+  const IconComponent = iconMap[icon] || FaCircle;
   
   return (
     <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: color }]}>
       <HStack style={styles.content}>
         <View style={styles.iconContainer}>
-          <Icon size={24} color={color} />
+          <IconComponent size={24} color={color} />
         </View>
         <VStack style={styles.text}>
           <Text style={styles.title}>{title}</Text>

@@ -3,11 +3,10 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Card } from '@/design-system';
-import { theme } from '@/design-system';
+import { Card , theme } from '@/design-system';
 
 interface Props {
-  data: Array<{ day: string; logins: number }>;
+  data: { day: string; logins: number }[];
   title: string;
 }
 
