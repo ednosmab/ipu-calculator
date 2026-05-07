@@ -1,25 +1,23 @@
 // app/admin/metrics/index.tsx
-// Métricas e gráficos de uso do painel admin
+// Métricas do painel admin
 
 import { useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Pressable, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useAdminMetrics } from '@/hooks/admin/useAdminMetrics';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { Button } from '@/design-system';
 import { MetricCard } from '@/components/admin/MetricCard';
 import { LoginChart } from '@/components/admin/LoginChart';
-import { UsageBarChart } from '@/components/admin/UsageBarChart';
-import { TopModelsList } from '@/components/admin/TopModelsList';
 import { theme } from '@/design-system';
 
 export default function MetricsScreen() {
   const { isAuthorized } = useRequireAuth('admin');
   const { metrics, isLoading, error, refetch } = useAdminMetrics();
+  const [refreshing, setRefreshing] = useState(false);
 
   if (!isAuthorized) {
     return null;
   }
-  const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -47,55 +45,45 @@ export default function MetricsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Métricas de Uso</Text>
+        <Text style={styles.title}>Métricas</Text>
         <View style={styles.actions}>
           <Button title="Atualizar" onPress={handleRefresh} />
         </View>
       </View>
-      
+
       {metrics ? (
         <View style={styles.content}>
-          {/* Cards de resumo */}
           <View style={styles.cardsContainer}>
-            <MetricCard 
-              title="Usuários ativos hoje" 
-              value={metrics.activeUsersToday.toString()} 
-              icon="users" 
-              color={theme.colors.primary} 
+            <MetricCard
+              title="Usuários ativos hoje"
+              value={metrics.activeUsersToday.toString()}
+              icon="users"
+              color={theme.colors.primary}
             />
-            <MetricCard 
-              title="Ativos (30 dias)" 
-              value={metrics.activeUsers30Days.toString()} 
-              icon="users" 
-              color={theme.colors.secondary} 
+            <MetricCard
+              title="Ativos (30 dias)"
+              value={metrics.activeUsers30Days.toString()}
+              icon="users"
+              color={theme.colors.secondary}
             />
-            <MetricCard 
-              title="Cálculos total" 
-              value={metrics.totalCalculations.toString()} 
-              icon="calculator" 
-              color={theme.colors.success} 
+            <MetricCard
+              title="Modelos cadastrados"
+              value={metrics.totalModels.toString()}
+              icon="list"
+              color={theme.colors.success}
             />
-            <MetricCard 
-              title="Modelos cadastrados" 
-              value={metrics.totalModels.toString()} 
-              icon="list" 
-              color={theme.colors.warning} 
+            <MetricCard
+              title="Total de usuários"
+              value={metrics.totalUsers.toString()}
+              icon="users"
+              color={theme.colors.warning}
             />
           </View>
-          
-          {/* Gráficos */}
+
           <View style={styles.chartsContainer}>
-            <LoginChart 
-              data={metrics.loginsPerDay} 
-              title="Logins por dia (últimos 30 dias)" 
-            />
-            <UsageBarChart 
-              data={metrics.calculationsPerUser} 
-              title="Cálculos por usuário (Top 10)" 
-            />
-            <TopModelsList 
-              models={metrics.topModels} 
-              title="Modelos mais acessados" 
+            <LoginChart
+              data={metrics.loginsPerDay}
+              title="Logins por dia (últimos 30 dias)"
             />
           </View>
         </View>

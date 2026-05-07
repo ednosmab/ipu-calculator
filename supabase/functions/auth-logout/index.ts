@@ -33,11 +33,6 @@ Deno.serve(async (req: Request) => {
       req,
     });
 
-    supabase.from('usage_metrics').insert({
-      user_id: user.id,
-      event: 'session_end',
-    });
-
     return ok({ success: true });
   } catch (error) {
     if (error instanceof AuthError) {

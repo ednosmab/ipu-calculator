@@ -190,30 +190,37 @@ describe('useRealtimeModels', () => {
     });
   });
 
-  describe('local listener', () => {
-    it('should refetch models when the local repository notifies a change', async () => {
-      const updatedModels = [{ ...mockModel, name: 'Atualizado Localmente' }];
+    describe('local listener', () => {
+      it('should refetch models when the local repository notifies a change', async () => {
+        const updatedModels = [{ ...mockModel, name: 'Atualizado Localmente' }];
 
-      let localCallback: (() => void) | null = null;
-      (modelRepository.subscribe as jest.Mock).mockImplementation((cb: () => void) => {
-        localCallback = cb;
-        return jest.fn();
-      });
+        // Clear any existing mock implementations and set up fresh ones
+        jest.clearAllMocks();
+        // We need three mockResolvedValueOnce calls:
+        // 1. First call in fetchRemoteModelsUseCase (initial load)
+        // 2. Second call in fetchModels after fetchRemoteModelsUseCase (still initial load) 
+        // 3. Third call when localCallback is triggered (after local change)
+        (modelRepository.getAll as jest.Mock)
+          .mockResolvedValueOnce([mockModel])      // First call: initial load in fetchRemoteModelsUseCase
+          .mockResolvedValueOnce([mockModel])      // Second call: initial load in fetchModels (after fetchRemoteModelsUseCase)
+          .mockResolvedValueOnce(updatedModels);   // Third call: after local change
+        let localCallback: (() => void) | null = null;
+        (modelRepository.subscribe as jest.Mock).mockImplementation((cb: () => void) => {
+          localCallback = cb;
+          return jest.fn(); // retorna unsubscribe
+        });
 
-      (modelRepository.getAll as jest.Mock)
-        .mockResolvedValueOnce([mockModel])
-        .mockResolvedValueOnce(updatedModels);
+        const { result } = renderHook(() => useRealtimeModels());
+        await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-      const { result } = renderHook(() => useRealtimeModels());
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
+        await act(async () => {
+          localCallback?.();
+        });
 
-      await act(async () => {
-        localCallback?.();
-      });
-
-      await waitFor(() => {
-        expect(result.current.models[0].name).toBe('Atualizado Localmente');
+        // Wait for the state update to propagate after localCallback
+        await waitFor(() => {
+          expect(result.current.models[0].name).toBe('Atualizado Localmente');
+        });
       });
     });
-  });
 });

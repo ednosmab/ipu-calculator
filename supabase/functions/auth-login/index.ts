@@ -116,12 +116,6 @@ Deno.serve(async (req: Request) => {
       req,
     });
 
-    supabase.from('usage_metrics').insert({
-      user_id: data.user.id,
-      event: 'session_start',
-      metadata: { platform: req.headers.get('user-agent') ?? 'unknown' },
-    });
-
     return ok({
       session: data.session,
       profile: {

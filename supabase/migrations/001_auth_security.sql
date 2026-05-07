@@ -114,34 +114,7 @@ CREATE POLICY "access_logs_admin_select" ON public.access_logs
     )
   );
 
--- -------------------------------------------------------------
--- 4. TABELA: usage_metrics
---    Eventos de uso: cálculos, sessões, modelos selecionados
--- -------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public.usage_metrics (
-  id         uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id    uuid REFERENCES auth.users ON DELETE SET NULL,
-  event      text NOT NULL,
-  metadata   jsonb,
-  created_at timestamptz DEFAULT now()
-);
 
-CREATE INDEX IF NOT EXISTS idx_usage_metrics_user_id    ON public.usage_metrics(user_id);
-CREATE INDEX IF NOT EXISTS idx_usage_metrics_event      ON public.usage_metrics(event);
-CREATE INDEX IF NOT EXISTS idx_usage_metrics_created_at ON public.usage_metrics(created_at DESC);
-
--- RLS: usage_metrics — somente admin lê; nenhum cliente escreve diretamente
-ALTER TABLE public.usage_metrics ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "usage_metrics_admin_select" ON public.usage_metrics;
-CREATE POLICY "usage_metrics_admin_select" ON public.usage_metrics
-  FOR SELECT TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = auth.uid() AND role = 'admin' AND active = true
-    )
-  );
 
 -- -------------------------------------------------------------
 -- 5. CUSTOM CLAIMS HOOK
@@ -190,8 +163,6 @@ CREATE INDEX IF NOT EXISTS idx_profiles_last_seen ON public.profiles(last_seen D
 --     → deve listar: models_select, models_insert, models_update, models_delete
 -- [ ] SELECT policyname FROM pg_policies WHERE tablename = 'access_logs';
 --     → deve listar: access_logs_admin_select
--- [ ] SELECT policyname FROM pg_policies WHERE tablename = 'usage_metrics';
---     → deve listar: usage_metrics_admin_select
 -- [ ] SELECT proname FROM pg_proc WHERE proname = 'custom_access_token_hook';
 --     → deve retornar 1 linha
 -- [ ] Ativar o hook em: Supabase Dashboard > Authentication > Hooks
