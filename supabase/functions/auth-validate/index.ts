@@ -1,7 +1,7 @@
 // supabase/functions/auth-validate/index.ts
 // GET /auth-validate — valida token e retorna profile fresco do banco
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import { handleCors } from '../_shared/cors.ts';
 import { requireAuth, AuthError } from '../_shared/authMiddleware.ts';
 import { ok, err } from '../_shared/response.ts';

@@ -1,7 +1,7 @@
 // supabase/functions/auth-logout/index.ts
 // POST /auth-logout — invalida sessão no servidor, registra log
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import { handleCors } from '../_shared/cors.ts';
 import { requireAuth, AuthError } from '../_shared/authMiddleware.ts';
 import { logAccess } from '../_shared/auditLogger.ts';
@@ -18,7 +18,7 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SECRET_KEYS')!
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
     // Invalida sessão no Supabase (server-side signout)

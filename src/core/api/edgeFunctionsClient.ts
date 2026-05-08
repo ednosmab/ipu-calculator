@@ -4,6 +4,7 @@
 import { sessionStorage } from '../auth/sessionStorage';
 
 const API_BASE = process.env.EXPO_PUBLIC_EDGE_FUNCTIONS_URL ?? '';
+const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
 
 const TIMEOUT_MS = 3500;
 
@@ -32,6 +33,7 @@ async function fetchWithAuth<T = unknown>(
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'apikey': SUPABASE_ANON_KEY,
     ...(options.headers as Record<string, string>),
   };
 

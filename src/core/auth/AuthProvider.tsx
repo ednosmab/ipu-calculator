@@ -6,6 +6,7 @@ import { AuthContext, AuthContextValue, UserProfile, AuthSession } from './AuthC
 import { sessionStorage } from './sessionStorage';
 
 const API_BASE = process.env.EXPO_PUBLIC_EDGE_FUNCTIONS_URL ?? '';
+const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthContextValue['user']>(null);
@@ -31,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               headers: {
                 'Authorization': `Bearer ${storedToken}`,
                 'Content-Type': 'application/json',
+                'apikey': SUPABASE_ANON_KEY,
               },
             });
 
@@ -70,17 +72,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ── signIn ───────────────────────────────────────────────────
   const signIn = useCallback(async (email: string, password: string) => {
+    console.log('[AuthProvider] signIn started', { email, API_BASE, hasKey: !!SUPABASE_ANON_KEY });
+    
     const res = await fetch(`${API_BASE}/auth-login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+      },
       body: JSON.stringify({ email, password }),
     });
 
     const data = await res.json();
+    console.log('[AuthProvider] signIn response', { ok: res.ok, status: res.status, data });
 
     if (!res.ok) {
       // Propaga o código de erro para a tela de login tratar
-      throw new Error(data.error ?? 'INTERNAL_ERROR');
+      const errorCode = data?.error ?? 'INTERNAL_ERROR';
+      console.error('[AuthProvider] signIn error', errorCode);
+      throw new Error(errorCode);
     }
 
     const { session: newSession, profile: newProfile } = data;
@@ -103,7 +113,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.access_token) {
         await fetch(`${API_BASE}/auth-logout`, {
           method: 'POST',
-          headers: { Authorization: `Bearer ${session.access_token}` },
+          headers: { 
+            Authorization: `Bearer ${session.access_token}`,
+            'apikey': SUPABASE_ANON_KEY,
+          },
         });
       }
     } catch (e) {

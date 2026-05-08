@@ -10,7 +10,7 @@ Deno.serve(async (req: Request) => {
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SECRET_KEYS')!
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
     const { data: { users }, error } = await supabase.auth.admin.listUsers();

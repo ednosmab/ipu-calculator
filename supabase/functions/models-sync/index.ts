@@ -1,7 +1,7 @@
 // supabase/functions/models-sync/index.ts
 // POST /models-sync — sincroniza modelo do cliente para o servidor
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import { handleCors } from '../_shared/cors.ts';
 import { requireAuth, AuthError } from '../_shared/authMiddleware.ts';
 import { logAccess } from '../_shared/auditLogger.ts';
@@ -23,7 +23,7 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SECRET_KEYS')!
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
     const { error: upsertError } = await supabase

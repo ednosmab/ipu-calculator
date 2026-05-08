@@ -20,7 +20,7 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SECRET_KEYS')!
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
     // Cria usuário no auth

@@ -1,21 +1,22 @@
 // supabase/functions/auth-login/index.ts
 // POST /auth-login — valida credenciais, cria profile se não existir
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import { handleCors } from '../_shared/cors.ts';
 import { logAccess } from '../_shared/auditLogger.ts';
 import { ok, err } from '../_shared/response.ts';
 
 Deno.serve(async (req: Request) => {
+  const origin = req.headers.get('origin');
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
 
-  if (req.method !== 'POST') return err('METHOD_NOT_ALLOWED', 405);
+  if (req.method !== 'POST') return err('METHOD_NOT_ALLOWED', 405, origin);
 
   try {
     const { email, password } = await req.json();
 
-    if (!email || !password) return err('INVALID_PAYLOAD', 400);
+    if (!email || !password) return err('INVALID_PAYLOAD', 400, origin);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -29,7 +30,7 @@ Deno.serve(async (req: Request) => {
     });
 
     if (error || !data.user || !data.session) {
-      return err('INVALID_CREDENTIALS', 401);
+      return err('INVALID_CREDENTIALS', 401, origin);
     }
 
     // Busca profile via fetch direto (bypass RLS)
@@ -73,7 +74,7 @@ Deno.serve(async (req: Request) => {
       if (!createRes.ok) {
         const errText = await createRes.text();
         console.error('[auth-login] Create error:', errText);
-        return err('PROFILE_CREATE_FAILED', 500);
+        return err('PROFILE_CREATE_FAILED', 500, origin);
       }
 
       profileData = { role: 'admin', active: true, name: userName };
@@ -81,7 +82,7 @@ Deno.serve(async (req: Request) => {
 
     // Se inactive, bloqueia
     if (profileData.active === false) {
-      return err('ACCOUNT_SUSPENDED', 403);
+      return err('ACCOUNT_SUSPENDED', 403, origin);
     }
 
     return ok({
@@ -92,9 +93,9 @@ Deno.serve(async (req: Request) => {
         role: profileData.role,
         active: profileData.active,
       },
-    });
+    }, 200, origin);
   } catch (error) {
     console.error('[auth-login] Erro:', error);
-    return err('INTERNAL_ERROR', 500);
+    return err('INTERNAL_ERROR', 500, origin);
   }
 });

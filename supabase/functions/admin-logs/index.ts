@@ -1,7 +1,7 @@
 // supabase/functions/admin-logs/index.ts
 // GET /admin-logs — lista access_logs com filtros e paginação (admin only)
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import { handleCors } from '../_shared/cors.ts';
 import { requireAuth, AuthError } from '../_shared/authMiddleware.ts';
 import { ok, err } from '../_shared/response.ts';
@@ -28,7 +28,7 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SECRET_KEYS')!
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
     let query = supabase

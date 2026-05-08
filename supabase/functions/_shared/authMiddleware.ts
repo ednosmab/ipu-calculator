@@ -1,7 +1,7 @@
 // supabase/functions/_shared/authMiddleware.ts
 // Middleware de autorização — validado antes de qualquer lógica de negócio
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const ROLE_HIERARCHY = ['viewer', 'editor', 'admin'] as const;
 type Role = (typeof ROLE_HIERARCHY)[number];

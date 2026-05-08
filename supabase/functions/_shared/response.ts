@@ -12,12 +12,12 @@ export function ok(data: unknown, status = 200, origin?: string | null): Respons
 }
 
 /** Resposta de erro com código legível — nunca vaza stack trace */
-export function err(code: string, status: number): Response {
+export function err(code: string, status: number, origin?: string | null): Response {
   return new Response(JSON.stringify({ error: code, status }), {
     status,
     headers: { 
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
+      ...getCorsHeaders(origin),
     },
   });
 }
