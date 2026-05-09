@@ -30,6 +30,21 @@ export const useServiceWorkerUpdate = () => {
     setUpdateAvailable(true);
   }, []);
 
+  const applyUpdate = useCallback(async () => {
+    if (typeof window === 'undefined' || !navigator.serviceWorker) return;
+
+    try {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration?.waiting) {
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+      window.location.reload();
+    } catch (e) {
+      console.error('[SW] Apply update error:', e);
+      window.location.reload();
+    }
+  }, []);
+
   const dismissUpdate = useCallback(() => {
     setUpdateAvailable(false);
   }, []);
@@ -76,5 +91,5 @@ export const useServiceWorkerUpdate = () => {
     };
   }, [handleControllerChange, checkForUpdate]);
 
-  return { updateAvailable, dismissUpdate };
+  return { updateAvailable, dismissUpdate, applyUpdate };
 };

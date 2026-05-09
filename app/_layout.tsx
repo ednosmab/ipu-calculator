@@ -12,7 +12,8 @@ import { Stack } from 'expo-router';
 import Head from 'expo-router/head';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { Platform, Pressable, View, ScrollView } from 'react-native';
+import { Platform, Pressable, View, ScrollView, StyleSheet } from 'react-native';
+import { UpdateBanner } from '@/components/UpdateBanner';
 import { registerBackgroundSync } from '@/core/sync/backgroundSyncService';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 
@@ -41,18 +42,24 @@ function Fallback({ error }: { error: Error }) {
 }
 
 function AppContent() {
-  const isStaging = process.env.EXPO_PUBLIC_APP_ENV === 'staging';
+  const appEnv = process.env.EXPO_PUBLIC_APP_ENV;
+  const isDevelopment = !appEnv || appEnv === 'development';
+  const isStaging = appEnv === 'staging';
+  const isProduction = appEnv === 'production';
+  const isDebugVisible = isStaging || isDevelopment;
   const [loaded, error] = Font.useFonts({
     ...FontAwesome5.font,
   });
   const [isMounted, setIsMounted] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
-  const { updateAvailable, dismissUpdate } = useServiceWorkerUpdate();
+  const { updateAvailable, dismissUpdate, applyUpdate } = useServiceWorkerUpdate();
   const { debugInfo } = usePWAInstall();
 
   useEffect(() => {
     setIsMounted(true);
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+    // Register SW only in production/staging, skip in Expo dev server
+    const shouldRegisterSW = (isProduction || isStaging) && typeof window !== 'undefined' && 'serviceWorker' in navigator;
+    if (shouldRegisterSW) {
       navigator.serviceWorker.register('/service-worker.js')
         .then((registration) => {
           console.log('[PWA] Service Worker registered:', registration.scope);
@@ -61,7 +68,7 @@ function AppContent() {
           console.error('[PWA] Service Worker registration failed:', error);
         });
     }
-  }, []);
+  }, [isProduction, isStaging]);
 
   useEffect(() => {
     if (loaded || error) {
@@ -95,8 +102,12 @@ function AppContent() {
         <ErrorBoundary fallback={({ error }: { error: Error }) => <Fallback error={error} />}>
           <Stack screenOptions={{ headerShown: false }} />
 
-          {/* Debug button — staging only */}
-          {isStaging && (
+          {updateAvailable && (
+            <UpdateBanner onUpdate={applyUpdate} onDismiss={dismissUpdate} />
+          )}
+
+          {/* Debug button — staging/development only */}
+          {isDebugVisible && (
             <Pressable onPress={() => setShowDebug(!showDebug)} style={styles.debugButton}>
               <FontAwesome5 name="bug" size={14} color={theme.colors.textSecondary} />
             </Pressable>

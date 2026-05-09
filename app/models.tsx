@@ -4,7 +4,8 @@ import { CalculationModel } from '@/features/models/domain/calculationModel';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 export default function Page() {
-  const { isAuthorized } = useRequireAuth('viewer');
+  // allowOfflineAccess: permite acesso mesmo sem login se offline e com cache local
+  const { isAuthorized, isOffline, hasLocalCache } = useRequireAuth('viewer', true);
   const router = useRouter();
 
   if (!isAuthorized) {
@@ -22,5 +23,12 @@ export default function Page() {
     }
   };
 
-  return <ModelsScreen onGoBack={handleGoBack} onSelectModel={handleSelectModel} />;
+  return (
+    <ModelsScreen
+      onGoBack={handleGoBack}
+      onSelectModel={handleSelectModel}
+      isOffline={isOffline}
+      hasLocalCache={hasLocalCache}
+    />
+  );
 }

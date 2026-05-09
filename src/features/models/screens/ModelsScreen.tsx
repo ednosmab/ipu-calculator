@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, View, ActivityIndicator, Animated } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Button, Text, Input, theme } from '@/design-system';
@@ -11,16 +11,20 @@ import { deleteModelUseCase } from '@/features/models/application/modelUseCases'
 import { useRealtimeModels } from '@/features/models/hooks/useRealtimeModels';
 import { useModelForm } from '@/features/models/hooks/useModelForm';
 import { ModelList, ModelFormModal, ModelDeleteModal } from '@/features/models/components';
+import { useAuth } from '@/hooks/useAuth';
 
-type Props = {
+interface Props {
   onGoBack: () => void;
   onSelectModel: (model: CalculationModel) => void;
-};
+  isOffline?: boolean;
+  hasLocalCache?: boolean;
+}
 
-export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
+export const ModelsScreen = ({ onGoBack, onSelectModel, isOffline, hasLocalCache }: Props) => {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const { toast } = useToast();
+  const { user } = useAuth();
   const lastDeleteTime = useRef(0);
 
   const { models, isLoading } = useRealtimeModels();
@@ -76,6 +80,9 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
 
   const totalModels = ipuModels.length + calibrationModels.length;
 
+  // Exibe banner de aviso quando offline e sem login
+  const showOfflineBanner = isOffline && !user && totalModels > 0;
+
   const fab = (
     <View style={styles.fabWrapper}>
       <Button title={t('createModel')} onPress={form.openCreate} style={styles.fabButton} icon={<FontAwesome5 name="plus" size={20} color={theme.colors.bg} />} />
@@ -105,6 +112,14 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
   return (
     <ScreenLayout title="Modelos" onBack={onGoBack} footer={fab}>
       {toast && <Toast message={toast.message} type={toast.type} />}
+      {showOfflineBanner && (
+        <View style={styles.offlineBanner}>
+          <FontAwesome5 name="wifi" size={16} color={theme.colors.warning} />
+          <Text style={styles.offlineBannerText}>
+            Conecte-se à internet e faça login para atualizar a lista de modelos
+          </Text>
+        </View>
+      )}
       <View style={styles.content}>
         {totalModels > 0 && (
           <Input
@@ -208,5 +223,20 @@ const styles = StyleSheet.create({
   },
   fabButton: {
     minWidth: 120,
+  },
+  offlineBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.warning + '20',
+    padding: theme.spacing.md,
+    marginHorizontal: theme.spacing.lg,
+    marginTop: theme.spacing.sm,
+    borderRadius: theme.roundness.sm,
+    gap: theme.spacing.sm,
+  },
+  offlineBannerText: {
+    flex: 1,
+    color: theme.colors.warning,
+    fontSize: theme.typography.sizes.sm,
   },
 });
