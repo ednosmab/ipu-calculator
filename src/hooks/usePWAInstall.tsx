@@ -48,6 +48,8 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
     
     if (standalone) return;
 
+    let fallbackTimeout: ReturnType<typeof setTimeout> | null = null;
+
     const handleDisplayModeChange = (e: MediaQueryListEvent) => {
       console.log('[PWA] display-mode changed:', e.matches);
       setIsStandalone(e.matches);
@@ -61,19 +63,32 @@ export const PWAInstallProvider = ({ children }: { children: ReactNode }) => {
       setCanInstall(true);
     }
 
+    if (isAndroid && !standalone && !deferredPrompt) {
+      fallbackTimeout = setTimeout(() => {
+        if (!checkIsStandalone() && !isDismissed.current) {
+          setCanInstall(true);
+        }
+      }, 5000);
+    }
+
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       if (isDismissed.current) return;
       console.log('[PWA] beforeinstallprompt fired!');
+      if (fallbackTimeout) {
+        clearTimeout(fallbackTimeout);
+        fallbackTimeout = null;
+      }
       setDeferredPrompt(e);
       setCanInstall(true);
     };
-    
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       mediaQueryStandalone.removeEventListener('change', handleDisplayModeChange);
+      if (fallbackTimeout) clearTimeout(fallbackTimeout);
     };
   }, []);
 

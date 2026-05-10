@@ -4,6 +4,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import { fetchRemoteModelsUseCase } from '../application/fetchRemoteModelsUseCase';
 import { CalculationModel } from '../domain/calculationModel';
 import { modelRepository } from '../infra/modelRepository';
+import { useAuth } from '@/hooks/useAuth';
 
 export const useRealtimeModels = () => {
   const [models, setModels] = useState<CalculationModel[]>([]);
@@ -12,27 +13,70 @@ export const useRealtimeModels = () => {
   const lastSyncTime = useRef(0);
   const appState = useRef(AppState.currentState);
 
-  const fetchModels = useCallback(async (fromRemote = false) => {
-    if (fromRemote) {
-      const now = Date.now();
-      if (now - lastSyncTime.current < 1000) {
+  const { isLoading: authLoading, user, profile } = useAuth();
+
+  const fetchModels = useCallback(
+    async (fromRemote = false) => {
+      if (authLoading) {
+        console.log('[useRealtimeModels] Esperando AuthProvider finalizar...');
         return;
       }
-      lastSyncTime.current = now;
-      await fetchRemoteModelsUseCase();
-    }
-    const data = await modelRepository.getAll();
-    setModels(data);
-    setLastUpdate(Date.now());
-    setIsLoading(false);
-  }, []);
+
+      if (fromRemote) {
+        const now = Date.now();
+        if (now - lastSyncTime.current < 1000) {
+          return;
+        }
+        lastSyncTime.current = now;
+
+        if (!user) {
+          console.warn('[useRealtimeModels] Sem usuário autenticado; ignorando sync remota');
+          setIsLoading(false);
+          return;
+        }
+
+        console.log('[useRealtimeModels] Sincronizando modelos remotos...', {
+          userId: user.id,
+          userRole: profile?.role,
+        });
+
+        try {
+          await fetchRemoteModelsUseCase();
+        } catch (error) {
+          console.error('[useRealtimeModels] Erro ao sincronizar:', error);
+        }
+      }
+
+      const data = await modelRepository.getAll();
+      setModels(data);
+      setLastUpdate(Date.now());
+      setIsLoading(false);
+    },
+    [authLoading, user, profile]
+  );
 
   useEffect(() => {
-    console.log('[useRealtimeModels] Initializing...');
+    console.log('[useRealtimeModels] Inicializando...', {
+      authLoading,
+      hasUser: !!user,
+      userRole: profile?.role,
+    });
+
+    if (authLoading) {
+      console.log('[useRealtimeModels] AuthProvider ainda carregando, aguardando...');
+      return;
+    }
+
+    if (!user) {
+      console.warn('[useRealtimeModels] Nenhum usuário; não sincronizando');
+      setIsLoading(false);
+      return;
+    }
+
     fetchModels(true);
 
     const unsubscribeRepo = modelRepository.subscribe(() => {
-      console.log('[useRealtimeModels] Repository changed, fetching local data...');
+      console.log('[useRealtimeModels] Repository mudou, refrescando dados locais...');
       fetchModels(false);
     });
 
@@ -41,6 +85,7 @@ export const useRealtimeModels = () => {
         appState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
+        console.log('[useRealtimeModels] App retornou do background');
         fetchModels(true);
       }
       appState.current = nextAppState;
@@ -48,9 +93,9 @@ export const useRealtimeModels = () => {
 
     const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
 
-    // Web: visibility change detection
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
+        console.log('[useRealtimeModels] Aba ficou visível');
         fetchModels(true);
       }
     };
@@ -68,19 +113,20 @@ export const useRealtimeModels = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'models' },
         (payload) => {
+          console.log('[useRealtimeModels] Notificação realtime recebida:', payload.eventType);
           fetchModels(true);
         }
       );
 
       channel.subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.warn('[useRealtimeModels]: Realtime indisponível. Operando em modo local.');
+          console.warn('[useRealtimeModels] Realtime indisponível. Operando em modo local.');
         } else if (status === 'SUBSCRIBED') {
-          console.log('[useRealtimeModels]: Realtime conectado com sucesso.');
+          console.log('[useRealtimeModels] ✅ Realtime conectado com sucesso.');
         }
       });
     } catch (e) {
-      console.warn('[useRealtimeModels]: Erro ao configurar realtime, operando offline:', e);
+      console.warn('[useRealtimeModels] Erro ao configurar realtime:', e);
     }
 
     return () => {
@@ -93,7 +139,7 @@ export const useRealtimeModels = () => {
         supabase.removeChannel(channel);
       }
     };
-  }, [fetchModels]);
+  }, [authLoading, user, profile, fetchModels]);
 
   return { models, isLoading, lastUpdate };
 };

@@ -1,9 +1,17 @@
 import { useRouter } from 'expo-router';
 import { ModelsScreen } from '@/features/models/screens/ModelsScreen';
 import { CalculationModel } from '@/features/models/domain/calculationModel';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 
 export default function Page() {
+  // allowOfflineAccess: permite acesso mesmo sem login se offline e com cache local
+  const { isAuthorized, isOffline, hasLocalCache } = useRequireAuth('viewer', true);
   const router = useRouter();
+
+  if (!isAuthorized) {
+    // The hook will redirect, but we return null to prevent rendering while redirecting
+    return null;
+  }
 
   const handleGoBack = () => router.push('/');
 
@@ -15,5 +23,12 @@ export default function Page() {
     }
   };
 
-  return <ModelsScreen onGoBack={handleGoBack} onSelectModel={handleSelectModel} />;
+  return (
+    <ModelsScreen
+      onGoBack={handleGoBack}
+      onSelectModel={handleSelectModel}
+      isOffline={isOffline}
+      hasLocalCache={hasLocalCache}
+    />
+  );
 }
