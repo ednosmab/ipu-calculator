@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { theme } from '@/design-system';
 import { CACHE_VERSION } from '@/core/versioning/cacheVersion';
+import { CONFIG } from '@/core/config';
 
 type LogEntry = {
   type: 'error' | 'warn' | 'info';
@@ -165,6 +166,10 @@ export const DebugPanel = ({ visible, debugInfo }: DebugPanelProps) => {
         <Text style={styles.infoText}>Logs: {logs.length}</Text>
         <Text style={styles.infoText}>App Version: {CACHE_VERSION.SW}</Text>
         <Text style={styles.infoText}>Schema: {CACHE_VERSION.SCHEMA}</Text>
+
+        <Text style={styles.sectionTitle}>Config</Text>
+        <Text style={styles.infoText}>EDGE_FUNCTIONS_URL: {CONFIG.EDGE_FUNCTIONS_URL}</Text>
+        <Text style={styles.infoText}>SUPABASE_ANON_KEY: {CONFIG.SUPABASE_ANON_KEY ? '***' + CONFIG.SUPABASE_ANON_KEY.slice(-6) : 'MISSING'}</Text>
 
         {debugInfo && (
           <>

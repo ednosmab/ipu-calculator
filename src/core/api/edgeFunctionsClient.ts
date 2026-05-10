@@ -2,9 +2,9 @@
 // Cliente centralizado para chamadas às Edge Functions do Supabase
 
 import { sessionStorage } from '../auth/sessionStorage';
+import { CONFIG } from '@/core/config';
 
-const API_BASE = process.env.EXPO_PUBLIC_EDGE_FUNCTIONS_URL ?? '';
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
+const { SUPABASE_URL, SUPABASE_ANON_KEY } = CONFIG;
 
 const TIMEOUT_MS = 3500;
 
@@ -51,7 +51,7 @@ async function fetchWithAuth<T = unknown>(
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
-    const url = `${API_BASE}${endpoint}`;
+    const url = `${SUPABASE_URL}/functions/v1${endpoint}`;
     console.log(`[edgeFunctionsClient] 🚀 Requisição para: ${url}`);
 
     const response = await fetch(url, {

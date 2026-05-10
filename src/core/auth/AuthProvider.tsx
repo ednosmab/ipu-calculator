@@ -4,9 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AuthContext, AuthContextValue, UserProfile, AuthSession } from './AuthContext';
 import { sessionStorage } from './sessionStorage';
-
-const API_BASE = process.env.EXPO_PUBLIC_EDGE_FUNCTIONS_URL ?? '';
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
+import { CONFIG } from '@/core/config';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthContextValue['user']>(null);
@@ -25,36 +23,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (storedToken && storedProfileRaw) {
           // Valida o token e obtém profile fresco do servidor
-          // para garantir que o role e status continuam válidos
           try {
-            const res = await fetch(`${API_BASE}/auth-validate`, {
+            const res = await fetch(`${CONFIG.SUPABASE_URL}/auth/v1/user`, {
               method: 'GET',
               headers: {
                 'Authorization': `Bearer ${storedToken}`,
-                'Content-Type': 'application/json',
-                'apikey': SUPABASE_ANON_KEY,
+                'apikey': CONFIG.SUPABASE_ANON_KEY,
               },
             });
 
             if (res.ok) {
-              const { profile: freshProfile } = await res.json();
-              const parsedProfile: UserProfile = JSON.parse(storedProfileRaw);
+              const userData = await res.json();
+              const freshProfile = await fetchProfile(storedToken, userData.id);
 
-              // Atualiza com dados frescos do servidor
               setSession({ access_token: storedToken });
-              setUser({ id: freshProfile.id });
+              setUser({ id: userData.id });
               setProfile(freshProfile);
 
-              // Persiste o profile atualizado no storage
               await sessionStorage.setProfile(JSON.stringify(freshProfile));
             } else {
-              // Token invalidado pelo servidor (ex: role mudou, conta suspensa)
-              console.warn('[Auth] Sessão invalidada pelo servidor, limpando local');
+              console.warn('[Auth] Token rejeitado pelo servidor, limpando local');
               await sessionStorage.clearAll();
             }
           } catch (validateError) {
-            // Fallback: usa o profile cacheado se a validação falhar
-            // (ex: offline, Edge Function indisponível)
             console.warn('[Auth] Falha na validação, usando cache:', validateError);
             const storedProfile: UserProfile = JSON.parse(storedProfileRaw);
             setSession({ access_token: storedToken });
@@ -70,57 +61,75 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
+  const fetchProfile = async (token: string, userId: string): Promise<UserProfile> => {
+    const res = await fetch(
+      `${CONFIG.SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=id,name,role,active`,
+      {
+        headers: {
+          'apikey': CONFIG.SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await res.json();
+    const profileData = data?.[0];
+    return {
+      id: userId,
+      name: profileData?.name ?? 'Usuário',
+      role: profileData?.role ?? 'viewer',
+      active: profileData?.active ?? true,
+    };
+  };
+
   // ── signIn ───────────────────────────────────────────────────
   const signIn = useCallback(async (email: string, password: string) => {
-    console.log('[AuthProvider] signIn started', { email, API_BASE, hasKey: !!SUPABASE_ANON_KEY });
-    
-    const res = await fetch(`${API_BASE}/auth-login`, {
+    console.log(`[AuthProvider] signIn — email: ${email}`);
+
+    const res = await fetch(`${CONFIG.SUPABASE_URL}/auth/v1/token?grant_type=password`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
+        'apikey': CONFIG.SUPABASE_ANON_KEY,
       },
       body: JSON.stringify({ email, password }),
     });
 
     const data = await res.json();
-    console.log('[AuthProvider] signIn response', { ok: res.ok, status: res.status, data });
+    console.log(`[AuthProvider] signIn response — status: ${res.status}`);
 
     if (!res.ok) {
-      // Propaga o código de erro para a tela de login tratar
-      const errorCode = data?.error ?? 'INTERNAL_ERROR';
-      console.error('[AuthProvider] signIn error', errorCode);
+      const errorCode = data?.error_description ?? 'INVALID_CREDENTIALS';
+      console.error(`[AuthProvider] signIn error: ${errorCode}`);
       throw new Error(errorCode);
     }
 
-    const { session: newSession, profile: newProfile } = data;
+    const { access_token, user: userData } = data;
+    const newProfile = await fetchProfile(access_token, userData.id);
 
-    // Persiste no storage seguro
     await Promise.all([
-      sessionStorage.setToken(newSession.access_token),
+      sessionStorage.setToken(access_token),
       sessionStorage.setProfile(JSON.stringify(newProfile)),
     ]);
 
-    setSession(newSession);
-    setUser({ id: newProfile.id });
+    setSession({ access_token });
+    setUser({ id: userData.id });
     setProfile(newProfile);
   }, []);
 
   // ── signOut ──────────────────────────────────────────────────
   const signOut = useCallback(async () => {
     try {
-      // Invalida sessão no servidor — mesmo que falhe, limpa o estado local
       if (session?.access_token) {
-        await fetch(`${API_BASE}/auth-logout`, {
+        await fetch(`${CONFIG.SUPABASE_URL}/auth/v1/logout`, {
           method: 'POST',
-          headers: { 
+          headers: {
             Authorization: `Bearer ${session.access_token}`,
-            'apikey': SUPABASE_ANON_KEY,
+            'apikey': CONFIG.SUPABASE_ANON_KEY,
           },
         });
       }
     } catch (e) {
-      console.warn('[Auth] Falha no logout remoto:', e);
+      console.warn('[Auth] Falha no logout:', e);
     } finally {
       await sessionStorage.clearAll();
       setUser(null);
