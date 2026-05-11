@@ -83,29 +83,9 @@ export const ModelsScreen = ({ isOffline, hasLocalCache }: Props) => {
   const showOfflineBanner = isOffline && !user && totalModels > 0;
 
   const footer = (
-    <>
-      <Button
-        title={t('createModel')}
-        onPress={form.openCreate}
-        style={styles.createButton}
-        icon={<FontAwesome5 name="plus" size={20} color={theme.colors.bg} />}
-      />
-      <HStack gap="sm" style={{ width: '100%' }}>
-        <Button
-          title={t('back')}
-          variant="secondary"
-          onPress={() => router.push('/')}
-          style={{ flex: 1 }}
-          icon={<FontAwesome5 name="arrow-left" size={20} color={theme.colors.textSecondary} />}
-        />
-        <Button
-          title={t('injection')}
-          onPress={() => router.push('/calculator')}
-          style={{ flex: 1 }}
-          icon={<FontAwesome5 name="calculator" size={20} color={theme.colors.primaryText} />}
-        />
-      </HStack>
-    </>
+    <View style={styles.fabWrapper}>
+      <Button title={t('createModel')} onPress={form.openCreate} style={styles.fabButton} icon={<FontAwesome5 name="plus" size={20} color={theme.colors.bg} />} />
+    </View>
   );
 
   const renderSkeleton = () => (
@@ -235,8 +215,13 @@ const styles = StyleSheet.create({
     borderRadius: theme.roundness.md,
     opacity: 0.3,
   },
-  createButton: {
-    marginBottom: theme.spacing.sm,
+  fabWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    paddingHorizontal: theme.spacing.lg,
+  },
+  fabButton: {
+    minWidth: 120,
   },
   offlineBanner: {
     flexDirection: 'row',
