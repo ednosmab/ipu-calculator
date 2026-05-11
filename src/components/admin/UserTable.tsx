@@ -2,7 +2,7 @@
 // Tabela de usuários com ações inline
 
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, Switch, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Switch, Modal, TextInput, RefreshControl } from 'react-native';
 import { HStack, VStack, Button, Text as DSText, Input , theme } from '@/design-system';
 
 interface Props {
@@ -104,7 +104,11 @@ export const UserTable = ({ users, onUpdateUser, onRefresh, refreshing }: Props)
         <VStack style={styles.colLastSeen}>
           <DSText style={styles.lastSeenLabel}>Último acesso</DSText>
           <DSText style={styles.lastSeenValue}>
-            {item.last_seen ? new Date(item.last_seen).toLocaleDateString() : 'Nunca'}
+            {(() => {
+              if (!item.last_seen) return 'Nunca';
+              const date = new Date(item.last_seen);
+              return isNaN(date.getTime()) ? 'Data Inválida' : date.toLocaleDateString();
+            })()}
           </DSText>
         </VStack>
         
@@ -135,11 +139,14 @@ export const UserTable = ({ users, onUpdateUser, onRefresh, refreshing }: Props)
           data={users}
           renderItem={renderItem}
           keyExtractor={item => item.id}
-          contentContainerStyle={styles.list}
+          style={styles.list}
+          contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl
               refreshing={refreshing || false}
               onRefresh={onRefresh}
+              tintColor={theme.colors.primary}
+              colors={[theme.colors.primary]}
             />
           }
         />
@@ -217,10 +224,7 @@ export const UserTable = ({ users, onUpdateUser, onRefresh, refreshing }: Props)
   );
 };
 
-// Simplified RefreshControl for web compatibility
-const RefreshControl = ({ refreshing, onRefresh }: { refreshing: boolean; onRefresh: () => void }) => {
-  return null;
-};
+// Remove custom RefreshControl mock as we use the native one
 
 const styles = StyleSheet.create({
   container: {
@@ -245,6 +249,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   list: {
+    flex: 1,
+  },
+  listContent: {
     flexGrow: 1,
   },
   row: {

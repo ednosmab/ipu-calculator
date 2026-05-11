@@ -30,14 +30,20 @@ Deno.serve(async (req: Request) => {
       if (error) throw error;
 
       // Busca emails da tabela auth.users via admin API
-      const { data: { users: authUsers } } = await supabase.auth.admin.listUsers();
+      const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
+      if (authError) {
+        console.error('[admin-users] Erro ao listar auth users:', authError);
+        // Se falhar o auth, retornamos os perfis sem email em vez de quebrar
+        return ok(profiles, 200, req.headers.get('origin'));
+      }
+
       const emailMap = Object.fromEntries(
-        authUsers.map((u) => [u.id, u.email])
+        (authData?.users || []).map((u) => [u.id, u.email])
       );
 
       const result = profiles?.map((p) => ({
         ...p,
-        email: emailMap[p.id] ?? null,
+        email: emailMap[p.id] ?? 'N/A',
       }));
 
       logAccess({

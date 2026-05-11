@@ -50,9 +50,10 @@ export default function UsersScreen() {
 
   if (error) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.error}>Erro: {error}</Text>
-        <Button title="Tentar novamente" onPress={refetch} />
+      <View style={styles.center}>
+        <Text style={styles.error}>Erro ao carregar usuários</Text>
+        <Text style={styles.errorDetail}>{error}</Text>
+        <Button title="Tentar novamente" onPress={refetch} variant="secondary" style={{ marginTop: theme.spacing.lg }} />
       </View>
     );
   }
@@ -130,5 +131,24 @@ const styles = StyleSheet.create({
   loading: {
     marginTop: theme.spacing.md,
     color: theme.colors.textSecondary,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.xl,
+    backgroundColor: theme.colors.bg,
+  },
+  error: {
+    color: theme.colors.error,
+    fontSize: theme.typography.sizes.lg,
+    fontWeight: theme.typography.weights.bold,
+    marginBottom: theme.spacing.sm,
+  },
+  errorDetail: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.sizes.sm,
+    textAlign: 'center',
+    marginBottom: theme.spacing.xl,
   },
 });

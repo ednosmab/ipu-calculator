@@ -51,7 +51,9 @@ async function fetchWithAuth<T = unknown>(
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
-    const url = `${SUPABASE_URL}/functions/v1${endpoint}`;
+    const baseUrl = SUPABASE_URL.endsWith('/') ? SUPABASE_URL.slice(0, -1) : SUPABASE_URL;
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const url = `${baseUrl}/functions/v1${cleanEndpoint}`;
     console.log(`[edgeFunctionsClient] 🚀 Requisição para: ${url}`);
 
     const response = await fetch(url, {
@@ -169,7 +171,12 @@ export const edgeFunctionsClient = {
 
   async getAdminUsers(): Promise<any[]> {
     const result = await fetchWithAuth<any[]>('/admin-users', { method: 'GET' });
-    return result.ok && result.data ? result.data : [];
+    
+    if (!result.ok) {
+      throw new Error(result.error ?? 'FAILED_TO_FETCH_USERS');
+    }
+
+    return result.data ?? [];
   },
 
   async createAdminUser(data: any): Promise<boolean> {
@@ -181,9 +188,10 @@ export const edgeFunctionsClient = {
   },
 
   async updateAdminUser(data: { id: string; role?: string; active?: boolean }): Promise<boolean> {
+    const { id, ...rest } = data;
     const result = await fetchWithAuth('/admin-users-update', {
       method: 'PATCH',
-      body: JSON.stringify(data),
+      body: JSON.stringify({ targetId: id, ...rest }),
     });
     return result.ok;
   },
