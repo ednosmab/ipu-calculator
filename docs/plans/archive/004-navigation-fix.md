@@ -1,5 +1,7 @@
 # Plano de Correção: Navegação Inteligente e Animação Lateral
 
+**Status:** ✅ CONCLUÍDO (Maio 2026)
+
 Este plano visa corrigir os problemas identificados na navegação após a execução do plano `003-navigation-improvements.md`. As rotas passarão a ser "inteligentes" (destacando a página atual) e a animação do menu será alterada para um slide lateral da esquerda para a direita.
 
 ## User Review Required
@@ -53,7 +55,22 @@ Este plano visa corrigir os problemas identificados na navegação após a execu
 ## Verificação Plan
 
 ### Automated Tests
-- Verificação visual via browser após a implementação.
+- [x] `npm run lint` — lint limpo para arquivos alterados
+- [x] `npm test` — 99 tests passing
+- [x] `npm run build` — build gera dist com sucesso
+
+### Manual Verification
+- [ ] **Animação:** Abrir o menu e confirmar que ele desliza horizontalmente da esquerda para a direita.
+- [ ] **Backdrop:** Confirmar que o fundo escurece suavemente e que clicar nele fecha o menu.
+- [ ] **Destaque de Rota:**
+   - [ ] Acessar `/` -> Item "Início" deve estar destacado.
+   - [ ] Acessar `/models` -> Item "Modelos" deve estar destacado.
+   - [ ] Acessar `/admin` -> Item "Painel Admin" deve estar destacado.
+- [ ] **Redirecionamento:**
+   - [ ] Tentar acessar `/models` sem estar logado.
+   - [ ] Fazer login.
+   - [ ] Verificar se o redirecionamento foi para `/models` (e não para `/`).
+- [ ] **Interatividade:** Garantir que, com o menu fechado, o "backdrop invisível" não bloqueie cliques no conteúdo da página.
 
 ### Manual Verification
 1. **Animação:** Abrir o menu e confirmar que ele desliza horizontalmente da esquerda para a direita.

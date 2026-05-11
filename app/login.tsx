@@ -26,7 +26,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 export default function LoginScreen() {
-  const { signIn } = useAuth();
+  const { signIn, profile } = useAuth();
   const router = useRouter();
 
   const [email, setEmail] = useState('');
@@ -45,7 +45,7 @@ export default function LoginScreen() {
 
     try {
       await signIn(email.trim(), password);
-      const redirect = getPostLoginRedirect();
+      const redirect = getPostLoginRedirect(profile?.role);
       router.replace(redirect);
     } catch (err: unknown) {
       const code = err instanceof Error ? err.message : 'INTERNAL_ERROR';

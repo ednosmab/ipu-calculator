@@ -2,10 +2,10 @@ import { Text, VStack, HStack } from '@/design-system';
 import { theme } from '@/design-system/theme';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'expo-router';
+import { useRouter, usePathname } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
-import React, { useState, useCallback } from 'react';
-import { Platform, Pressable, StyleSheet, View, Modal } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { Animated, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 const ROLE_LABELS: Record<string, string> = {
   admin: 'Admin',
@@ -13,14 +13,52 @@ const ROLE_LABELS: Record<string, string> = {
   viewer: 'Visualizador',
 };
 
+const MENU_WIDTH = 280;
+
 export const NavMenu = () => {
   const { t } = useTranslation();
   const { user, signOut } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
+  const slideAnim = useRef(new Animated.Value(-MENU_WIDTH)).current;
+  const backdropAnim = useRef(new Animated.Value(0)).current;
 
-  const open = useCallback(() => setVisible(true), []);
-  const close = useCallback(() => setVisible(false), []);
+  const open = useCallback(() => {
+    setVisible(true);
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(backdropAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [slideAnim, backdropAnim]);
+
+  const close = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: -MENU_WIDTH,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(backdropAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setVisible(false));
+  }, [slideAnim, backdropAnim]);
+
+  const isActive = (path: string) => {
+    if (path === '/') return pathname === '/';
+    return pathname.startsWith(path);
+  };
 
   return (
     <>
@@ -29,15 +67,16 @@ export const NavMenu = () => {
         <Text style={styles.menuLabel}>Menu</Text>
       </Pressable>
 
-      <Modal
-        transparent
-        visible={visible}
-        animationType="slide"
-        animationDuration={300}
-        onRequestClose={close}
-      >
-        <View style={styles.overlay}>
-          <View style={styles.card}>
+      {visible && (
+        <View style={styles.overlay} pointerEvents="box-none">
+          <Animated.View
+            style={[
+              styles.card,
+              {
+                transform: [{ translateX: slideAnim }],
+              },
+            ]}
+          >
             <VStack gap="sm">
               <View style={styles.header}>
                 <HStack gap="xs" style={{ alignItems: 'center' }}>
@@ -53,15 +92,15 @@ export const NavMenu = () => {
 
               <View style={styles.divider} />
 
-              <NavItem icon="home" label="Início" onPress={() => { close(); router.replace('/'); }} />
-              <NavItem icon="calculator" label={t('injection')} onPress={() => { close(); router.push('/calculator'); }} />
-              <NavItem icon="tint" label={t('calibration')} onPress={() => { close(); router.push('/calibration'); }} />
-              <NavItem icon="list" label={t('models')} onPress={() => { close(); router.push('/models'); }} />
+              <NavItem icon="home" label="Início" active={isActive('/')} onPress={() => { close(); router.replace('/'); }} />
+              <NavItem icon="calculator" label={t('injection')} active={isActive('/calculator')} onPress={() => { close(); router.push('/calculator'); }} />
+              <NavItem icon="tint" label={t('calibration')} active={isActive('/calibration')} onPress={() => { close(); router.push('/calibration'); }} />
+              <NavItem icon="list" label={t('models')} active={isActive('/models')} onPress={() => { close(); router.push('/models'); }} />
 
               {user?.role === 'admin' && (
                 <>
                   <View style={styles.divider} />
-                  <NavItem icon="cog" label="Painel Admin" onPress={() => { close(); router.push('/admin'); }} />
+                  <NavItem icon="cog" label="Painel Admin" active={isActive('/admin')} onPress={() => { close(); router.push('/admin'); }} />
                 </>
               )}
 
@@ -77,23 +116,44 @@ export const NavMenu = () => {
                 <Text style={styles.version}>v{process.env.EXPO_PUBLIC_APP_VERSION ?? '1.0.0'}</Text>
               </View>
             </VStack>
-          </View>
-          <Pressable style={styles.backdrop} onPress={close} />
+          </Animated.View>
+          <Animated.View
+            style={[
+              styles.backdrop,
+              {
+                opacity: backdropAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 0.5],
+                }),
+              },
+            ]}
+            pointerEvents="auto"
+          >
+            <Pressable style={styles.backdropTouchable} onPress={close} />
+          </Animated.View>
         </View>
-      </Modal>
+      )}
     </>
   );
 };
 
-const NavItem = ({ icon, label, onPress, variant }: { icon: string; label: string; onPress: () => void; variant?: 'danger' }) => (
+const NavItem = ({ icon, label, onPress, variant, active }: { icon: string; label: string; onPress: () => void; variant?: 'danger'; active?: boolean }) => (
   <Pressable
     onPress={onPress}
-    style={[styles.navItem, variant === 'danger' && styles.navItemDanger]}
+    style={[
+      styles.navItem,
+      variant === 'danger' && styles.navItemDanger,
+      active && styles.navItemActive,
+    ]}
     accessibilityRole="button"
   >
     <HStack gap="sm" style={{ alignItems: 'center' }}>
-      <FontAwesome5 name={icon as any} size={16} color={variant === 'danger' ? theme.colors.error : theme.colors.textSecondary} />
-      <Text style={[styles.navLabel, variant === 'danger' && styles.navLabelDanger]}>{label}</Text>
+      <FontAwesome5 name={icon as any} size={16} color={active ? theme.colors.primary : (variant === 'danger' ? theme.colors.error : theme.colors.textSecondary)} />
+      <Text style={[
+        styles.navLabel,
+        variant === 'danger' && styles.navLabelDanger,
+        active && styles.navLabelActive,
+      ]}>{label}</Text>
     </HStack>
   </Pressable>
 );
@@ -117,15 +177,19 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   overlay: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     flexDirection: 'row',
+    zIndex: 9999,
   },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: '#000',
+  },
+  backdropTouchable: {
+    flex: 1,
   },
   card: {
-    width: 280,
+    width: MENU_WIDTH,
     backgroundColor: theme.colors.surface,
     paddingTop: Platform.OS === 'web' ? 60 : 80,
     paddingHorizontal: theme.spacing.md,
@@ -159,12 +223,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.sm,
     borderRadius: theme.roundness.sm,
   },
+  navItemActive: {
+    backgroundColor: `${theme.colors.primary}18`,
+  },
   navItemDanger: {
     backgroundColor: `${theme.colors.error}0d`,
   },
   navLabel: {
     fontSize: theme.typography.sizes.md,
     color: theme.colors.text,
+  },
+  navLabelActive: {
+    color: theme.colors.primary,
+    fontWeight: theme.typography.weights.semibold,
   },
   navLabelDanger: {
     color: theme.colors.error,
@@ -178,5 +249,3 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
   },
 });
-
-

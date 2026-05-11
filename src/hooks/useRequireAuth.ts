@@ -3,7 +3,7 @@
 // Nunca renderizar conteúdo protegido antes de isLoading === false
 
 import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'expo-router';
+import { useRouter, usePathname } from 'expo-router';
 import { useAuth } from './useAuth';
 import { Role } from '@/core/auth/AuthContext';
 import { useNetworkStatus } from './useNetworkStatus';
@@ -22,6 +22,7 @@ const LOGIN_REDIRECT_KEY = 'ipu_login_redirect';
 export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = false) {
   const { user, profile, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const isConnected = useNetworkStatus();
   const [hasLocalCache, setHasLocalCache] = useState(false);
   const initialCheckDone = useRef(false);
@@ -50,7 +51,7 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
 
     if (!user) {
       // Salva a rota original antes de redirecionar para login
-      const currentPath = window.location.pathname;
+      const currentPath = pathname;
       if (currentPath && currentPath !== '/login') {
         try {
           sessionStorage.setItem(LOGIN_REDIRECT_KEY, currentPath);
@@ -71,7 +72,7 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
     if (userRoleIndex < minRoleIndex) {
       router.replace('/unauthorized');
     }
-  }, [user, profile, isLoading, minRole, canAccessOffline]);
+  }, [user, profile, isLoading, minRole, canAccessOffline, pathname, router]);
 
   const isAuthorized =
     !isLoading &&
