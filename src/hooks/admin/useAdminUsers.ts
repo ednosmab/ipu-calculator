@@ -77,6 +77,24 @@ export function useAdminUsers() {
     }
   }, [authUser, fetchUsers]);
 
+  const deleteUser = useCallback(async (id: string) => {
+    if (!authUser) return;
+    
+    if (id === authUser.id) {
+      throw new Error('Cannot delete yourself');
+    }
+    
+    try {
+      const success = await edgeFunctionsClient.deleteAdminUser(id);
+      if (!success) {
+        throw new Error('Failed to delete user');
+      }
+      await fetchUsers();
+    } catch (err) {
+      throw err instanceof Error ? err : new Error('Unknown error');
+    }
+  }, [authUser, fetchUsers]);
+
   // Load users on mount
   useEffect(() => {
     fetchUsers();
@@ -88,6 +106,7 @@ export function useAdminUsers() {
     error, 
     createUser, 
     updateUser, 
+    deleteUser,
     refetch: fetchUsers 
   };
 }

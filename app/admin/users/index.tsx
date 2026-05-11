@@ -5,13 +5,15 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Pressable, FlatList } from 'react-native';
 import { useAdminUsers } from '@/hooks/admin/useAdminUsers';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { Button, HStack, theme } from '@/design-system';
 import { UserTable } from '@/components/admin/UserTable';
 import { CreateUserModal } from '@/components/admin/CreateUserModal';
 
 export default function UsersScreen() {
   const { isAuthorized } = useRequireAuth('admin');
-  const { users, isLoading, error, createUser, updateUser, refetch } = useAdminUsers();
+  const { user: authUser } = useAuth();
+  const { users, isLoading, error, createUser, updateUser, deleteUser, refetch } = useAdminUsers();
   const [modalVisible, setModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -81,8 +83,10 @@ export default function UsersScreen() {
           <UserTable 
             users={users} 
             onUpdateUser={updateUser}
+            onDeleteUser={deleteUser}
             onRefresh={handleRefresh}
             refreshing={refreshing}
+            currentUserId={authUser?.id}
           />
         ) : (
           <View style={styles.empty}>

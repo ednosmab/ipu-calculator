@@ -195,4 +195,12 @@ export const edgeFunctionsClient = {
     });
     return result.ok;
   },
+
+  async deleteAdminUser(id: string): Promise<boolean> {
+    const result = await fetchWithAuth('/admin-users-delete', {
+      method: 'DELETE',
+      body: JSON.stringify({ targetId: id }),
+    });
+    return result.ok;
+  },
 };

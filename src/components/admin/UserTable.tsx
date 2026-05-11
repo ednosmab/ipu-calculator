@@ -2,8 +2,9 @@
 // Tabela de usuários com ações inline
 
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, Switch, Modal, TextInput, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Switch, Modal, TextInput, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { HStack, VStack, Button, Text as DSText, Input , theme } from '@/design-system';
+import { FontAwesome5 } from '@expo/vector-icons';
 
 interface Props {
   users: {
@@ -15,11 +16,13 @@ interface Props {
     last_seen: string | null;
   }[];
   onUpdateUser?: (id: string, data: Partial<{ role: 'viewer' | 'editor' | 'admin'; active: boolean }>) => Promise<void>;
+  onDeleteUser?: (id: string) => Promise<void>;
   onRefresh?: () => void;
   refreshing?: boolean;
+  currentUserId?: string;
 }
 
-export const UserTable = ({ users, onUpdateUser, onRefresh, refreshing }: Props) => {
+export const UserTable = ({ users, onUpdateUser, onDeleteUser, onRefresh, refreshing, currentUserId }: Props) => {
   const [editModalVisible, setEditModalVisible] = React.useState(false);
   const [editingUserId, setEditingUserId] = React.useState<string | null>(null);
   const [editedRole, setEditedRole] = React.useState<'viewer' | 'editor' | 'admin'>('viewer');
@@ -64,6 +67,29 @@ export const UserTable = ({ users, onUpdateUser, onRefresh, refreshing }: Props)
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleDelete = (userId: string, userName: string) => {
+    Alert.alert(
+      'Confirmar Exclusão',
+      `Tem certeza que deseja excluir o usuário "${userName}"? Esta ação não pode ser desfeita.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            if (onDeleteUser) {
+              try {
+                await onDeleteUser(userId);
+              } catch (err) {
+                Alert.alert('Erro', err instanceof Error ? err.message : 'Falha ao excluir usuário');
+              }
+            }
+          },
+        },
+      ]
+    );
   };
 
   const getRoleBadgeStyle = (role: string) => {
@@ -113,12 +139,20 @@ export const UserTable = ({ users, onUpdateUser, onRefresh, refreshing }: Props)
         </VStack>
         
         <View style={styles.colActions}>
-          <Button
-            title="Editar"
-            variant="secondary"
+          <TouchableOpacity
             onPress={() => openEditModal(item)}
-            size="sm"
-          />
+            style={styles.iconBtn}
+          >
+            <FontAwesome5 name="pen" size={16} color={theme.colors.textSecondary} />
+          </TouchableOpacity>
+          {currentUserId !== item.id && (
+            <TouchableOpacity
+              onPress={() => handleDelete(item.id, item.name)}
+              style={styles.iconBtn}
+            >
+              <FontAwesome5 name="trash-alt" size={16} color={theme.colors.error} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
@@ -265,7 +299,14 @@ const styles = StyleSheet.create({
   colRole: { flex: 1.5, alignItems: 'flex-start' },
   colStatus: { flex: 1.5, alignItems: 'flex-start' },
   colLastSeen: { flex: 2 },
-  colActions: { flex: 1, alignItems: 'flex-end' },
+  colActions: { flex: 1, alignItems: 'flex-end', flexDirection: 'row', gap: theme.spacing.sm },
+  iconBtn: {
+    padding: 8,
+    backgroundColor: theme.colors.input,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
   
   name: {
     fontSize: theme.typography.sizes.md,
