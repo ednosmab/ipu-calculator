@@ -5,6 +5,8 @@ import { theme } from '@/design-system/theme';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, View, Modal } from 'react-native';
@@ -19,6 +21,8 @@ export const HomeScreen = ({ onGoToCalculator, onGoToCalibration, onGoToModels }
   const { language, toggleLanguage, t } = useTranslation();
   const { canInstall, isStandalone, install, dismiss, resetDismissStatus } = usePWAInstall();
   const { updateAvailable, dismissUpdate } = useServiceWorkerUpdate();
+  const { user, signOut } = useAuth();
+  const router = useRouter();
   const [showSettings, setShowSettings] = useState(false);
 
   const showPwaPill = canInstall || (isStandalone && updateAvailable);
@@ -122,6 +126,36 @@ export const HomeScreen = ({ onGoToCalculator, onGoToCalibration, onGoToModels }
             <VStack gap="md">
               <Text variant="title" style={{ textAlign: 'center' }}>Configurações</Text>
               
+              {user ? (
+                <>
+                  <Text style={styles.userInfo}>
+                    {user.email}
+                  </Text>
+                  <Button 
+                    title="Sair" 
+                    variant="secondary" 
+                    onPress={async () => {
+                      setShowSettings(false);
+                      await signOut();
+                      router.replace('/');
+                    }}
+                    icon={<FontAwesome5 name="sign-out-alt" size={16} color={theme.colors.primary} />}
+                  />
+                </>
+              ) : (
+                <Button 
+                  title="Entrar" 
+                  variant="secondary" 
+                  onPress={() => {
+                    setShowSettings(false);
+                    router.push('/login');
+                  }}
+                  icon={<FontAwesome5 name="sign-in-alt" size={16} color={theme.colors.primary} />}
+                />
+              )}
+
+              <View style={styles.modalDivider} />
+
               <Button 
                 title="Instalar App" 
                 variant="secondary" 
@@ -289,5 +323,16 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     padding: theme.spacing.lg,
+  },
+  userInfo: {
+    fontSize: theme.typography.sizes.sm,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: theme.spacing.xs,
+  },
+  modalDivider: {
+    height: 1,
+    backgroundColor: theme.colors.border,
+    marginVertical: theme.spacing.xs,
   },
 });
