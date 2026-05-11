@@ -166,4 +166,25 @@ export const edgeFunctionsClient = {
 
     return { valid: false };
   },
+
+  async getAdminUsers(): Promise<any[]> {
+    const result = await fetchWithAuth<any[]>('/admin-users', { method: 'GET' });
+    return result.ok && result.data ? result.data : [];
+  },
+
+  async createAdminUser(data: any): Promise<boolean> {
+    const result = await fetchWithAuth('/admin-users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return result.ok;
+  },
+
+  async updateAdminUser(data: { id: string; role?: string; active?: boolean }): Promise<boolean> {
+    const result = await fetchWithAuth('/admin-users-update', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+    return result.ok;
+  },
 };

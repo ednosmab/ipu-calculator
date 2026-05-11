@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Pressable } from 'react-native';
 import { theme } from '@/design-system';
 import { CACHE_VERSION } from '@/core/versioning/cacheVersion';
 import { CONFIG } from '@/core/config';
+import { useAuth } from '@/hooks/useAuth';
 
 type LogEntry = {
   type: 'error' | 'warn' | 'info';
@@ -21,6 +22,9 @@ export const DebugPanel = ({ visible, debugInfo }: DebugPanelProps) => {
   const originalConsoleError = useRef<typeof console.error>(console.error);
   const originalConsoleWarn = useRef<typeof console.warn>(console.warn);
   const originalConsoleLog = useRef<typeof console.log>(console.log);
+  
+  // Auth info
+  const { user, profile, session, isLoading: authLoading } = useAuth();
 
   const addLog = (type: LogEntry['type'], message: string) => {
     const timestamp = new Date().toLocaleTimeString('pt-BR', { hour12: false });
@@ -170,6 +174,14 @@ export const DebugPanel = ({ visible, debugInfo }: DebugPanelProps) => {
         <Text style={styles.sectionTitle}>Config</Text>
         <Text style={styles.infoText}>EDGE_FUNCTIONS_URL: {CONFIG.EDGE_FUNCTIONS_URL}</Text>
         <Text style={styles.infoText}>SUPABASE_ANON_KEY: {CONFIG.SUPABASE_ANON_KEY ? '***' + CONFIG.SUPABASE_ANON_KEY.slice(-6) : 'MISSING'}</Text>
+
+        <Text style={styles.sectionTitle}>Auth</Text>
+        <Text style={styles.infoText}>Loading: {authLoading ? 'Sim' : 'Não'}</Text>
+        <Text style={styles.infoText}>User: {user?.id ? user.id.substring(0, 8) + '...' : 'Nenhum'}</Text>
+        <Text style={styles.infoText}>Email: {user?.email || 'Nenhum'}</Text>
+        <Text style={styles.infoText}>Profile: {profile ? `${profile.role} (${profile.active ? 'Ativo' : 'Inativo'})` : 'Nenhum'}</Text>
+        <Text style={styles.infoText}>Profile Name: {profile?.name || 'Nenhum'}</Text>
+        <Text style={styles.infoText}>Session: {session?.access_token ? '***' + session.access_token.slice(-6) : 'Nenhuma'}</Text>
 
         {debugInfo && (
           <>

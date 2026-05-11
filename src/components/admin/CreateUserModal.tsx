@@ -137,16 +137,21 @@ export const CreateUserModal = ({ visible, onRequestClose, onCreateUser }: Props
             )}
             
             <DSText style={styles.label}>Role inicial</DSText>
-            <View style={styles.roleSelect}>
-              {['viewer', 'editor', 'admin'].map(role => (
-                <View key={role} style={styles.roleOption}>
-                  <Text style={styles.roleLabel}>
-                    {role === 'viewer' ? 'Visualizador' : 
-                     role === 'editor' ? 'Editor' : 'Administrador'}
-                  </Text>
-                </View>
+            <HStack style={styles.roleSelect}>
+              {(['viewer', 'editor', 'admin'] as const).map(role => (
+                <Button
+                  key={role}
+                  title={
+                    role === 'viewer' ? 'Visualizador' : 
+                    role === 'editor' ? 'Editor' : 'Admin'
+                  }
+                  variant={form.role === role ? 'primary' : 'secondary'}
+                  size="sm"
+                  onPress={() => setForm(prev => ({ ...prev, role }))}
+                  style={styles.roleButton}
+                />
               ))}
-            </View>
+            </HStack>
           </VStack>
 
           {errors.submit && (
@@ -208,20 +213,13 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.sm,
   },
   roleSelect: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.sm,
+    gap: theme.spacing.xs,
     marginVertical: theme.spacing.sm,
+    justifyContent: 'flex-start',
   },
-  roleOption: {
-    padding: theme.spacing.xs,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: theme.roundness.sm,
-  },
-  roleLabel: {
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.text,
+  roleButton: {
+    flex: 1,
+    marginVertical: 0,
   },
   actions: {
     flexDirection: 'row',

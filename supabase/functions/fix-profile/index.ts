@@ -1,7 +1,7 @@
 // supabase/functions/fix-profile/index.ts
-// POST /fix-profile — cria profile para usuário existente
+// POST /fix-profile — cria profile para usuário
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import { handleCors } from '../_shared/cors.ts';
 import { ok, err } from '../_shared/response.ts';
 
@@ -12,49 +12,45 @@ Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') return err('METHOD_NOT_ALLOWED', 405);
 
   try {
-    const { email, name, role } = await req.json();
+    const { userId } = await req.json();
 
-    if (!email || !name || !role) {
+    if (!userId) {
       return err('INVALID_PAYLOAD', 400);
     }
 
-const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-      { 
-        auth: { autoRefreshToken: false, persistSession: false },
-        db: { schema: 'public' }
-      }
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    // Try different key formats
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SECRET_KEYS')!;
 
-    // Busca usuário pelo email
-    const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
-    
-    if (userError || !userData) {
-      console.error('[fix-profile] Erro ao listar usuários:', userError);
+    console.log('[fix-profile] URL:', supabaseUrl);
+
+    // Create client with service role
+    const supabase = createClient(supabaseUrl, serviceKey);
+
+    // Get user first
+    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+
+    if (userError || !userData.user) {
+      console.error('[fix-profile] User error:', userError);
       return err('USER_NOT_FOUND', 404);
     }
 
-    const user = userData.users.find(u => u.email === email);
-    
-    if (!user) {
-      return err('USER_NOT_FOUND', 404);
-    }
+    const email = userData.user.email;
 
-    // Insere profile (ignora se já existir)
+    // Try insert
     const { error: profileError } = await supabase.from('profiles').upsert({
-      id: user.id,
-      name,
-      role,
+      id: userId,
+      name: email?.split('@')[0] || 'Admin',
+      role: 'admin',
       active: true,
     }, { onConflict: 'id' });
 
     if (profileError) {
-      console.error('[fix-profile] Erro ao criar profile:', profileError);
-      return err('PROFILE_ERROR', 400);
+      console.error('[fix-profile] Profile error:', profileError);
+      return err('PROFILE_CREATE_FAILED', 500);
     }
 
-    return ok({ success: true, userId: user.id });
+    return ok({ success: true, userId, message: 'Profile criado com role admin' });
   } catch (error) {
     console.error('[fix-profile] Erro:', error);
     return err('INTERNAL_ERROR', 500);

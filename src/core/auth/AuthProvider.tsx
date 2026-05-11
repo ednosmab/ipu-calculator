@@ -62,22 +62,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const fetchProfile = async (token: string, userId: string): Promise<UserProfile> => {
-    const res = await fetch(
-      `${CONFIG.SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=id,name,role,active`,
-      {
-        headers: {
-          'apikey': CONFIG.SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${token}`,
-        },
+    try {
+      // Tenta primeiro via REST API (mais rápido se RLS estiver OK)
+      const res = await fetch(
+        `${CONFIG.SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=id,name,role,active`,
+        {
+          headers: {
+            'apikey': CONFIG.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+      
+      if (res.ok) {
+        const data = await res.json();
+        const profileData = data?.[0];
+        if (profileData) {
+          return {
+            id: userId,
+            name: profileData.name,
+            role: profileData.role,
+            active: profileData.active,
+          };
+        }
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        console.warn('[Auth] Falha no profile via REST:', res.status, errorData);
       }
-    );
-    const data = await res.json();
-    const profileData = data?.[0];
+    } catch (restError) {
+      console.warn('[Auth] Erro na REST API de profile:', restError);
+    }
+
+    // Fallback: Tenta via Edge Function (mais robusto, bypass RLS)
+    try {
+      console.log('[Auth] Tentando fallback via auth-validate...');
+      const validateRes = await fetch(
+        `${CONFIG.EDGE_FUNCTIONS_URL}/auth-validate`,
+        {
+          headers: {
+            'apikey': CONFIG.SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (validateRes.ok) {
+        const validateData = await validateRes.json();
+        return validateData.profile;
+      }
+      console.warn('[Auth] Falha no fallback auth-validate:', validateRes.status);
+    } catch (validateError) {
+      console.error('[Auth] Erro crítico no fallback de profile:', validateError);
+    }
+
+    // Default fallback (mínimo privilégio)
     return {
       id: userId,
-      name: profileData?.name ?? 'Usuário',
-      role: profileData?.role ?? 'viewer',
-      active: profileData?.active ?? true,
+      name: 'Usuário',
+      role: 'viewer',
+      active: true,
     };
   };
 

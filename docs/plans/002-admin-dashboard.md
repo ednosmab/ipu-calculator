@@ -28,7 +28,7 @@ role text NOT NULL DEFAULT 'viewer'
 
 ## Status de Implementação
 
-### ✅ Implementado
+### ✅ Implementado e Testado (Staging)
 
 | Arquivo | Descrição |
 |---------|-----------|
@@ -40,7 +40,13 @@ role text NOT NULL DEFAULT 'viewer'
 | `src/components/admin/UserTable.tsx` | Tabela com ações inline |
 | `src/components/admin/CreateUserModal.tsx` | Modal de criação (parcial) |
 
-### ⚠️ Pendente / Precisa Testar
+**Status Staging: ✅ CONCLUÍDO**
+- Login funciona corretamente
+- Lista de modelos carrega
+- Criação de novo modelo funciona
+- Aguardando teste de produção
+
+### ⚠️ Pendente / Precisa Testar (Admin Dashboard)
 
 | Item | Problema |
 |------|-----------|
