@@ -7,16 +7,14 @@ import {
   View,
   Text,
   TextInput,
-  Pressable,
   StyleSheet,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
+import { Button, theme } from '@/design-system';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
-import { theme } from '@/design-system';
 import { getPostLoginRedirect } from '@/hooks/useRequireAuth';
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -117,18 +115,13 @@ export default function LoginScreen() {
           )}
 
           {/* Botão de login */}
-          <Pressable
-            style={[styles.button, isLoading && styles.buttonDisabled]}
+          <Button
+            title="Entrar"
             onPress={handleLogin}
             disabled={isLoading}
+            loading={isLoading}
             testID="login-submit-button"
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Entrar</Text>
-            )}
-          </Pressable>
+          />
 
           <Text style={styles.note}>
             Sem conta? Solicite acesso ao administrador.
@@ -203,21 +196,6 @@ const styles = StyleSheet.create({
     color: theme.colors.error,
     fontSize: theme.typography.sizes.sm,
     textAlign: 'center',
-  },
-  button: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.roundness.md,
-    padding: theme.spacing.md,
-    alignItems: 'center',
-    marginTop: theme.spacing.md,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: theme.typography.sizes.md,
-    fontWeight: theme.typography.weights.semibold,
   },
   note: {
     fontSize: theme.typography.sizes.sm,
