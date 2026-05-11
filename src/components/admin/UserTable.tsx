@@ -29,6 +29,12 @@ export const UserTable = ({ users, onUpdateUser, onDeleteUser, onRefresh, refres
   const [editedActive, setEditedActive] = React.useState(false);
   const [editError, setEditError] = React.useState<string | null>(null);
   const [isSaving, setIsSaving] = React.useState(false);
+  
+  const [deleteModalVisible, setDeleteModalVisible] = React.useState(false);
+  const [deletingUserId, setDeletingUserId] = React.useState<string | null>(null);
+  const [deletingUserName, setDeletingUserName] = React.useState('');
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
   const roles: { label: string; value: 'viewer' | 'editor' | 'admin' }[] = [
     { label: 'Visualizador', value: 'viewer' },
@@ -70,26 +76,41 @@ export const UserTable = ({ users, onUpdateUser, onDeleteUser, onRefresh, refres
   };
 
   const handleDelete = (userId: string, userName: string) => {
-    Alert.alert(
-      'Confirmar Exclusão',
-      `Tem certeza que deseja excluir o usuário "${userName}"? Esta ação não pode ser desfeita.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: async () => {
-            if (onDeleteUser) {
-              try {
-                await onDeleteUser(userId);
-              } catch (err) {
-                Alert.alert('Erro', err instanceof Error ? err.message : 'Falha ao excluir usuário');
-              }
-            }
-          },
-        },
-      ]
-    );
+    console.log('[UserTable] handleDelete called with:', userId, userName);
+    console.log('[UserTable] onDeleteUser exists:', !!onDeleteUser);
+    console.log('[UserTable] currentUserId:', currentUserId);
+    
+    setDeleteModalVisible(true);
+    setDeletingUserId(userId);
+    setDeletingUserName(userName);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingUserId) return;
+    
+    console.log('[UserTable] Delete confirmed for:', deletingUserId);
+    if (onDeleteUser) {
+      try {
+        console.log('[UserTable] Calling onDeleteUser...');
+        setIsDeleting(true);
+        await onDeleteUser(deletingUserId);
+        console.log('[UserTable] onDeleteUser completed');
+      } catch (err) {
+        console.error('[UserTable] Delete error:', err);
+        setDeleteError(err instanceof Error ? err.message : 'Falha ao excluir usuário');
+      } finally {
+        setIsDeleting(false);
+      }
+    } else {
+      console.warn('[UserTable] onDeleteUser is undefined!');
+    }
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalVisible(false);
+    setDeletingUserId(null);
+    setDeletingUserName('');
+    setDeleteError(null);
   };
 
   const getRoleBadgeStyle = (role: string) => {
@@ -249,6 +270,47 @@ export const UserTable = ({ users, onUpdateUser, onDeleteUser, onRefresh, refres
                 onPress={handleSave}
                 loading={isSaving}
                 style={styles.saveButton}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Delete Modal */}
+      <Modal
+        visible={deleteModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closeDeleteModal}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalContent}>
+            <DSText style={styles.modalTitle}>Confirmar Exclusão</DSText>
+            
+            <DSText style={styles.deleteMessage}>
+              Tem certeza que deseja excluir o usuário "{deletingUserName}"?{'\n'}
+              Esta ação não pode ser desfeita.
+            </DSText>
+            
+            {deleteError && (
+              <View style={styles.errorBox}>
+                <DSText style={styles.errorText}>{deleteError}</DSText>
+              </View>
+            )}
+            
+            <View style={styles.modalActions}>
+              <Button
+                title="Cancelar"
+                variant="secondary"
+                onPress={closeDeleteModal}
+                style={styles.cancelButton}
+              />
+              <Button
+                title="Excluir"
+                onPress={confirmDelete}
+                loading={isDeleting}
+                style={styles.deleteButton}
+                icon={<FontAwesome5 name="trash" size={16} color={theme.colors.white} />}
               />
             </View>
           </View>
@@ -428,5 +490,16 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#b91c1c',
     fontSize: theme.typography.sizes.sm,
+  },
+  deleteMessage: {
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text,
+    marginBottom: theme.spacing.lg,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  deleteButton: {
+    backgroundColor: theme.colors.error,
+    minWidth: 100,
   },
 });
