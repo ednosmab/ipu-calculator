@@ -5,13 +5,13 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Pressable, FlatList } from 'react-native';
 import { useAdminUsers } from '@/hooks/admin/useAdminUsers';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
-import { Button , theme } from '@/design-system';
+import { Button, HStack, theme } from '@/design-system';
 import { UserTable } from '@/components/admin/UserTable';
 import { CreateUserModal } from '@/components/admin/CreateUserModal';
 
 export default function UsersScreen() {
   const { isAuthorized } = useRequireAuth('admin');
-  const { users, isLoading, error, createUser, refetch } = useAdminUsers();
+  const { users, isLoading, error, createUser, updateUser, refetch } = useAdminUsers();
   const [modalVisible, setModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -59,12 +59,15 @@ export default function UsersScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <HStack style={styles.header}>
         <Text style={styles.title}>Gestão de Usuários</Text>
-        <View style={styles.actions}>
-          <Button title="Novo usuário" onPress={() => setModalVisible(true)} />
-        </View>
-      </View>
+        <Button 
+          title="Novo usuário" 
+          onPress={() => setModalVisible(true)} 
+          size="sm"
+          style={styles.headerButton}
+        />
+      </HStack>
       
       <CreateUserModal
         visible={modalVisible}
@@ -76,6 +79,7 @@ export default function UsersScreen() {
         {users.length > 0 ? (
           <UserTable 
             users={users} 
+            onUpdateUser={updateUser}
             onRefresh={handleRefresh}
             refreshing={refreshing}
           />
@@ -99,16 +103,16 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
     borderColor: theme.colors.border,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
     fontSize: theme.typography.sizes.lg,
     fontWeight: theme.typography.weights.bold,
     color: theme.colors.text,
   },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: theme.spacing.sm,
+  headerButton: {
+    marginVertical: 0,
   },
   content: {
     flex: 1,
