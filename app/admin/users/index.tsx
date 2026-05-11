@@ -2,13 +2,16 @@
 // Lista de usuários do painel admin
 
 import { useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Pressable, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useAdminUsers } from '@/hooks/admin/useAdminUsers';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { useAuth } from '@/hooks/useAuth';
-import { Button, HStack, theme } from '@/design-system';
+import { Button, theme } from '@/design-system';
+import { ScreenLayout } from '@/components/ScreenLayout';
 import { UserTable } from '@/components/admin/UserTable';
 import { CreateUserModal } from '@/components/admin/CreateUserModal';
+import { useTranslation } from '@/i18n/TranslationContext';
 
 export default function UsersScreen() {
   const { isAuthorized } = useRequireAuth('admin');
@@ -16,6 +19,7 @@ export default function UsersScreen() {
   const { users, isLoading, error, createUser, updateUser, deleteUser, refetch } = useAdminUsers();
   const [modalVisible, setModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const { t } = useTranslation();
 
   if (!isAuthorized) {
     return null;
@@ -31,7 +35,6 @@ export default function UsersScreen() {
       await createUser(userData);
       setModalVisible(false);
     } catch (err) {
-      // Error will be handled by the modal or we could show a toast
       console.error('Error creating user:', err);
     }
   };
@@ -41,48 +44,57 @@ export default function UsersScreen() {
     refetch().finally(() => setRefreshing(false));
   };
 
+  const footer = (
+    <View style={styles.fabWrapper}>
+      <Button
+        title={t('createUser')}
+        onPress={() => setModalVisible(true)}
+        style={styles.fabButton}
+        icon={<FontAwesome5 name="plus" size={20} color={theme.colors.bg} />}
+      />
+    </View>
+  );
+
   if (isLoading && users.length === 0) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loading}>Carregando usuários...</Text>
-      </View>
+      <ScreenLayout title="Gestão de Usuários">
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={styles.loadingText}>Carregando usuários...</Text>
+        </View>
+      </ScreenLayout>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.error}>Erro ao carregar usuários</Text>
-        <Text style={styles.errorDetail}>{error}</Text>
-        <Button title="Tentar novamente" onPress={refetch} variant="secondary" style={{ marginTop: theme.spacing.lg }} />
-      </View>
+      <ScreenLayout title="Gestão de Usuários">
+        <View style={styles.center}>
+          <Text style={styles.errorText}>Erro ao carregar usuários</Text>
+          <Text style={styles.errorDetail}>{error}</Text>
+          <Button
+            title="Tentar novamente"
+            onPress={refetch}
+            variant="secondary"
+            style={{ marginTop: theme.spacing.lg }}
+          />
+        </View>
+      </ScreenLayout>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Gestão de Usuários</Text>
-      <View style={styles.header}>
-        <View />
-        <Button
-          title="Novo usuário"
-          onPress={() => setModalVisible(true)}
-          size="sm"
-          style={styles.headerButton}
-        />
-      </View>
-      
+    <ScreenLayout title="Gestão de Usuários" footer={footer}>
       <CreateUserModal
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
         onCreateUser={handleCreateUser}
       />
-      
+
       <View style={styles.content}>
         {users.length > 0 ? (
-          <UserTable 
-            users={users} 
+          <UserTable
+            users={users}
             onUpdateUser={updateUser}
             onDeleteUser={deleteUser}
             onRefresh={handleRefresh}
@@ -95,47 +107,17 @@ export default function UsersScreen() {
           </View>
         )}
       </View>
-    </View>
+    </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.bg,
-  },
-  header: {
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.surface,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.border,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: theme.typography.sizes.xl,
-    textAlign: 'center',
-    fontWeight: theme.typography.weights.bold,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.lg,
-  },
-  headerButton: {
-    marginVertical: 0,
-  },
-  content: {
-    flex: 1,
-    padding: theme.spacing.md,
-  },
-  empty: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  emptyText: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.typography.sizes.md,
-  },
-  loading: {
+  loadingText: {
     marginTop: theme.spacing.md,
     color: theme.colors.textSecondary,
   },
@@ -144,9 +126,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: theme.spacing.xl,
-    backgroundColor: theme.colors.bg,
   },
-  error: {
+  errorText: {
     color: theme.colors.error,
     fontSize: theme.typography.sizes.lg,
     fontWeight: theme.typography.weights.bold,
@@ -157,5 +138,25 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.sm,
     textAlign: 'center',
     marginBottom: theme.spacing.xl,
+  },
+  content: {
+    flex: 1,
+  },
+  empty: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.sizes.md,
+  },
+  fabWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    paddingHorizontal: theme.spacing.lg,
+  },
+  fabButton: {
+    minWidth: 120,
   },
 });
