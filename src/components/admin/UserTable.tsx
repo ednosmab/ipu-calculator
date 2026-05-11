@@ -279,7 +279,7 @@ export const UserTable = ({ users, onUpdateUser, onDeleteUser, onRefresh, refres
             <DSText style={styles.modalTitle}>Confirmar Exclusão</DSText>
             
             <DSText style={styles.deleteMessage}>
-              Tem certeza que deseja excluir o usuário "{deletingUserName}"?{'\n'}
+              Tem certeza que deseja excluir o usuário {deletingUserName}?{'\n'}
               Esta ação não pode ser desfeita.
             </DSText>
             
