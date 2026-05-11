@@ -95,6 +95,8 @@ export const UserTable = ({ users, onUpdateUser, onDeleteUser, onRefresh, refres
         setIsDeleting(true);
         await onDeleteUser(deletingUserId);
         console.log('[UserTable] onDeleteUser completed');
+        // Close modal on success
+        closeDeleteModal();
       } catch (err) {
         console.error('[UserTable] Delete error:', err);
         setDeleteError(err instanceof Error ? err.message : 'Falha ao excluir usuário');
