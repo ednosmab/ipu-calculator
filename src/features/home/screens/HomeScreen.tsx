@@ -1,13 +1,12 @@
 import { ScreenLayout } from '@/components/ScreenLayout';
-import { Button, Card, Text, VStack, HStack } from '@/design-system';
-import { Title } from '@/components/Title';
+import { Button, Card, Text, VStack } from '@/design-system';
 import { theme } from '@/design-system/theme';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { useServiceWorkerUpdate } from '@/hooks/useServiceWorkerUpdate';
 import { FontAwesome5 } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { Pressable, StyleSheet, View, Modal } from 'react-native';
+import React from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 type Props = {
   onGoToCalculator: () => void;
@@ -17,9 +16,8 @@ type Props = {
 
 export const HomeScreen = ({ onGoToCalculator, onGoToCalibration, onGoToModels }: Props) => {
   const { language, toggleLanguage, t } = useTranslation();
-  const { canInstall, isStandalone, install, dismiss, resetDismissStatus } = usePWAInstall();
+  const { canInstall, isStandalone, install, dismiss } = usePWAInstall();
   const { updateAvailable, dismissUpdate } = useServiceWorkerUpdate();
-  const [showSettings, setShowSettings] = useState(false);
 
   const showPwaPill = canInstall || (isStandalone && updateAvailable);
   const pwaPillLabel = (isStandalone && updateAvailable) ? 'Atualizar App' : 'Instalar App';
@@ -55,18 +53,11 @@ export const HomeScreen = ({ onGoToCalculator, onGoToCalibration, onGoToModels }
     </Pressable>
   );
 
-  const FooterSettings = (
-    <Pressable onPress={() => setShowSettings(true)} style={styles.settingsButton}>
-      <FontAwesome5 name="cog" size={20} color={theme.colors.text} />
-    </Pressable>
-  );
-
   return (
-    <ScreenLayout 
-      title={t('appTitle')} 
-      rightHeader={LanguageToggle} 
+    <ScreenLayout
+      title={t('appTitle')}
+      rightHeader={LanguageToggle}
       headerTitle={HeaderTitle}
-      footer={FooterSettings}
     >
       <VStack gap="md" style={styles.content}>
         <Card style={styles.heroCard}>
@@ -91,56 +82,25 @@ export const HomeScreen = ({ onGoToCalculator, onGoToCalibration, onGoToModels }
       {showPwaPill && (
         <View style={styles.pillContainer}>
           <Pressable onPress={handlePwaAction} style={styles.pillButton}>
-            <FontAwesome5 
-              name={(isStandalone && updateAvailable) ? "sync-alt" : "download"} 
-              size={14} 
-              color={theme.colors.primaryText} 
-              style={{ marginRight: 8 }} 
+            <FontAwesome5
+              name={(isStandalone && updateAvailable) ? "sync-alt" : "download"}
+              size={14}
+              color={theme.colors.primaryText}
+              style={{ marginRight: 8 }}
             />
             <Text style={styles.pillText}>{pwaPillLabel}</Text>
           </Pressable>
-          <Pressable 
+          <Pressable
             onPress={() => {
               dismiss();
               if (updateAvailable) dismissUpdate();
-            }} 
+            }}
             style={styles.pillClose}
           >
             <FontAwesome5 name="times" size={14} color={theme.colors.textSecondary} />
           </Pressable>
         </View>
       )}
-
-      <Modal
-        transparent
-        visible={showSettings}
-        animationType="fade"
-        onRequestClose={() => setShowSettings(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <Card style={styles.modalCard}>
-            <VStack gap="md">
-              <Text variant="title" style={{ textAlign: 'center' }}>Configurações</Text>
-              
-              <Button 
-                title="Instalar App" 
-                variant="secondary" 
-                onPress={() => {
-                  install();
-                  setShowSettings(false);
-                }}
-                icon={<FontAwesome5 name="download" size={16} color={theme.colors.primary} />}
-              />
-
-              <Button 
-                title="Fechar" 
-                variant="secondary" 
-                onPress={() => setShowSettings(false)} 
-              />
-            </VStack>
-          </Card>
-        </View>
-      </Modal>
     </ScreenLayout>
   );
 };
@@ -223,18 +183,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     paddingHorizontal: theme.spacing.sm,
   },
-  footerTaglineText: {
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.textSecondary,
-    letterSpacing: 0.5,
-    flex: 1,
-  },
-  settingsButton: {
-    padding: theme.spacing.xs,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: theme.spacing.xs,
-  },
   pillContainer: {
     position: 'absolute',
     bottom: 20,
@@ -277,17 +225,5 @@ const styles = StyleSheet.create({
     elevation: 5,
     borderWidth: 1,
     borderColor: theme.colors.border,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: theme.spacing.lg,
-  },
-  modalCard: {
-    width: '100%',
-    maxWidth: 400,
-    padding: theme.spacing.lg,
   },
 });

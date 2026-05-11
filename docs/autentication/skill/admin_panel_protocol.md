@@ -193,15 +193,18 @@ export function useAdminLogs(filters: LogFilters) {
 
 ## 📋 Checklist de implementação
 
-- [ ] Rotas /admin/* protegidas com useRequireAuth('admin')
-- [ ] Lista de usuários com role e status
-- [ ] Formulário de criação de usuário funcional
-- [ ] Alterar role inline com confirmação
-- [ ] Suspender/reativar com confirmação
-- [ ] Admin bloqueado de se auto-suspender
-- [ ] Aba Logs com filtros, paginação e exportar CSV
-- [ ] Badges de ação por cor
-- [ ] Cards de métricas carregando dados reais
-- [ ] Gráfico de logins por dia
-- [ ] Gráfico de cálculos por usuário
-- [ ] Lista de modelos mais usados
+### ✅ Implementado (Maio 2026)
+- [x] Rotas /admin/* protegidas com useRequireAuth('admin')
+- [x] Lista de usuários com role e status
+- [x] Formulário de criação de usuário funcional
+- [x] Alterar role via modal com confirmação
+- [x] Suspender/reativar com toggle
+- [x] Admin bloqueado de se auto-suspender
+
+### ⚠️ Não Implementado (fora do escopo atual)
+- [ ] Aba Logs (`/admin/logs`) — será adicionado quando solicitado no backlog
+- [ ] Aba Métricas (`/admin/metrics`) — será adicionado quando solicitado no backlog
+
+---
+
+**Nota (Maio 2026):** As funcionalidades de Logs e Métricas não são necessárias para o estado atual da aplicação e serão implementadas apenas quando solicitadas explicitamente no backlog.

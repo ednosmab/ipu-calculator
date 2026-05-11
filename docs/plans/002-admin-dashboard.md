@@ -28,7 +28,7 @@ role text NOT NULL DEFAULT 'viewer'
 
 ## Status de Implementação
 
-### ✅ Implementado
+### ✅ Implementado e Testado (Staging)
 
 | Arquivo | Descrição |
 |---------|-----------|
@@ -40,13 +40,19 @@ role text NOT NULL DEFAULT 'viewer'
 | `src/components/admin/UserTable.tsx` | Tabela com ações inline |
 | `src/components/admin/CreateUserModal.tsx` | Modal de criação (parcial) |
 
-### ⚠️ Pendente / Precisa Testar
+**Status Staging: ✅ CONCLUÍDO**
+- Login funciona corretamente
+- Lista de modelos carrega
+- Criação de novo modelo funciona
+- Aguardando teste de produção
 
-| Item | Problema |
-|------|-----------|
-| CreateUserModal | Seletor de role não é interativo (apenas exibe texto) |
-| Teste de criação | Não foi validado se a Edge Function responde corretamente |
-| Teste de atualização | Não foi validado se updateUser funciona |
+### ✅ Concluído (Maio 2026)
+
+| Item | Status |
+|------|--------|
+| CreateUserModal | ✅ Seletor de role interativo (botões) |
+| Teste de criação | ✅ Criado e logou com sucesso |
+| Teste de atualização | ✅ Alteração de role funciona |
 
 ---
 
@@ -102,6 +108,17 @@ role text NOT NULL DEFAULT 'viewer'
 3. Verificar se atualização é refletida na lista
 
 4. Testar toggle de status (ativar/desativar)
+
+---
+
+## 📝 Observação — Funcionalidades não Implementadas
+
+As seguintes funcionalidades **não serão implementadas** nesta versão, pois não são necessárias para o estado atual da aplicação:
+
+- Aba Logs (`/admin/logs`) — filtros, tabela de logs, exportar CSV
+- Aba Métricas (`/admin/metrics`) — cards, gráficos, lista de modelos mais usados
+
+Essas funcionalidades serão adicionadas **apenas quando solicitadas** no backlog do projeto.
 
 ---
 

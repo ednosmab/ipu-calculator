@@ -12,18 +12,24 @@ import { Stack } from 'expo-router';
 import Head from 'expo-router/head';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { Platform, Pressable, View, ScrollView, StyleSheet } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { UpdateBanner } from '@/components/UpdateBanner';
 import { registerBackgroundSync } from '@/core/sync/backgroundSyncService';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+import { NavMenu } from '@/components/NavMenu';
 
 SplashScreen.preventAutoHideAsync();
 
 function Fallback({ error }: { error: Error }) {
   const handleReset = () => {
-    // Force page reload to reset ErrorBoundary
     window.location.reload();
   };
+  return (
+    <ErrorBoundaryWrapper onReset={handleReset} error={error} />
+  );
+}
+
+function ErrorBoundaryWrapper({ onReset, error }: { onReset: () => void; error: Error }) {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: '#f5f5f5' }}>
       <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#dc3545', marginBottom: 8 }}>
@@ -32,11 +38,7 @@ function Fallback({ error }: { error: Error }) {
       <Text style={{ fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 24 }}>
         {error.message}
       </Text>
-      <Button
-        title="Tentar novamente"
-        onPress={handleReset}
-        style={{ minWidth: 180 }}
-      />
+      <Button title="Tentar novamente" onPress={onReset} style={{ minWidth: 180 }} />
     </View>
   );
 }
@@ -57,7 +59,6 @@ function AppContent() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Register SW only in production/staging, skip in Expo dev server
     const shouldRegisterSW = (isProduction || isStaging) && typeof window !== 'undefined' && 'serviceWorker' in navigator;
     if (shouldRegisterSW) {
       navigator.serviceWorker.register('/service-worker.js')
@@ -102,11 +103,12 @@ function AppContent() {
         <ErrorBoundary fallback={({ error }: { error: Error }) => <Fallback error={error} />}>
           <Stack screenOptions={{ headerShown: false }} />
 
+          <NavMenu />
+
           {updateAvailable && (
             <UpdateBanner onUpdate={applyUpdate} onDismiss={dismissUpdate} />
           )}
 
-          {/* Debug button — staging/development only */}
           {isDebugVisible && (
             <Pressable onPress={() => setShowDebug(!showDebug)} style={styles.debugButton}>
               <FontAwesome5 name="bug" size={14} color={theme.colors.textSecondary} />
@@ -128,17 +130,17 @@ export default function RootLayout() {
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   debugButton: {
-    position: 'absolute' as const,
+    position: 'absolute',
     bottom: 30,
     right: 10,
     width: 36,
     height: 36,
     borderRadius: 18,
     backgroundColor: '#121418',
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -148,4 +150,4 @@ const styles = {
     borderColor: '#2C3036',
     zIndex: 9999,
   },
-};
+});

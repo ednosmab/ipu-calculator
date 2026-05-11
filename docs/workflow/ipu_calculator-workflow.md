@@ -306,4 +306,26 @@ Ver `docs/autentication/plain/security-testing-plan.md` para estratégia complet
 
 ---
 
+## 🛡️ Painel Admin
+
+### Rotas do Admin
+
+| Rota | Descrição | Status |
+| :--- | :--- | :--- |
+| `/admin` | Redirect → `/admin/users` | ✅ |
+| `/admin/users` | Gestão de usuários (criar, editar role, suspender) | ✅ Implementado |
+| `/admin/logs` | Logs de acesso | ⚠️ Não implementado (backlog) |
+| `/admin/metrics` | Métricas de uso | ⚠️ Não implementado (backlog) |
+
+**Proteção:** Todas as rotas `/admin/*` usam `useRequireAuth('admin')` — apenas usuários com role `admin` podem acessar.
+
+### Funcionalidades Implementadas
+
+- **Criar usuário**: Nome, email, senha, role inicial
+- **Editar role**: Visualizador / Editor / Admin
+- **Suspender/reativar**: Toggle de status
+- **Proteção**: Admin não pode se auto-suspender
+
+---
+
 *Dica: Você pode me pedir para realizar qualquer um desses passos de merge por você!*

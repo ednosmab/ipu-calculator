@@ -90,110 +90,118 @@ export const CreateUserModal = ({ visible, onRequestClose, onCreateUser }: Props
   if (!visible) return null;
 
   return (
-    <View style={styles.backdrop}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
-      >
-        <View style={styles.modalContent}>
-          <DSText style={styles.title}>Novo Usuário</DSText>
-          
-          <VStack style={styles.form}>
-            <DSText style={styles.label}>Nome completo</DSText>
-            <Input
-              value={form.name}
-              onChangeText={text => setForm(prev => ({ ...prev, name: text }))}
-              error={!!errors.name}
-              placeholder="Digite o nome completo"
-              autoCapitalize="words"
-            />
-            {errors.name && (
-              <Text style={styles.errorText}>{errors.name}</Text>
-            )}
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={onRequestClose}
+    >
+      <View style={styles.backdrop}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.container}
+        >
+          <View style={styles.modalContent}>
+            <DSText style={styles.title}>Novo Usuário</DSText>
             
-            <DSText style={styles.label}>E-mail</DSText>
-            <Input
-              value={form.email}
-              onChangeText={text => setForm(prev => ({ ...prev, email: text }))}
-              error={!!errors.email}
-              placeholder="seu@email.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            {errors.email && (
-              <Text style={styles.errorText}>{errors.email}</Text>
+            <VStack style={styles.form}>
+              <DSText style={styles.label}>Nome completo</DSText>
+              <Input
+                value={form.name}
+                onChange={text => setForm(prev => ({ ...prev, name: text }))}
+                error={errors.name}
+                placeholder="Digite o nome completo"
+                autoCapitalize="words"
+              />
+              
+              <DSText style={styles.label}>E-mail</DSText>
+              <Input
+                value={form.email}
+                onChange={text => setForm(prev => ({ ...prev, email: text }))}
+                error={errors.email}
+                placeholder="seu@email.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+              
+              <DSText style={styles.label}>Senha</DSText>
+              <Input
+                value={form.password}
+                onChange={text => setForm(prev => ({ ...prev, password: text }))}
+                error={errors.password}
+                placeholder="••••••"
+                secureTextEntry
+              />
+              
+              <DSText style={styles.label}>Role inicial</DSText>
+              <HStack style={styles.roleSelect}>
+                {(['viewer', 'editor', 'admin'] as const).map(role => (
+                  <Button
+                    key={role}
+                    title={
+                      role === 'viewer' ? 'Visualizador' : 
+                      role === 'editor' ? 'Editor' : 'Admin'
+                    }
+                    variant={form.role === role ? 'primary' : 'secondary'}
+                    size="sm"
+                    onPress={() => setForm(prev => ({ ...prev, role }))}
+                    style={styles.roleButton}
+                  />
+                ))}
+              </HStack>
+            </VStack>
+
+            {errors.submit && (
+              <Text style={styles.errorText}>{errors.submit}</Text>
             )}
-            
-            <DSText style={styles.label}>Senha</DSText>
-            <Input
-              value={form.password}
-              onChangeText={text => setForm(prev => ({ ...prev, password: text }))}
-              error={!!errors.password}
-              placeholder="••••••"
-              secureTextEntry
-            />
-            {errors.password && (
-              <Text style={styles.errorText}>{errors.password}</Text>
-            )}
-            
-            <DSText style={styles.label}>Role inicial</DSText>
-            <View style={styles.roleSelect}>
-              {['viewer', 'editor', 'admin'].map(role => (
-                <View key={role} style={styles.roleOption}>
-                  <Text style={styles.roleLabel}>
-                    {role === 'viewer' ? 'Visualizador' : 
-                     role === 'editor' ? 'Editor' : 'Administrador'}
-                  </Text>
-                </View>
-              ))}
+
+            <View style={styles.actions}>
+              <Button
+                title="Cancelar"
+                variant="secondary"
+                onPress={onRequestClose}
+                style={styles.cancelButton}
+              />
+              <Button
+                title="Criar usuário"
+                onPress={handleSubmit}
+                loading={isSubmitting}
+                style={styles.submitButton}
+              />
             </View>
-          </VStack>
-
-          {errors.submit && (
-            <Text style={styles.errorText}>{errors.submit}</Text>
-          )}
-
-          <View style={styles.actions}>
-            <Button
-              title="Cancelar"
-              onPress={onRequestClose}
-              style={styles.cancelButton}
-            />
-            <Button
-              title="Criar usuário"
-              onPress={handleSubmit}
-              loading={isSubmitting}
-              style={styles.submitButton}
-            />
           </View>
-        </View>
-      </KeyboardAvoidingView>
-    </View>
+        </KeyboardAvoidingView>
+      </View>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: '#00000080',
+    backgroundColor: theme.colors.overlay,
     justifyContent: 'center',
-    alignItems: 'stretch',
+    alignItems: 'center',
     padding: theme.spacing.md,
   },
   container: {
-    flex: 1,
-    justifyContent: 'flex-start',
+    width: '100%',
+    maxWidth: 500,
+    justifyContent: 'center',
   },
   modalContent: {
     backgroundColor: theme.colors.surface,
-    borderRadius: theme.roundness.md,
-    padding: theme.spacing.lg,
-    maxHeight: '80%',
+    borderRadius: theme.roundness.lg,
+    padding: theme.spacing.xl,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   title: {
-    fontSize: theme.typography.sizes.lg,
+    fontSize: theme.typography.sizes.xl,
+      textAlign: 'center',
     fontWeight: theme.typography.weights.bold,
     marginBottom: theme.spacing.lg,
+    color: theme.colors.text,
   },
   form: {
     gap: theme.spacing.sm,
@@ -201,38 +209,31 @@ const styles = StyleSheet.create({
   label: {
     fontSize: theme.typography.sizes.sm,
     color: theme.colors.textSecondary,
-    marginTop: theme.spacing.xs,
+    marginBottom: 4,
   },
   errorText: {
     color: theme.colors.error,
     fontSize: theme.typography.sizes.sm,
+    marginTop: theme.spacing.xs,
   },
   roleSelect: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.sm,
+    gap: theme.spacing.xs,
     marginVertical: theme.spacing.sm,
+    justifyContent: 'flex-start',
   },
-  roleOption: {
-    padding: theme.spacing.xs,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: theme.roundness.sm,
-  },
-  roleLabel: {
-    fontSize: theme.typography.sizes.sm,
-    color: theme.colors.text,
+  roleButton: {
+    flex: 1,
   },
   actions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: theme.spacing.lg,
-    gap: theme.spacing.sm,
+    marginTop: theme.spacing.xl,
+    gap: theme.spacing.md,
   },
   cancelButton: {
-    backgroundColor: theme.colors.border,
+    minWidth: 100,
   },
   submitButton: {
-    backgroundColor: theme.colors.primary,
+    minWidth: 140,
   },
 });

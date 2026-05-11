@@ -70,7 +70,8 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
   },
   value: {
-    fontSize: theme.typography.sizes.lg,
+    fontSize: theme.typography.sizes.xl,
+      textAlign: 'center',
     fontWeight: theme.typography.weights.bold,
     color: theme.colors.text,
     marginTop: 2,

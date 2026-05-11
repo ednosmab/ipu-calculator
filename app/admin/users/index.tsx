@@ -2,18 +2,24 @@
 // Lista de usuários do painel admin
 
 import { useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Pressable, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useAdminUsers } from '@/hooks/admin/useAdminUsers';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
-import { Button , theme } from '@/design-system';
+import { useAuth } from '@/hooks/useAuth';
+import { Button, theme } from '@/design-system';
+import { ScreenLayout } from '@/components/ScreenLayout';
 import { UserTable } from '@/components/admin/UserTable';
 import { CreateUserModal } from '@/components/admin/CreateUserModal';
+import { useTranslation } from '@/i18n/TranslationContext';
 
 export default function UsersScreen() {
   const { isAuthorized } = useRequireAuth('admin');
-  const { users, isLoading, error, createUser, refetch } = useAdminUsers();
+  const { user: authUser } = useAuth();
+  const { users, isLoading, error, createUser, updateUser, deleteUser, refetch } = useAdminUsers();
   const [modalVisible, setModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const { t } = useTranslation();
 
   if (!isAuthorized) {
     return null;
@@ -29,7 +35,6 @@ export default function UsersScreen() {
       await createUser(userData);
       setModalVisible(false);
     } catch (err) {
-      // Error will be handled by the modal or we could show a toast
       console.error('Error creating user:', err);
     }
   };
@@ -39,45 +44,62 @@ export default function UsersScreen() {
     refetch().finally(() => setRefreshing(false));
   };
 
-  if (isLoading) {
+  const footer = (
+    <View style={styles.fabWrapper}>
+      <Button
+        title={t('createUser')}
+        onPress={() => setModalVisible(true)}
+        style={styles.fabButton}
+        icon={<FontAwesome5 name="plus" size={20} color={theme.colors.bg} />}
+      />
+    </View>
+  );
+
+  if (isLoading && users.length === 0) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loading}>Carregando usuários...</Text>
-      </View>
+      <ScreenLayout title="Gestão de Usuários">
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={styles.loadingText}>Carregando usuários...</Text>
+        </View>
+      </ScreenLayout>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.error}>Erro: {error}</Text>
-        <Button title="Tentar novamente" onPress={refetch} />
-      </View>
+      <ScreenLayout title="Gestão de Usuários">
+        <View style={styles.center}>
+          <Text style={styles.errorText}>Erro ao carregar usuários</Text>
+          <Text style={styles.errorDetail}>{error}</Text>
+          <Button
+            title="Tentar novamente"
+            onPress={refetch}
+            variant="secondary"
+            style={{ marginTop: theme.spacing.lg }}
+          />
+        </View>
+      </ScreenLayout>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Gestão de Usuários</Text>
-        <View style={styles.actions}>
-          <Button title="Novo usuário" onPress={() => setModalVisible(true)} />
-        </View>
-      </View>
-      
+    <ScreenLayout title="Gestão de Usuários" footer={footer}>
       <CreateUserModal
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
         onCreateUser={handleCreateUser}
       />
-      
+
       <View style={styles.content}>
         {users.length > 0 ? (
-          <UserTable 
-            users={users} 
+          <UserTable
+            users={users}
+            onUpdateUser={updateUser}
+            onDeleteUser={deleteUser}
             onRefresh={handleRefresh}
             refreshing={refreshing}
+            currentUserId={authUser?.id}
           />
         ) : (
           <View style={styles.empty}>
@@ -85,34 +107,40 @@ export default function UsersScreen() {
           </View>
         )}
       </View>
-    </View>
+    </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  loadingContainer: {
     flex: 1,
-    backgroundColor: theme.colors.bg,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  header: {
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.surface,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.border,
+  loadingText: {
+    marginTop: theme.spacing.md,
+    color: theme.colors.textSecondary,
   },
-  title: {
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.xl,
+  },
+  errorText: {
+    color: theme.colors.error,
     fontSize: theme.typography.sizes.lg,
     fontWeight: theme.typography.weights.bold,
-    color: theme.colors.text,
+    marginBottom: theme.spacing.sm,
   },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: theme.spacing.sm,
+  errorDetail: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.typography.sizes.sm,
+    textAlign: 'center',
+    marginBottom: theme.spacing.xl,
   },
   content: {
     flex: 1,
-    padding: theme.spacing.md,
   },
   empty: {
     flex: 1,
@@ -123,8 +151,12 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     fontSize: theme.typography.sizes.md,
   },
-  loading: {
-    marginTop: theme.spacing.md,
-    color: theme.colors.textSecondary,
+  fabWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    paddingHorizontal: theme.spacing.lg,
+  },
+  fabButton: {
+    minWidth: 120,
   },
 });

@@ -3,6 +3,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { CONFIG } from '@/core/config';
+import { edgeFunctionsClient } from '@/core/api/edgeFunctionsClient';
 
 interface UserRow {
   id: string;
@@ -19,25 +21,16 @@ export function useAdminUsers() {
   const [error, setError] = useState<string | null>(null);
   const { user: authUser } = useAuth();
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = useCallback(async (options?: { silent?: boolean }) => {
     if (!authUser) return;
     
-    setIsLoading(true);
+    if (!options?.silent) {
+      setIsLoading(true);
+    }
     setError(null);
     
     try {
-      const response = await fetch(`/admin/users`, {
-        headers: {
-          'Authorization': `Bearer ${authUser.session?.access_token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch users');
-      }
-      
-      const data: UserRow[] = await response.json();
+      const data = await edgeFunctionsClient.getAdminUsers();
       setUsers(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -46,7 +39,6 @@ export function useAdminUsers() {
       setIsLoading(false);
     }
   }, [authUser]);
-
   const createUser = useCallback(async (data: {
     name: string;
     email: string;
@@ -56,24 +48,15 @@ export function useAdminUsers() {
     if (!authUser) return;
     
     try {
-      const response = await fetch(`/admin/users`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${authUser.session?.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
+      const success = await edgeFunctionsClient.createAdminUser(data);
+      if (!success) {
         throw new Error('Failed to create user');
       }
-      
-      await fetchUsers(); // Re-fetch após criação
+      await fetchUsers({ silent: true });
     } catch (err) {
       throw err instanceof Error ? err : new Error('Unknown error');
     }
-  }, [authUser]);
+  }, [authUser, fetchUsers]);
 
   const updateUser = useCallback(async (id: string, data: Partial<{
     role: 'viewer' | 'editor' | 'admin';
@@ -81,30 +64,48 @@ export function useAdminUsers() {
   }>) => {
     if (!authUser) return;
     
-    // Prevent self-suspension
     if (id === authUser.id && data.active === false) {
       throw new Error('Cannot suspend yourself');
     }
     
+    // Optimistic update
+    const previousUsers = [...users];
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, ...data } : u));
+
     try {
-      const response = await fetch(`/admin-users-update`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${authUser.session?.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id, ...data }),
-      });
-      
-      if (!response.ok) {
+      const success = await edgeFunctionsClient.updateAdminUser({ id, ...data });
+      if (!success) {
         throw new Error('Failed to update user');
       }
-      
-      await fetchUsers(); // Re-fetch após atualização
+      await fetchUsers({ silent: true });
     } catch (err) {
+      setUsers(previousUsers);
       throw err instanceof Error ? err : new Error('Unknown error');
     }
-  }, [authUser]);
+  }, [authUser, fetchUsers, users]);
+
+  const deleteUser = useCallback(async (id: string) => {
+    if (!authUser) return;
+    
+    if (id === authUser.id) {
+      throw new Error('Cannot delete yourself');
+    }
+    
+    // Optimistic update
+    const previousUsers = [...users];
+    setUsers(prev => prev.filter(u => u.id !== id));
+
+    try {
+      const success = await edgeFunctionsClient.deleteAdminUser(id);
+      if (!success) {
+        throw new Error('Failed to delete user');
+      }
+      await fetchUsers({ silent: true });
+    } catch (err) {
+      setUsers(previousUsers);
+      throw err instanceof Error ? err : new Error('Unknown error');
+    }
+  }, [authUser, fetchUsers, users]);
 
   // Load users on mount
   useEffect(() => {
@@ -117,6 +118,7 @@ export function useAdminUsers() {
     error, 
     createUser, 
     updateUser, 
+    deleteUser,
     refetch: fetchUsers 
   };
 }

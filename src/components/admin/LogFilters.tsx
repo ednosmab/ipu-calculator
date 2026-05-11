@@ -209,7 +209,8 @@ const styles = StyleSheet.create({
     maxHeight: '80%',
   },
   modalTitle: {
-    fontSize: theme.typography.sizes.lg,
+    fontSize: theme.typography.sizes.xl,
+      textAlign: 'center',
     fontWeight: theme.typography.weights.bold,
     marginBottom: theme.spacing.md,
   },

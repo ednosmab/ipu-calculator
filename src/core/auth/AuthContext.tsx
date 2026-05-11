@@ -20,7 +20,7 @@ export interface AuthSession {
 
 export interface AuthContextValue {
   /** Dados do usuário autenticado, null se não logado */
-  user: { id: string; email?: string } | null;
+  user: { id: string; email?: string; role?: Role } | null;
   /** Perfil com role e status */
   profile: UserProfile | null;
   /** Sessão com access_token para chamadas às Edge Functions */

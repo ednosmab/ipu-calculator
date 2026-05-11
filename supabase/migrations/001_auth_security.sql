@@ -32,6 +32,12 @@ CREATE POLICY "profiles_select_service_role" ON public.profiles
   FOR SELECT TO service_role
   USING (true);
 
+-- INSERT para service role
+DROP POLICY IF EXISTS "profiles_insert_service_role" ON public.profiles;
+CREATE POLICY "profiles_insert_service_role" ON public.profiles
+  FOR INSERT TO service_role
+  WITH CHECK (true);
+
 -- -------------------------------------------------------------
 -- 2. RLS NA TABELA: models
 --    SELECT: viewer+  |  INSERT/UPDATE/DELETE: editor+
