@@ -21,10 +21,12 @@ export function useAdminUsers() {
   const [error, setError] = useState<string | null>(null);
   const { user: authUser } = useAuth();
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = useCallback(async (options?: { silent?: boolean }) => {
     if (!authUser) return;
     
-    setIsLoading(true);
+    if (!options?.silent) {
+      setIsLoading(true);
+    }
     setError(null);
     
     try {
@@ -50,7 +52,7 @@ export function useAdminUsers() {
       if (!success) {
         throw new Error('Failed to create user');
       }
-      await fetchUsers();
+      await fetchUsers({ silent: true });
     } catch (err) {
       throw err instanceof Error ? err : new Error('Unknown error');
     }
@@ -66,16 +68,21 @@ export function useAdminUsers() {
       throw new Error('Cannot suspend yourself');
     }
     
+    // Optimistic update
+    const previousUsers = [...users];
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, ...data } : u));
+
     try {
       const success = await edgeFunctionsClient.updateAdminUser({ id, ...data });
       if (!success) {
         throw new Error('Failed to update user');
       }
-      await fetchUsers();
+      await fetchUsers({ silent: true });
     } catch (err) {
+      setUsers(previousUsers);
       throw err instanceof Error ? err : new Error('Unknown error');
     }
-  }, [authUser, fetchUsers]);
+  }, [authUser, fetchUsers, users]);
 
   const deleteUser = useCallback(async (id: string) => {
     if (!authUser) return;
@@ -84,16 +91,21 @@ export function useAdminUsers() {
       throw new Error('Cannot delete yourself');
     }
     
+    // Optimistic update
+    const previousUsers = [...users];
+    setUsers(prev => prev.filter(u => u.id !== id));
+
     try {
       const success = await edgeFunctionsClient.deleteAdminUser(id);
       if (!success) {
         throw new Error('Failed to delete user');
       }
-      await fetchUsers();
+      await fetchUsers({ silent: true });
     } catch (err) {
+      setUsers(previousUsers);
       throw err instanceof Error ? err : new Error('Unknown error');
     }
-  }, [authUser, fetchUsers]);
+  }, [authUser, fetchUsers, users]);
 
   // Load users on mount
   useEffect(() => {

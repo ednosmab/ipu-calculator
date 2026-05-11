@@ -41,7 +41,7 @@ export default function UsersScreen() {
     refetch().finally(() => setRefreshing(false));
   };
 
-  if (isLoading) {
+  if (isLoading && users.length === 0) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color={theme.colors.primary} />

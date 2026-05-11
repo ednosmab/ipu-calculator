@@ -76,35 +76,24 @@ export const UserTable = ({ users, onUpdateUser, onDeleteUser, onRefresh, refres
   };
 
   const handleDelete = (userId: string, userName: string) => {
-    console.log('[UserTable] handleDelete called with:', userId, userName);
-    console.log('[UserTable] onDeleteUser exists:', !!onDeleteUser);
-    console.log('[UserTable] currentUserId:', currentUserId);
-    
     setDeleteModalVisible(true);
     setDeletingUserId(userId);
     setDeletingUserName(userName);
   };
 
   const confirmDelete = async () => {
-    if (!deletingUserId) return;
+    if (!deletingUserId || !onDeleteUser) return;
     
-    console.log('[UserTable] Delete confirmed for:', deletingUserId);
-    if (onDeleteUser) {
-      try {
-        console.log('[UserTable] Calling onDeleteUser...');
-        setIsDeleting(true);
-        await onDeleteUser(deletingUserId);
-        console.log('[UserTable] onDeleteUser completed');
-        // Close modal on success
-        closeDeleteModal();
-      } catch (err) {
-        console.error('[UserTable] Delete error:', err);
-        setDeleteError(err instanceof Error ? err.message : 'Falha ao excluir usuário');
-      } finally {
-        setIsDeleting(false);
-      }
-    } else {
-      console.warn('[UserTable] onDeleteUser is undefined!');
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      await onDeleteUser(deletingUserId);
+      closeDeleteModal();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Falha ao excluir usuário');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
