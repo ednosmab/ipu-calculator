@@ -102,7 +102,7 @@ await AsyncStorage.removeItem('schema_version');
 
 Execute os testes com Jest:
 ```bash
-npm test              # roda todos os testes (85 testes)
+npm test              # roda todos os testes (100 testes)
 npm test -- --watch  # modo watch (reativa ao salvar)
 npm test -- --coverage  # com coverage report
 
@@ -116,7 +116,7 @@ npm run test:e2e         # Playwright E2E (realtime sync)
 
 | Script | Descrição |
 | :--- | :--- |
-| `test` | Todos os testes (85 testes) |
+| `test` | Todos os testes (100 testes) |
 | `test -- --watch` | Watch mode |
 | `test -- --coverage` | Relatório de cobertura |
 | `test:lint` | Design system |
@@ -230,6 +230,102 @@ All commit messages must be in **English** following the Conventional Commits pa
 
 **Format**: `type(scope): description`
 **Example**: `feat(sync): implement real-time event system`
+---
+
+## 🔐 Fluxo de Segurança e Auth
+
+Este guia define como implementar e manter o sistema de autenticação e autorização do IPU Calculator.
+
+### Arquitetura de Segurança
+
+```
+Frontend (Expo/React Native)
+  │
+  ├─→ Edge Functions (Supabase) ──→ SERVICE_ROLE_KEY (servidor)
+  │       │
+  │       ├─ auth-login (POST)      - Login + rate limiting
+  │       ├─ auth-logout (POST)     - Logout + invalidate
+  │       ├─ auth-validate (GET)    - Valida token + profile fresco
+  │       ├─ models-sync (POST)     - Upsert modelo
+  │       ├─ models-delete (DELETE)- Deleta modelo
+  │       ├─ models-get (GET)       - Lista modelos
+  │       ├─ admin-users (GET/POST) - Gestão usuários
+  │       └─ admin-*(GET)           - Logs, métricas
+  │
+  └─→ RLS (Supabase) ──→ Políticas no banco
+├─ models: SELECT (viewer+), CRUD (editor+)
+           ├─ profiles: own profile only
+           └─ access_logs: admin only
+```
+
+### Ameaças e Mitigações
+
+| ID | Ameaça | Mitigação |
+|----|--------|-----------|
+| T1 | ANON_KEY no bundle | Todas operações via Edge Functions |
+| T2 | Acesso não autorizado | RLS + requireAuth |
+| T3 | Escalada de privilégio | Profile validado com servidor a cada restore |
+| T4 | Acesso admin por não-admin | useRequireAuth('admin') + requireAuth no servidor |
+| T5 | Conta suspensa com sessão | requireAuth verifica active no banco |
+| T6 | JWT roubado | sessionStorage (não localStorage) + HTTPS |
+| T7 | XSS no PWA | CSP + sessionStorage |
+| T8 | CSRF | CORS restrito ao domínio |
+| T9 | Enumeração de usuários | Login sempre retorna INVALID_CREDENTIALS |
+| T10 | Admin auto-suspensão | Bloqueio no frontend e servidor |
+
+### Variáveis de Ambiente
+
+```bash
+# Frontend (.env.local)
+EXPO_PUBLIC_EDGE_FUNCTIONS_URL=https://<project>.functions.supabase.co
+
+# Supabase Edge Functions (Dashboard > Edge Functions > Secrets)
+ALLOWED_ORIGIN=https://ipu-calculator.vercel.app
+SUPABASE_SERVICE_ROLE_KEY=<chave>
+```
+
+### Checklist de Implementação de Nova Feature de Segurança
+
+1. **Autorização**: Toda Edge Function chama `requireAuth(req, 'role_minimo')`
+2. **Validação**: Server verifica `active` no banco, não confia no JWT cacheado
+3. **CORS**: Usar `handleCors` de `_shared/cors.ts`
+4. **Logs**: Toda ação relevante chama `logAccess` (fire-and-forget)
+5. **Erros**: Nunca vazar stack trace — retornar `INTERNAL_ERROR`
+6. **Rate Limiting**: Para endpoints sensíveis (login), implementar via Deno KV
+7. **Frontend**: Usar `edgeFunctionsClient` para chamar Edge Functions (não supabaseClient direto)
+8. **Proteção de Rotas**: Telas admin devem usar `useRequireAuth('admin')`
+
+### Testes de Segurança
+
+Ver `docs/autentication/plain/security-testing-plan.md` para estratégia completa.
+
+**Níveis:**
+- Unitários (Jest): `edgeFunctionsClient`, `modelSyncService`, `AuthProvider`
+- Integração (Edge Functions): Authorization, rate limiting, CORS
+- E2E (Playwright): Fluxos completos de auth e segurança
 
 ---
+
+## 🛡️ Painel Admin
+
+### Rotas do Admin
+
+| Rota | Descrição | Status |
+| :--- | :--- | :--- |
+| `/admin` | Redirect → `/admin/users` | ✅ |
+| `/admin/users` | Gestão de usuários (criar, editar role, suspender) | ✅ Implementado |
+| `/admin/logs` | Logs de acesso | ⚠️ Não implementado (backlog) |
+| `/admin/metrics` | Métricas de uso | ⚠️ Não implementado (backlog) |
+
+**Proteção:** Todas as rotas `/admin/*` usam `useRequireAuth('admin')` — apenas usuários com role `admin` podem acessar.
+
+### Funcionalidades Implementadas
+
+- **Criar usuário**: Nome, email, senha, role inicial
+- **Editar role**: Visualizador / Editor / Admin
+- **Suspender/reativar**: Toggle de status
+- **Proteção**: Admin não pode se auto-suspender
+
+---
+
 *Dica: Você pode me pedir para realizar qualquer um desses passos de merge por você!*

@@ -1,7 +1,6 @@
 import { Platform } from 'react-native';
-import { syncModelsUseCase } from '@/features/models/application/syncModelsUseCase';
+import { syncModelsUseCase , processPendingDeletesUseCase, processPendingEditsUseCase } from '@/features/models/application/syncModelsUseCase';
 import { fetchRemoteModelsUseCase } from '@/features/models/application/fetchRemoteModelsUseCase';
-import { processPendingDeletesUseCase, processPendingEditsUseCase } from '@/features/models/application/syncModelsUseCase';
 import { logger } from '@/core/logging/logger';
 
 const BACKGROUND_SYNC_TASK = 'background-sync-task';

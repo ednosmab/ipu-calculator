@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
-import { syncModelsUseCase } from '@/features/models/application/syncModelsUseCase';
+import { syncModelsUseCase , processPendingDeletesUseCase, processPendingEditsUseCase } from '@/features/models/application/syncModelsUseCase';
 import { fetchRemoteModelsUseCase } from '@/features/models/application/fetchRemoteModelsUseCase';
 import { schemaMigrationService } from '@/features/models/application/schemaMigrationService';
-import { processPendingDeletesUseCase, processPendingEditsUseCase } from '@/features/models/application/syncModelsUseCase';
 import { logger } from '@/core/logging/logger';
 
 import { useNetworkStatus } from './useNetworkStatus';

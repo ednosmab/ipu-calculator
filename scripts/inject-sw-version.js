@@ -11,7 +11,8 @@ const distSwPath = path.join(__dirname, '../dist/service-worker.js');
 // Update public/ (used by Vercel directly)
 if (fs.existsSync(publicSwPath)) {
   const publicContent = fs.readFileSync(publicSwPath, 'utf8');
-  const publicUpdated = publicContent.replace('__APP_VERSION__', version);
+  // Use regex to replace either the placeholder or an existing version pattern
+  const publicUpdated = publicContent.replace(/ipu-calc-([\d.]+)/, `ipu-calc-${version}`).replace('__APP_VERSION__', version);
   fs.writeFileSync(publicSwPath, publicUpdated);
   console.log(`[SW] Public cache name set to: ipu-calc-${version}`);
 }
@@ -19,7 +20,7 @@ if (fs.existsSync(publicSwPath)) {
 // Update dist/ (used after expo export)
 if (fs.existsSync(distSwPath)) {
   const distContent = fs.readFileSync(distSwPath, 'utf8');
-  const distUpdated = distContent.replace('__APP_VERSION__', version);
+  const distUpdated = distContent.replace(/ipu-calc-([\d.]+)/, `ipu-calc-${version}`).replace('__APP_VERSION__', version);
   fs.writeFileSync(distSwPath, distUpdated);
   console.log(`[SW] Dist cache name set to: ipu-calc-${version}`);
 }

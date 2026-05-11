@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, View, ActivityIndicator, Animated } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { Button, Text, Input, theme } from '@/design-system';
+import { Button, Text, Input, theme, HStack } from '@/design-system';
 import { ScreenLayout } from '@/components/ScreenLayout';
 import { Toast } from '@/components/Toast';
 import { useToast } from '@/hooks/useToast';
@@ -11,16 +11,20 @@ import { deleteModelUseCase } from '@/features/models/application/modelUseCases'
 import { useRealtimeModels } from '@/features/models/hooks/useRealtimeModels';
 import { useModelForm } from '@/features/models/hooks/useModelForm';
 import { ModelList, ModelFormModal, ModelDeleteModal } from '@/features/models/components';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'expo-router';
 
-type Props = {
-  onGoBack: () => void;
-  onSelectModel: (model: CalculationModel) => void;
-};
+interface Props {
+  isOffline?: boolean;
+  hasLocalCache?: boolean;
+}
 
-export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
+export const ModelsScreen = ({ isOffline, hasLocalCache }: Props) => {
   const { t } = useTranslation();
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const { toast } = useToast();
+  const { user } = useAuth();
   const lastDeleteTime = useRef(0);
 
   const { models, isLoading } = useRealtimeModels();
@@ -76,7 +80,9 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
 
   const totalModels = ipuModels.length + calibrationModels.length;
 
-  const fab = (
+  const showOfflineBanner = isOffline && !user && totalModels > 0;
+
+  const footer = (
     <View style={styles.fabWrapper}>
       <Button title={t('createModel')} onPress={form.openCreate} style={styles.fabButton} icon={<FontAwesome5 name="plus" size={20} color={theme.colors.bg} />} />
     </View>
@@ -92,7 +98,7 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
 
   if (isLoading) {
     return (
-      <ScreenLayout title="Modelos" onBack={onGoBack}>
+      <ScreenLayout title="Modelos" footer={footer}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Carregando modelos, aguarde...</Text>
@@ -103,8 +109,16 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
   }
 
   return (
-    <ScreenLayout title="Modelos" onBack={onGoBack} footer={fab}>
+    <ScreenLayout title="Modelos" footer={footer}>
       {toast && <Toast message={toast.message} type={toast.type} />}
+      {showOfflineBanner && (
+        <View style={styles.offlineBanner}>
+          <FontAwesome5 name="wifi" size={16} color={theme.colors.warning} />
+          <Text style={styles.offlineBannerText}>
+            Conecte-se à internet e faça login para atualizar a lista de modelos
+          </Text>
+        </View>
+      )}
       <View style={styles.content}>
         {totalModels > 0 && (
           <Input
@@ -123,7 +137,7 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
           onEdit={form.openEdit}
           onEditTime={form.openEditTime}
           onDelete={openDeleteConfirm}
-          onSelect={onSelectModel}
+          onSelect={(m) => router.push('/calculator')}
         />
         <ModelList
           models={calibrationModels}
@@ -132,7 +146,7 @@ export const ModelsScreen = ({ onGoBack, onSelectModel }: Props) => {
           onEdit={form.openEdit}
           onEditTime={form.openEditTime}
           onDelete={openDeleteConfirm}
-          onSelect={onSelectModel}
+          onSelect={(m) => router.push('/calibration')}
         />
 
         {totalModels === 0 && (
@@ -208,5 +222,20 @@ const styles = StyleSheet.create({
   },
   fabButton: {
     minWidth: 120,
+  },
+  offlineBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.warning + '20',
+    padding: theme.spacing.md,
+    marginHorizontal: theme.spacing.lg,
+    marginTop: theme.spacing.sm,
+    borderRadius: theme.roundness.sm,
+    gap: theme.spacing.sm,
+  },
+  offlineBannerText: {
+    flex: 1,
+    color: theme.colors.warning,
+    fontSize: theme.typography.sizes.sm,
   },
 });

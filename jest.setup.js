@@ -1,5 +1,23 @@
 require('@testing-library/react-native/matchers');
 
+// Mock do expo-secure-store
+jest.mock('expo-secure-store', () => ({
+  getItemAsync: jest.fn(async (key) => {
+    // Simple in-memory storage for tests
+    return SecureStoreMock[key] ?? null;
+  }),
+  setItemAsync: jest.fn(async (key, value) => {
+    SecureStoreMock[key] = value;
+    return Promise.resolve();
+  }),
+  deleteItemAsync: jest.fn(async (key) => {
+    delete SecureStoreMock[key];
+    return Promise.resolve();
+  }),
+}));
+// In-memory store for expo-secure-store
+const SecureStoreMock = {};
+
 // Mocks essenciais para Expo 54
 global.__ExpoImportMetaRegistry = {};
 global.structuredClone = (val: any) => JSON.parse(JSON.stringify(val));
@@ -17,7 +35,6 @@ jest.mock('expo/src/winter/installGlobal', () => ({
   installGlobal: jest.fn(),
   getValue: jest.fn(() => ({})),
 }));
-
 jest.mock('expo/src/winter/runtime.native', () => ({}));
 jest.mock('expo/src/winter/runtime.native.ts', () => ({}));
 

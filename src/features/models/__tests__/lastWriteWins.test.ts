@@ -37,6 +37,21 @@ jest.mock('@/core/infra/supabaseClient', () => ({
   },
 }));
 
+jest.mock('@/core/api/edgeFunctionsClient', () => ({
+  edgeFunctionsClient: {
+    getModels: jest.fn().mockResolvedValue([
+      {
+        id: 'model-1',
+        name: 'Modelo do Supabase',
+        type: 'ipu',
+        inputs: { isocyanate: 0.200, polyol: 0.300 },
+        created_at: '2026-05-01T10:00:00Z',
+        updated_at: '2026-05-01T12:00:00Z', // mais recente
+      },
+    ]),
+  },
+}));
+
 describe('Last Write Wins', () => {
   const oldTimestamp = new Date('2026-05-01T08:00:00').getTime();
   const newTimestamp = new Date('2026-05-01T12:00:00').getTime();

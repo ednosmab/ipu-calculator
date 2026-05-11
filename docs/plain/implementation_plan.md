@@ -1,5 +1,7 @@
 # PWA Install Pill — Correções e Relocação
 
+**Status:** ✅ CONCLUÍDO (Maio 2026)
+
 ## Problema
 
 Três bugs identificados:
