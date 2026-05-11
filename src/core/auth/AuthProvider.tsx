@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const freshProfile = await fetchProfile(storedToken, userData.id);
 
               setSession({ access_token: storedToken });
-              setUser({ id: userData.id });
+              setUser({ id: userData.id, email: userData.email, role: freshProfile.role });
               setProfile(freshProfile);
 
               await sessionStorage.setProfile(JSON.stringify(freshProfile));
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.warn('[Auth] Falha na validação, usando cache:', validateError);
             const storedProfile: UserProfile = JSON.parse(storedProfileRaw);
             setSession({ access_token: storedToken });
-            setUser({ id: storedProfile.id });
+            setUser({ id: storedProfile.id, email: undefined, role: storedProfile.role });
             setProfile(storedProfile);
           }
         }
@@ -155,7 +155,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     ]);
 
     setSession({ access_token });
-    setUser({ id: userData.id });
+    setUser({ id: userData.id, email: userData.email, role: newProfile.role });
     setProfile(newProfile);
   }, []);
 

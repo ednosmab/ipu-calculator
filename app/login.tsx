@@ -17,6 +17,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { theme } from '@/design-system';
+import { getPostLoginRedirect } from '@/hooks/useRequireAuth';
 
 const ERROR_MESSAGES: Record<string, string> = {
   INVALID_CREDENTIALS: 'E-mail ou senha inválidos.',
@@ -44,8 +45,8 @@ export default function LoginScreen() {
 
     try {
       await signIn(email.trim(), password);
-      // Redireciona para /models após login bem-sucedido
-      router.replace('/models');
+      const redirect = getPostLoginRedirect();
+      router.replace(redirect);
     } catch (err: unknown) {
       const code = err instanceof Error ? err.message : 'INTERNAL_ERROR';
       setErrorCode(code);
