@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, View, ActivityIndicator, Animated } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { Button, Text, Input, theme } from '@/design-system';
+import { Button, Text, Input, theme, HStack } from '@/design-system';
 import { ScreenLayout } from '@/components/ScreenLayout';
 import { Toast } from '@/components/Toast';
 import { useToast } from '@/hooks/useToast';
@@ -12,16 +12,16 @@ import { useRealtimeModels } from '@/features/models/hooks/useRealtimeModels';
 import { useModelForm } from '@/features/models/hooks/useModelForm';
 import { ModelList, ModelFormModal, ModelDeleteModal } from '@/features/models/components';
 import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'expo-router';
 
 interface Props {
-  onGoBack: () => void;
-  onSelectModel: (model: CalculationModel) => void;
   isOffline?: boolean;
   hasLocalCache?: boolean;
 }
 
-export const ModelsScreen = ({ onGoBack, onSelectModel, isOffline, hasLocalCache }: Props) => {
+export const ModelsScreen = ({ isOffline, hasLocalCache }: Props) => {
   const { t } = useTranslation();
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const { toast } = useToast();
   const { user } = useAuth();
@@ -80,13 +80,32 @@ export const ModelsScreen = ({ onGoBack, onSelectModel, isOffline, hasLocalCache
 
   const totalModels = ipuModels.length + calibrationModels.length;
 
-  // Exibe banner de aviso quando offline e sem login
   const showOfflineBanner = isOffline && !user && totalModels > 0;
 
-  const fab = (
-    <View style={styles.fabWrapper}>
-      <Button title={t('createModel')} onPress={form.openCreate} style={styles.fabButton} icon={<FontAwesome5 name="plus" size={20} color={theme.colors.bg} />} />
-    </View>
+  const footer = (
+    <>
+      <Button
+        title={t('createModel')}
+        onPress={form.openCreate}
+        style={styles.createButton}
+        icon={<FontAwesome5 name="plus" size={20} color={theme.colors.bg} />}
+      />
+      <HStack gap="sm" style={{ width: '100%' }}>
+        <Button
+          title={t('back')}
+          variant="secondary"
+          onPress={() => router.push('/')}
+          style={{ flex: 1 }}
+          icon={<FontAwesome5 name="arrow-left" size={20} color={theme.colors.textSecondary} />}
+        />
+        <Button
+          title={t('injection')}
+          onPress={() => router.push('/calculator')}
+          style={{ flex: 1 }}
+          icon={<FontAwesome5 name="calculator" size={20} color={theme.colors.primaryText} />}
+        />
+      </HStack>
+    </>
   );
 
   const renderSkeleton = () => (
@@ -99,7 +118,7 @@ export const ModelsScreen = ({ onGoBack, onSelectModel, isOffline, hasLocalCache
 
   if (isLoading) {
     return (
-      <ScreenLayout title="Modelos" onBack={onGoBack}>
+      <ScreenLayout title="Modelos" footer={footer}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Carregando modelos, aguarde...</Text>
@@ -110,7 +129,7 @@ export const ModelsScreen = ({ onGoBack, onSelectModel, isOffline, hasLocalCache
   }
 
   return (
-    <ScreenLayout title="Modelos" onBack={onGoBack} footer={fab}>
+    <ScreenLayout title="Modelos" footer={footer}>
       {toast && <Toast message={toast.message} type={toast.type} />}
       {showOfflineBanner && (
         <View style={styles.offlineBanner}>
@@ -138,7 +157,7 @@ export const ModelsScreen = ({ onGoBack, onSelectModel, isOffline, hasLocalCache
           onEdit={form.openEdit}
           onEditTime={form.openEditTime}
           onDelete={openDeleteConfirm}
-          onSelect={onSelectModel}
+          onSelect={(m) => router.push('/calculator')}
         />
         <ModelList
           models={calibrationModels}
@@ -147,7 +166,7 @@ export const ModelsScreen = ({ onGoBack, onSelectModel, isOffline, hasLocalCache
           onEdit={form.openEdit}
           onEditTime={form.openEditTime}
           onDelete={openDeleteConfirm}
-          onSelect={onSelectModel}
+          onSelect={(m) => router.push('/calibration')}
         />
 
         {totalModels === 0 && (
@@ -216,13 +235,8 @@ const styles = StyleSheet.create({
     borderRadius: theme.roundness.md,
     opacity: 0.3,
   },
-  fabWrapper: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    paddingHorizontal: theme.spacing.lg,
-  },
-  fabButton: {
-    minWidth: 120,
+  createButton: {
+    marginBottom: theme.spacing.sm,
   },
   offlineBanner: {
     flexDirection: 'row',

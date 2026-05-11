@@ -104,10 +104,9 @@ const styles = {
     alignItems: 'center' as const,
     marginBottom: theme.spacing.xs,
   },
-  modelName: {
+modelName: {
     color: theme.colors.text,
-    fontSize: theme.typography.sizes.xl,
-      textAlign: 'center',
+    fontSize: theme.typography.sizes.lg,
     fontWeight: theme.typography.weights.bold,
     flex: 1,
     marginRight: theme.spacing.sm,

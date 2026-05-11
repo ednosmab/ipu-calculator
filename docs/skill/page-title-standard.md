@@ -37,14 +37,9 @@ The `Title` component already applies the standard styling. If you need to overr
 - `app/admin/logs/index.tsx` — uses `Title` ✓
 - `app/admin/metrics/index.tsx` — uses `Title` ✓
 
-## ⚠️ Out of standard (needs fix)
-
-| File | Current | Should be |
-|------|---------|-----------|
-| `src/components/admin/MetricCard.tsx` | `lg` (20px) | `xl` (28px) — value text, not page title |
-| `src/features/models/components/ModelCard.tsx` | `lg` (20px) | `xl` (28px) — model name, not page title |
-
 All page titles have been standardized to `xl` (28px) and centered.
+
+> **Nota:** Cards, list items e valores numéricos não são títulos de página — mantêm `lg` (20px) e alinhamento à esquerda.
 
 ## 📋 Checklist
 
