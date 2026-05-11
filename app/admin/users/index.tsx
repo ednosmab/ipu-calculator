@@ -62,15 +62,16 @@ export default function UsersScreen() {
 
   return (
     <View style={styles.container}>
-      <HStack style={styles.header}>
-        <Text style={styles.title}>Gestão de Usuários</Text>
-        <Button 
-          title="Novo usuário" 
-          onPress={() => setModalVisible(true)} 
+      <Text style={styles.title}>Gestão de Usuários</Text>
+      <View style={styles.header}>
+        <View />
+        <Button
+          title="Novo usuário"
+          onPress={() => setModalVisible(true)}
           size="sm"
           style={styles.headerButton}
         />
-      </HStack>
+      </View>
       
       <CreateUserModal
         visible={modalVisible}
