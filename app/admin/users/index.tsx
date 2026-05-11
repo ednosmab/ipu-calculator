@@ -112,9 +112,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: theme.typography.sizes.lg,
+    fontSize: theme.typography.sizes.xl,
+    textAlign: 'center',
     fontWeight: theme.typography.weights.bold,
     color: theme.colors.text,
+    marginBottom: theme.spacing.lg,
   },
   headerButton: {
     marginVertical: 0,

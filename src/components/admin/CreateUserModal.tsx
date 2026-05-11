@@ -197,7 +197,8 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   title: {
-    fontSize: theme.typography.sizes.lg,
+    fontSize: theme.typography.sizes.xl,
+      textAlign: 'center',
     fontWeight: theme.typography.weights.bold,
     marginBottom: theme.spacing.lg,
     color: theme.colors.text,

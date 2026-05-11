@@ -106,7 +106,8 @@ const styles = {
   },
   modelName: {
     color: theme.colors.text,
-    fontSize: theme.typography.sizes.lg,
+    fontSize: theme.typography.sizes.xl,
+      textAlign: 'center',
     fontWeight: theme.typography.weights.bold,
     flex: 1,
     marginRight: theme.spacing.sm,
