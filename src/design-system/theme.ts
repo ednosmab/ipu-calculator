@@ -61,6 +61,18 @@ export const theme = {
       semibold: '600' as FontWeight,
       bold: '700' as FontWeight,
     }
+  },
+  animations: {
+    durations: {
+      fast: 150,
+      normal: 300,
+      slow: 500,
+      redirect: 1500,
+    },
+    easing: {
+      out: 'cubic-bezier(0, 0, 0.2, 1)',
+      inOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    }
   }
 } as const;
 
