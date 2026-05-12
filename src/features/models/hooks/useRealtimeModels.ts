@@ -31,19 +31,17 @@ export const useRealtimeModels = () => {
 
         if (!user) {
           console.warn('[useRealtimeModels] Sem usuário autenticado; ignorando sync remota');
-          setIsLoading(false);
-          return;
-        }
+        } else {
+          console.log('[useRealtimeModels] Sincronizando modelos remotos...', {
+            userId: user.id,
+            userRole: profile?.role,
+          });
 
-        console.log('[useRealtimeModels] Sincronizando modelos remotos...', {
-          userId: user.id,
-          userRole: profile?.role,
-        });
-
-        try {
-          await fetchRemoteModelsUseCase();
-        } catch (error) {
-          console.error('[useRealtimeModels] Erro ao sincronizar:', error);
+          try {
+            await fetchRemoteModelsUseCase();
+          } catch (error) {
+            console.error('[useRealtimeModels] Erro ao sincronizar:', error);
+          }
         }
       }
 
@@ -68,12 +66,11 @@ export const useRealtimeModels = () => {
     }
 
     if (!user) {
-      console.warn('[useRealtimeModels] Nenhum usuário; não sincronizando');
-      setIsLoading(false);
-      return;
+      console.warn('[useRealtimeModels] Nenhum usuário; carregando apenas cache local');
+      fetchModels(false);
+    } else {
+      fetchModels(true);
     }
-
-    fetchModels(true);
 
     const unsubscribeRepo = modelRepository.subscribe(() => {
       console.log('[useRealtimeModels] Repository mudou, refrescando dados locais...');
