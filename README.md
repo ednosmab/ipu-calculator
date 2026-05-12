@@ -93,6 +93,7 @@ npm test
 
 ## 📜 Protocolos de Skill (Documentation as Code)
 O projeto é guiado por protocolos rigorosos localizados em `./docs/skill/`:
+- [🎬 Protocolo de Animação e Transição](docs/skill/animation_protocol.md)
 - [SKILL: Architectural Integrity & Dependency Guard](docs/skill/architectural_integrity_protocol.md)
 - [Background Sync Orchestration Protocol](docs/skill/background_sync_orchestration.md)
 - [SKILL: Cache Versioning Protocol](docs/skill/cache_versioning_protocol.md)
