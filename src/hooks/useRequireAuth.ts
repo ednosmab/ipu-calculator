@@ -8,6 +8,8 @@ import { useAuth } from './useAuth';
 import { Role } from '@/core/auth/AuthContext';
 import { useNetworkStatus } from './useNetworkStatus';
 import { modelRepository } from '@/features/models/infra/modelRepository';
+import { useToast } from '@/core/toast/ToastProvider';
+import { theme } from '@/design-system';
 
 const ROLE_HIERARCHY: Role[] = ['viewer', 'editor', 'admin'];
 
@@ -51,7 +53,14 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
   const isOffline = isConnected === false || isConnected === null;
   const canAccessOffline = allowOfflineAccess && isOffline && hasLocalCache;
 
+  const { showToast } = useToast();
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const redirectStarted = useRef(false);
+
   useEffect(() => {
+    // Se já iniciamos o processo de redirecionamento, não fazemos nada aqui
+    if (redirectStarted.current) return;
+
     // Só prossegue se o Auth e o Cache Check terminarem
     if (isLoading || isCheckingCache) return;
 
@@ -61,15 +70,27 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
     }
 
     if (!user) {
-      console.log('[useRequireAuth] Redirecionando para login (sem user e sem cache offline)');
-      // Salva a rota original antes de redirecionar para login
-      const currentPath = pathname;
-      if (currentPath && currentPath !== '/login') {
-        try {
-          sessionStorage.setItem(LOGIN_REDIRECT_KEY, currentPath);
-        } catch {}
+      console.log('[useRequireAuth] Iniciando Graceful Redirect para login');
+      
+      redirectStarted.current = true;
+      setIsRedirecting(true);
+
+      // Se voltamos de offline para online e a sessão é inválida, avisa o usuário
+      if (isConnected === true) {
+        showToast('Sessão expirada. Redirecionando...', 'warning');
       }
-      router.replace('/login');
+
+      setTimeout(() => {
+        // Salva a rota original antes de redirecionar para login
+        const currentPath = pathname;
+        if (currentPath && currentPath !== '/login') {
+          try {
+            sessionStorage.setItem(LOGIN_REDIRECT_KEY, currentPath);
+          } catch {}
+        }
+        router.replace('/login');
+      }, theme.animations.durations.redirect);
+
       return;
     }
 
@@ -84,16 +105,16 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
     if (userRoleIndex < minRoleIndex) {
       router.replace('/unauthorized');
     }
-  }, [user, profile, isLoading, isCheckingCache, minRole, canAccessOffline, pathname, router]);
+  }, [user, profile, isLoading, isCheckingCache, isConnected, minRole, canAccessOffline, pathname, router, showToast]);
 
   const isAuthorized =
     !isLoading &&
     !isCheckingCache &&
-    (!!user || canAccessOffline) &&
+    (!!user || canAccessOffline || isRedirecting) &&
     (!user || !!profile?.active) &&
     (!user || ROLE_HIERARCHY.indexOf(profile.role) >= ROLE_HIERARCHY.indexOf(minRole));
 
-  return { isLoading: isLoading || isCheckingCache, isAuthorized, isOffline, hasLocalCache };
+  return { isLoading: isLoading || isCheckingCache, isAuthorized, isOffline, hasLocalCache, isRedirecting };
 }
 
 /**
