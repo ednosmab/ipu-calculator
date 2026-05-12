@@ -15,8 +15,9 @@ export const corsHeaders = {
 };
 
 export function handleCors(req: Request): Response | null {
+  const origin = req.headers.get('origin') ?? '';
+
   if (req.method === 'OPTIONS') {
-    const origin = req.headers.get('origin') ?? '';
     // Permite localhost para desenvolvimento
     if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
       return new Response(null, {
@@ -27,6 +28,18 @@ export function handleCors(req: Request): Response | null {
         },
       });
     }
+
+    // Permite domínios da Vercel (main, staging, branch previews)
+    if (origin.endsWith('.vercel.app')) {
+      return new Response(null, {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          'Access-Control-Allow-Origin': origin,
+        },
+      });
+    }
+
     // Produção: permite apenas domínios configurados
     const allowedOrigin = validOrigins.includes(origin) ? origin : validOrigins[0];
     return new Response(null, {
@@ -41,10 +54,17 @@ export function handleCors(req: Request): Response | null {
 }
 
 export function getCorsHeaders(origin?: string | null) {
-  const isLocal = origin && (origin.includes('localhost') || origin.includes('127.0.0.1'));
-  const allowedOrigin = isLocal ? origin : (origin && validOrigins.includes(origin) ? origin : validOrigins[0]);
+  if (!origin) return { ...corsHeaders, 'Access-Control-Allow-Origin': validOrigins[0] };
+
+  const isLocal = origin.includes('localhost') || origin.includes('127.0.0.1');
+  const isVercel = origin.endsWith('.vercel.app');
+  
+  const allowedOrigin = (isLocal || isVercel || validOrigins.includes(origin)) 
+    ? origin 
+    : validOrigins[0];
+
   return {
     ...corsHeaders,
-    'Access-Control-Allow-Origin': allowedOrigin ?? validOrigins[0],
+    'Access-Control-Allow-Origin': allowedOrigin,
   };
 }
