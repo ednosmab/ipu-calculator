@@ -17,6 +17,7 @@ import { UpdateBanner } from '@/components/UpdateBanner';
 import { registerBackgroundSync } from '@/core/sync/backgroundSyncService';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { NavMenu } from '@/components/NavMenu';
+import { ToastProvider } from '@/core/toast/ToastProvider';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -92,31 +93,33 @@ function AppContent() {
   return (
     <AuthProvider>
       <TranslationProvider>
-        <Head>
-          <title>Calculadora IPU</title>
-          <link rel="manifest" href="/manifest.json" />
-          <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-          <link rel="apple-touch-icon" href="/assets/images/icon.png" />
-          <meta name="mobile-web-app-capable" content="yes" />
-          <meta name="apple-mobile-web-app-capable" content="yes" />
-        </Head>
-        <ErrorBoundary fallback={({ error }: { error: Error }) => <Fallback error={error} />}>
-          <Stack screenOptions={{ headerShown: false }} />
+        <ToastProvider>
+          <Head>
+            <title>Calculadora IPU</title>
+            <link rel="manifest" href="/manifest.json" />
+            <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+            <link rel="apple-touch-icon" href="/assets/images/icon.png" />
+            <meta name="mobile-web-app-capable" content="yes" />
+            <meta name="apple-mobile-web-app-capable" content="yes" />
+          </Head>
+          <ErrorBoundary fallback={({ error }: { error: Error }) => <Fallback error={error} />}>
+            <Stack screenOptions={{ headerShown: false }} />
 
-          <NavMenu />
+            <NavMenu />
 
-          {updateAvailable && (
-            <UpdateBanner onUpdate={applyUpdate} onDismiss={dismissUpdate} />
-          )}
+            {updateAvailable && (
+              <UpdateBanner onUpdate={applyUpdate} onDismiss={dismissUpdate} />
+            )}
 
-          {isDebugVisible && (
-            <Pressable onPress={() => setShowDebug(!showDebug)} style={styles.debugButton}>
-              <FontAwesome5 name="bug" size={14} color={theme.colors.textSecondary} />
-            </Pressable>
-          )}
+            {isDebugVisible && (
+              <Pressable onPress={() => setShowDebug(!showDebug)} style={styles.debugButton}>
+                <FontAwesome5 name="bug" size={14} color={theme.colors.textSecondary} />
+              </Pressable>
+            )}
 
-          <DebugPanel visible={showDebug} debugInfo={debugInfo} />
-        </ErrorBoundary>
+            <DebugPanel visible={showDebug} debugInfo={debugInfo} />
+          </ErrorBoundary>
+        </ToastProvider>
       </TranslationProvider>
     </AuthProvider>
   );
