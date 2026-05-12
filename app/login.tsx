@@ -12,6 +12,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { Button, theme } from '@/design-system';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
@@ -139,12 +140,14 @@ export default function LoginScreen() {
             testID="login-submit-button"
           />
 
-          {isConnected === false && hasCache && (
+          {/* Botão de acesso offline se estiver sem rede e houver cache */}
+          {isConnected !== true && hasCache && (
             <Button
               title="Acessar Offline (Cache)"
               variant="secondary"
               onPress={handleAccessOffline}
               style={styles.offlineButton}
+              icon={<FontAwesome5 name="wifi" size={16} color={theme.colors.warning} />}
             />
           )}
 

@@ -152,15 +152,11 @@ export const edgeFunctionsClient = {
       method: 'GET',
     });
 
-    if (result.ok && result.data) {
-      return result.data;
-    }
-
     if (!result.ok) {
-      console.warn(`[edgeFunctionsClient] getModels falhou: ${result.error}`);
+      throw new Error(result.error ?? 'FAILED_TO_FETCH_MODELS');
     }
 
-    return [];
+    return result.data ?? [];
   },
 
   async validateSession(): Promise<{ profile?: { id: string; name: string; role: string; active: boolean }; valid: boolean }> {
