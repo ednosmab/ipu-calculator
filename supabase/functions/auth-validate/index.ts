@@ -7,16 +7,17 @@ import { requireAuth, AuthError } from '../_shared/authMiddleware.ts';
 import { ok, err } from '../_shared/response.ts';
 
 Deno.serve(async (req: Request) => {
+  const origin = req.headers.get('origin');
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
 
-  if (req.method !== 'GET') return err('METHOD_NOT_ALLOWED', 405);
+  if (req.method !== 'GET') return err('METHOD_NOT_ALLOWED', 405, origin);
 
   try {
     const { user, profile } = await requireAuth(req, 'viewer');
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')! ;
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')! ;
     
     // Busca profile via fetch direto (bypass RLS)
     const profileRes = await fetch(
@@ -48,10 +49,10 @@ Deno.serve(async (req: Request) => {
         role: freshProfile.role,
         active: freshProfile.active,
       },
-    });
+    }, 200, origin);
   } catch (error) {
-    if (error instanceof AuthError) return err(error.code, error.status);
+    if (error instanceof AuthError) return err(error.code, error.status, origin);
     console.error('[auth-validate] Erro inesperado:', error);
-    return err('INTERNAL_ERROR', 500);
+    return err('INTERNAL_ERROR', 500, origin);
   }
 });

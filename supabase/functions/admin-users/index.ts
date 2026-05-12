@@ -9,6 +9,7 @@ import { logAccess } from '../_shared/auditLogger.ts';
 import { ok, err } from '../_shared/response.ts';
 
 Deno.serve(async (req: Request) => {
+  const origin = req.headers.get('origin');
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
 
@@ -34,7 +35,7 @@ Deno.serve(async (req: Request) => {
       if (authError) {
         console.error('[admin-users] Erro ao listar auth users:', authError);
         // Se falhar o auth, retornamos os perfis sem email em vez de quebrar
-        return ok(profiles, 200, req.headers.get('origin'));
+        return ok(profiles, 200, origin);
       }
 
       const emailMap = Object.fromEntries(
@@ -54,16 +55,16 @@ Deno.serve(async (req: Request) => {
         req,
       });
 
-return ok(result, 200, req.headers.get('origin'));
+      return ok(result, 200, origin);
     }
 
     // ── POST: criar novo usuário
     if (req.method === 'POST') {
       const { name, email, password, role = 'viewer' } = await req.json();
 
-      if (!name || !email || !password) return err('INVALID_PAYLOAD', 400);
+      if (!name || !email || !password) return err('INVALID_PAYLOAD', 400, origin);
       if (!['viewer', 'editor', 'admin'].includes(role)) {
-        return err('INVALID_ROLE', 400);
+        return err('INVALID_ROLE', 400, origin);
       }
 
       // Cria usuário em auth.users
@@ -76,7 +77,7 @@ return ok(result, 200, req.headers.get('origin'));
 
       if (createError || !newUser.user) {
         console.error('[admin-users] Erro ao criar usuário:', createError);
-        return err('USER_CREATION_FAILED', 500);
+        return err('USER_CREATION_FAILED', 500, origin);
       }
 
       // Cria perfil vinculado
@@ -88,7 +89,7 @@ return ok(result, 200, req.headers.get('origin'));
         console.error('[admin-users] Erro ao criar profile:', profileError);
         // Rollback: remove o usuário auth criado
         await supabase.auth.admin.deleteUser(newUser.user.id);
-        return err('PROFILE_CREATION_FAILED', 500);
+        return err('PROFILE_CREATION_FAILED', 500, origin);
       }
 
       logAccess({
@@ -103,14 +104,14 @@ return ok(result, 200, req.headers.get('origin'));
       return ok(
         { id: newUser.user.id, name, email, role, active: true },
         201,
-        req.headers.get('origin')
+        origin
       );
     }
 
-    return err('METHOD_NOT_ALLOWED', 405);
+    return err('METHOD_NOT_ALLOWED', 405, origin);
   } catch (error) {
-    if (error instanceof AuthError) return err(error.code, error.status);
+    if (error instanceof AuthError) return err(error.code, error.status, origin);
     console.error('[admin-users] Erro inesperado:', error);
-    return err('INTERNAL_ERROR', 500);
+    return err('INTERNAL_ERROR', 500, origin);
   }
 });

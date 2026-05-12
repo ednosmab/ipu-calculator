@@ -8,10 +8,11 @@ import { logAccess } from '../_shared/auditLogger.ts';
 import { ok, err } from '../_shared/response.ts';
 
 Deno.serve(async (req: Request) => {
+  const origin = req.headers.get('origin');
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
 
-  if (req.method !== 'GET') return err('METHOD_NOT_ALLOWED', 405);
+  if (req.method !== 'GET') return err('METHOD_NOT_ALLOWED', 405, origin);
 
   try {
     const { user } = await requireAuth(req, 'viewer');
@@ -28,7 +29,7 @@ Deno.serve(async (req: Request) => {
 
     if (error) {
       console.error('[models-get] Erro ao buscar modelos:', error);
-      return err('FETCH_FAILED', 500);
+      return err('FETCH_FAILED', 500, origin);
     }
 
     logAccess({
@@ -39,10 +40,10 @@ Deno.serve(async (req: Request) => {
       req,
     });
 
-    return ok(models || [], 200, req.headers.get('origin'));
+    return ok(models || [], 200, origin);
   } catch (error) {
-    if (error instanceof AuthError) return err(error.code, error.status);
+    if (error instanceof AuthError) return err(error.code, error.status, origin);
     console.error('[models-get] Erro inesperado:', error);
-    return err('INTERNAL_ERROR', 500);
+    return err('INTERNAL_ERROR', 500, origin);
   }
 });

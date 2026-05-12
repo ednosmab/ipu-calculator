@@ -8,12 +8,13 @@ import { logAccess } from '../_shared/auditLogger.ts';
 import { ok, err } from '../_shared/response.ts';
 
 Deno.serve(async (req: Request) => {
+  const origin = req.headers.get('origin');
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
 
   // Only DELETE method
   if (req.method !== 'DELETE') {
-    return err('METHOD_NOT_ALLOWED', 405);
+    return err('METHOD_NOT_ALLOWED', 405, origin);
   }
 
   try {
@@ -21,12 +22,12 @@ Deno.serve(async (req: Request) => {
 
     const { targetId } = await req.json();
     if (!targetId) {
-      return err('INVALID_PAYLOAD', 400);
+      return err('INVALID_PAYLOAD', 400, origin);
     }
 
     // Prevent self-deletion
     if (targetId === adminUser.id) {
-      return err('CANNOT_DELETE_SELF', 400);
+      return err('CANNOT_DELETE_SELF', 400, origin);
     }
 
     const supabase = createClient(
@@ -53,14 +54,14 @@ Deno.serve(async (req: Request) => {
 
     if (profileError) {
       console.error('[admin-users-delete] Erro ao deletar profile:', profileError);
-      return err('PROFILE_DELETE_FAILED', 500);
+      return err('PROFILE_DELETE_FAILED', 500, origin);
     }
 
     // Delete auth user
     const { error: authError } = await supabase.auth.admin.deleteUser(targetId);
     if (authError) {
       console.error('[admin-users-delete] Erro ao deletar auth user:', authError);
-      return err('USER_DELETE_FAILED', 500);
+      return err('USER_DELETE_FAILED', 500, origin);
     }
 
     logAccess({
@@ -72,10 +73,10 @@ Deno.serve(async (req: Request) => {
       req,
     });
 
-    return ok({ success: true }, 200, req.headers.get('origin'));
+    return ok({ success: true }, 200, origin);
   } catch (error) {
-    if (error instanceof AuthError) return err(error.code, error.status);
+    if (error instanceof AuthError) return err(error.code, error.status, origin);
     console.error('[admin-users-delete] Erro inesperado:', error);
-    return err('INTERNAL_ERROR', 500);
+    return err('INTERNAL_ERROR', 500, origin);
   }
 });
