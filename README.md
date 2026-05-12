@@ -107,6 +107,7 @@ O projeto é guiado por protocolos rigorosos localizados em `./docs/skill/`:
 - [SKILL: i18n Protocol (Internacionalização)](docs/skill/i18n_protocol.md)
 - [SKILL: Model Persistence & Atomic Write Protocol](docs/skill/model_persistence_protocol.md)
 - [SKILL: Network Connectivity Protocol (Web & Mobile)](docs/skill/network_connectivity_protocol.md)
+- [Protocolo: Resolução de Erros de Rede e CORS (Vercel + Supabase)](docs/skill/network_cors_protocol.md)
 - [SKILL: Optimistic UI & Sync Indicators](docs/skill/optimistic_ui_sync_indicators.md)
 - [SKILL: Page Title Standardization](docs/skill/page-title-standard.md)
 - [SKILL: Desenvolvimento de Feature com Arquitetura e Testes](docs/skill/principal_skill.md)
