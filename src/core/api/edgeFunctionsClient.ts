@@ -51,9 +51,8 @@ async function fetchWithAuth<T = unknown>(
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
-    const baseUrl = SUPABASE_URL.endsWith('/') ? SUPABASE_URL.slice(0, -1) : SUPABASE_URL;
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    const url = `${baseUrl}/functions/v1${cleanEndpoint}`;
+    const url = `${CONFIG.EDGE_FUNCTIONS_URL}${cleanEndpoint}`;
     console.log(`[edgeFunctionsClient] 🚀 Requisição para: ${url}`);
 
     const response = await fetch(url, {
@@ -64,7 +63,15 @@ async function fetchWithAuth<T = unknown>(
 
     clearTimeout(timeoutId);
 
-    const data = await response.json();
+    // Tenta ler o JSON; se falhar, pega o texto puro
+    let data: any;
+    const text = await response.text();
+    try {
+      data = JSON.parse(text);
+    } catch (parseError) {
+      console.error(`[edgeFunctionsClient] Falha ao parsear JSON de ${endpoint}:`, text);
+      data = { error: 'INVALID_JSON_RESPONSE' };
+    }
 
     console.log(`[edgeFunctionsClient] ${endpoint} ${response.status}`, {
       ok: response.ok,
