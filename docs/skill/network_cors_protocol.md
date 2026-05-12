@@ -2,11 +2,12 @@
 
 Este documento descreve como diagnosticar e corrigir o erro `NETWORK_ERROR: Failed to fetch` ao utilizar Supabase Edge Functions com deploys na Vercel.
 
-## 1. O Problema: NETWORK_ERROR
-O erro ocorre quando o navegador bloqueia a requisição antes mesmo dela chegar à lógica da função. As causas comuns são:
+## 1. O Problema: NETWORK_ERROR e 403 Forbidden
+O erro ocorre quando o navegador bloqueia a requisição antes mesmo dela chegar à lógica da função (Network Error) ou quando o servidor recusa a requisição devido a um Origin não autorizado (403 Forbidden). As causas comuns são:
 - Mismatch de **CORS** (Origin não autorizada).
 - Falha na negociação do preflight (**OPTIONS**).
 - Funções não deployadas ou secrets ausentes no Supabase.
+- Erros de permissão mascarados por falhas de CORS.
 
 ---
 

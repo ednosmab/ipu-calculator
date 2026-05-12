@@ -16,6 +16,9 @@ import { Button, theme } from '@/design-system';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { getPostLoginRedirect } from '@/hooks/useRequireAuth';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { modelRepository } from '@/features/models/infra/modelRepository';
+import { useEffect } from 'react';
 
 const ERROR_MESSAGES: Record<string, string> = {
   INVALID_CREDENTIALS: 'E-mail ou senha inválidos.',
@@ -31,6 +34,19 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  const isConnected = useNetworkStatus();
+  const [hasCache, setHasCache] = useState(false);
+
+  useEffect(() => {
+    modelRepository.getAll().then(models => {
+      setHasCache(models.length > 0);
+    });
+  }, []);
+
+  const handleAccessOffline = () => {
+    router.replace('/models');
+  };
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -123,6 +139,15 @@ export default function LoginScreen() {
             testID="login-submit-button"
           />
 
+          {isConnected === false && hasCache && (
+            <Button
+              title="Acessar Offline (Cache)"
+              variant="secondary"
+              onPress={handleAccessOffline}
+              style={styles.offlineButton}
+            />
+          )}
+
           <Text style={styles.note}>
             Sem conta? Solicite acesso ao administrador.
           </Text>
@@ -202,5 +227,9 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     textAlign: 'center',
     marginTop: theme.spacing.md,
+  },
+  offlineButton: {
+    marginTop: theme.spacing.sm,
+    borderColor: theme.colors.warning,
   },
 });
