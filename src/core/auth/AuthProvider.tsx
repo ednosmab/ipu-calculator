@@ -12,6 +12,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchWithTimeout = async (url: string, options: RequestInit, timeoutMs = 3000) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
+  };
+
   // ── Restaura sessão ao montar ────────────────────────────────
   useEffect(() => {
     (async () => {
@@ -24,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (storedToken && storedProfileRaw) {
           // Valida o token e obtém profile fresco do servidor
           try {
-            const res = await fetch(`${CONFIG.SUPABASE_URL}/auth/v1/user`, {
+            const res = await fetchWithTimeout(`${CONFIG.SUPABASE_URL}/auth/v1/user`, {
               method: 'GET',
               headers: {
                 'Authorization': `Bearer ${storedToken}`,
@@ -46,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               await sessionStorage.clearAll();
             }
           } catch (validateError) {
-            console.warn('[Auth] Falha na validação, usando cache:', validateError);
+            console.warn('[Auth] Falha na validação (offline ou timeout), usando cache:', validateError);
             const storedProfile: UserProfile = JSON.parse(storedProfileRaw);
             setSession({ access_token: storedToken });
             setUser({ id: storedProfile.id, email: undefined, role: storedProfile.role });
@@ -64,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchProfile = async (token: string, userId: string): Promise<UserProfile> => {
     try {
       // Tenta primeiro via REST API (mais rápido se RLS estiver OK)
-      const res = await fetch(
+      const res = await fetchWithTimeout(
         `${CONFIG.SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=id,name,role,active`,
         {
           headers: {
@@ -96,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Fallback: Tenta via Edge Function (mais robusto, bypass RLS)
     try {
       console.log('[Auth] Tentando fallback via auth-validate...');
-      const validateRes = await fetch(
+      const validateRes = await fetchWithTimeout(
         `${CONFIG.EDGE_FUNCTIONS_URL}/auth-validate`,
         {
           headers: {

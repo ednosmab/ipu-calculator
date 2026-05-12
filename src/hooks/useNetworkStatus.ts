@@ -28,17 +28,23 @@ const checkConnection = (state: NetInfoState): boolean => {
 };
 
 export const useNetworkStatus = () => {
-  const [isConnected, setIsConnected] = useState<boolean | null>(null);
+  const [isConnected, setIsConnected] = useState<boolean | null>(
+    typeof window !== 'undefined' ? navigator.onLine : null
+  );
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // Web: use native browser events + real connectivity check
     if (typeof window !== 'undefined') {
       const check = async () => {
-        if (!navigator.onLine) {
+        const onLine = navigator.onLine;
+        console.log('[useNetworkStatus] Verificando conexão...', { onLine });
+        
+        if (!onLine) {
           setIsConnected(false);
         } else {
           const hasInternet = await verifyActualInternet();
+          console.log('[useNetworkStatus] Resultado verifyActualInternet:', { hasInternet });
           setIsConnected(hasInternet);
         }
       };

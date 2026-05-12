@@ -29,49 +29,52 @@ export const fetchRemoteModelsUseCase = async (): Promise<void> => {
 
         let updated: CalculationModel[] = [...localModels];
 
-        if (data && data.length > 0) {
-          const remoteModels: CalculationModel[] = data.map((item) => ({
-            id: item.id,
-            name: item.name,
-            type: item.type,
-            inputs: item.inputs,
-            createdAt: new Date(item.created_at).getTime(),
-            updatedAt: new Date(item.updated_at).getTime(),
-            syncStatus: 'synced' as const,
-            localAction: null,
-          }));
-
-          console.log('[fetchRemoteModelsUseCase] Processando merge...', {
-            remoteCount: remoteModels.length,
-          });
-
-          let mergedCount = 0;
-          let addedCount = 0;
-
-          for (const rm of remoteModels) {
-            const localIndex = updated.findIndex((m) => m.id === rm.id);
-
-            if (localIndex >= 0) {
-              if (rm.updatedAt > updated[localIndex].updatedAt) {
-                console.log(`[fetchRemoteModelsUseCase] Atualizando modelo: ${rm.name}`);
-                updated[localIndex] = rm;
-                mergedCount++;
-              }
-            } else {
-              console.log(`[fetchRemoteModelsUseCase] Adicionando novo modelo: ${rm.name}`);
-              updated.push(rm);
-              addedCount++;
-            }
-          }
-
-          console.log('[fetchRemoteModelsUseCase] Merge concluído:', {
-            updated: mergedCount,
-            added: addedCount,
-            total: updated.length,
-          });
+        if (!data) {
+          console.log('[fetchRemoteModelsUseCase] Nenhum dado remoto recebido; mantendo cache local intacto.');
+          return localModels;
         }
 
-        const remoteIds = data ? new Set(data.map((m) => m.id)) : new Set<string>();
+        const remoteModels: CalculationModel[] = data.map((item) => ({
+          id: item.id,
+          name: item.name,
+          type: item.type,
+          inputs: item.inputs,
+          createdAt: new Date(item.created_at).getTime(),
+          updatedAt: new Date(item.updated_at).getTime(),
+          syncStatus: 'synced' as const,
+          localAction: null,
+        }));
+
+        console.log('[fetchRemoteModelsUseCase] Processando merge...', {
+          remoteCount: remoteModels.length,
+        });
+
+        let mergedCount = 0;
+        let addedCount = 0;
+
+        for (const rm of remoteModels) {
+          const localIndex = updated.findIndex((m) => m.id === rm.id);
+
+          if (localIndex >= 0) {
+            if (rm.updatedAt > updated[localIndex].updatedAt) {
+              console.log(`[fetchRemoteModelsUseCase] Atualizando modelo: ${rm.name}`);
+              updated[localIndex] = rm;
+              mergedCount++;
+            }
+          } else {
+            console.log(`[fetchRemoteModelsUseCase] Adicionando novo modelo: ${rm.name}`);
+            updated.push(rm);
+            addedCount++;
+          }
+        }
+
+        console.log('[fetchRemoteModelsUseCase] Merge concluído:', {
+          updated: mergedCount,
+          added: addedCount,
+          total: updated.length,
+        });
+
+        const remoteIds = new Set(data.map((m) => m.id));
         const filtered = updated.filter(
           (m) => m.syncStatus === 'pending' || remoteIds.has(m.id)
         );

@@ -25,31 +25,43 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
   const pathname = usePathname();
   const isConnected = useNetworkStatus();
   const [hasLocalCache, setHasLocalCache] = useState(false);
+  const [isCheckingCache, setIsCheckingCache] = useState(allowOfflineAccess);
   const initialCheckDone = useRef(false);
 
   // Check for local cache when offline (including initial null state)
   useEffect(() => {
-    if (!allowOfflineAccess) return;
-    
-    if (!initialCheckDone.current || isConnected === false || isConnected === null) {
-      modelRepository.getAll().then(models => {
-        setHasLocalCache(models.length > 0);
-        initialCheckDone.current = true;
-      });
+    if (!allowOfflineAccess) {
+      setIsCheckingCache(false);
+      return;
     }
-  }, [allowOfflineAccess, isConnected]);
+    
+    const check = async () => {
+      try {
+        const models = await modelRepository.getAll();
+        setHasLocalCache(models.length > 0);
+      } finally {
+        setIsCheckingCache(false);
+        initialCheckDone.current = true;
+      }
+    };
+
+    check();
+  }, [allowOfflineAccess]);
 
   const isOffline = isConnected === false || isConnected === null;
   const canAccessOffline = allowOfflineAccess && isOffline && hasLocalCache;
 
   useEffect(() => {
-    if (isLoading) return;
+    // Só prossegue se o Auth e o Cache Check terminarem
+    if (isLoading || isCheckingCache) return;
 
     if (canAccessOffline) {
+      console.log('[useRequireAuth] Acesso offline permitido via cache local');
       return;
     }
 
     if (!user) {
+      console.log('[useRequireAuth] Redirecionando para login (sem user e sem cache offline)');
       // Salva a rota original antes de redirecionar para login
       const currentPath = pathname;
       if (currentPath && currentPath !== '/login') {
@@ -72,15 +84,16 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
     if (userRoleIndex < minRoleIndex) {
       router.replace('/unauthorized');
     }
-  }, [user, profile, isLoading, minRole, canAccessOffline, pathname, router]);
+  }, [user, profile, isLoading, isCheckingCache, minRole, canAccessOffline, pathname, router]);
 
   const isAuthorized =
     !isLoading &&
+    !isCheckingCache &&
     (!!user || canAccessOffline) &&
     (!user || !!profile?.active) &&
     (!user || ROLE_HIERARCHY.indexOf(profile.role) >= ROLE_HIERARCHY.indexOf(minRole));
 
-  return { isLoading, isAuthorized, isOffline, hasLocalCache };
+  return { isLoading: isLoading || isCheckingCache, isAuthorized, isOffline, hasLocalCache };
 }
 
 /**
