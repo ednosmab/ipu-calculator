@@ -64,6 +64,8 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
 
     if (isLoading || isCheckingCache) return;
 
+    console.log('[useRequireAuth] DECISION:', { canAccessOffline, isConnected, isOffline, offlineFlag, hasLocalCache, user: !!user, isCheckingCache, isLoading });
+
     if (canAccessOffline) {
       console.log('[useRequireAuth] Acesso offline permitido via cache local');
       return;
