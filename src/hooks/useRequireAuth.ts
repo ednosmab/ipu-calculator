@@ -52,8 +52,14 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
   }, [allowOfflineAccess]);
 
   const offlineFlag = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(OFFLINE_ACCESS_KEY) : null;
-  const isOffline = isConnected === false || isConnected === null;
+  const isOffline = isConnected === false;  // only confirmed offline
   const canAccessOffline = allowOfflineAccess && (isOffline || offlineFlag === 'true') && hasLocalCache;
+
+  // Network not yet confirmed by heartbeat or waiting to redirect
+  const isConfirmingNetwork = !isLoading && !isCheckingCache && !user
+    && allowOfflineAccess && hasLocalCache
+    && !canAccessOffline
+    && (isConnected === null || isConnected === true || isRedirecting);
 
   // Track real connectivity transitions to clear the offline flag
   const prevConnectedRef = useRef<boolean | null>(null);
@@ -67,7 +73,6 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
 
   const { showToast } = useToast();
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [isConfirmingNetwork, setIsConfirmingNetwork] = useState(false);
   const redirectStarted = useRef(false);
   const heartbeatWaitRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heartbeatWaitDone = useRef(false);
@@ -82,7 +87,6 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
 
     if (canAccessOffline) {
       console.log('[useRequireAuth] Acesso offline permitido via cache local');
-      setIsConfirmingNetwork(false);
       if (heartbeatWaitRef.current) {
         clearTimeout(heartbeatWaitRef.current);
         heartbeatWaitRef.current = null;
@@ -96,7 +100,6 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
       if (isConnected === true && hasLocalCache && allowOfflineAccess && !heartbeatWaitDone.current) {
         if (!heartbeatWaitRef.current) {
           console.log('[useRequireAuth] Aguardando heartbeat confirmar status de rede...');
-          setIsConfirmingNetwork(true);
           heartbeatWaitRef.current = setTimeout(() => {
             heartbeatWaitRef.current = null;
             heartbeatWaitDone.current = true;
@@ -106,7 +109,6 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
         return;
       }
 
-      setIsConfirmingNetwork(false);
       if (heartbeatWaitRef.current) {
         clearTimeout(heartbeatWaitRef.current);
         heartbeatWaitRef.current = null;
