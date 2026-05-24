@@ -2,139 +2,52 @@
 // Protege rotas: redireciona se não autenticado ou sem role mínimo
 // Nunca renderizar conteúdo protegido antes de isLoading === false
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect } from 'react';
 import { useRouter, usePathname } from 'expo-router';
 import { useAuth } from './useAuth';
 import { Role } from '@/core/auth/AuthContext';
-import { useNetworkStatus } from './useNetworkStatus';
-import { modelRepository } from '@/features/models/infra/modelRepository';
-import { useToast } from '@/core/toast/ToastProvider';
-import { theme } from '@/design-system';
 
 const ROLE_HIERARCHY: Role[] = ['viewer', 'editor', 'admin'];
 
 const LOGIN_REDIRECT_KEY = 'ipu_login_redirect';
-const OFFLINE_ACCESS_KEY = 'ipu_offline_access';
+
+interface UseRequireAuthOptions {
+  /** Permitir acesso sem autenticação se houver cache offline */
+  canAccessOffline?: boolean;
+  /** Ainda verificando cache local (adiar redirect) */
+  isCheckingCache?: boolean;
+}
 
 /**
  * Chame no topo de qualquer tela protegida.
  * @param minRole Role mínimo necessário (default: 'viewer')
- * @param allowOfflineAccess Se true, permite acesso offline mesmo sem login (se houver cache local)
- * @returns isAuthorized — use para condicionar a renderização
+ * @param options Opções extras (offline, cache)
+ * @returns isLoading, isAuthorized
  */
-export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = false) {
+export function useRequireAuth(
+  minRole: Role = 'viewer',
+  options: UseRequireAuthOptions = {}
+) {
   const { user, profile, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const isConnected = useNetworkStatus();
-  const [hasLocalCache, setHasLocalCache] = useState(false);
-  const [isCheckingCache, setIsCheckingCache] = useState(allowOfflineAccess);
-  const initialCheckDone = useRef(false);
-
-  // Check for local cache when offline (including initial null state)
-  useEffect(() => {
-    if (!allowOfflineAccess) {
-      setIsCheckingCache(false);
-      return;
-    }
-    
-    const check = async () => {
-      try {
-        const models = await modelRepository.getAll();
-        setHasLocalCache(models.length > 0);
-      } finally {
-        setIsCheckingCache(false);
-        initialCheckDone.current = true;
-      }
-    };
-
-    check();
-  }, [allowOfflineAccess]);
-
-  const offlineFlag = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(OFFLINE_ACCESS_KEY) : null;
-  const isOffline = isConnected === false;  // only confirmed offline
-  const canAccessOffline = allowOfflineAccess && (isOffline || offlineFlag === 'true') && hasLocalCache;
-
-  // Network not yet confirmed by heartbeat or waiting to redirect
-  const isConfirmingNetwork = !isLoading && !isCheckingCache && !user
-    && allowOfflineAccess && hasLocalCache
-    && !canAccessOffline
-    && (isConnected === null || isConnected === true || isRedirecting);
-
-  // Track real connectivity transitions to clear the offline flag
-  const prevConnectedRef = useRef<boolean | null>(null);
-  useEffect(() => {
-    // Only clear when user was confirmed offline (false) and comes back online (true)
-    if (prevConnectedRef.current === false && isConnected === true && offlineFlag === 'true') {
-      try { sessionStorage.removeItem(OFFLINE_ACCESS_KEY); } catch {}
-    }
-    prevConnectedRef.current = isConnected;
-  }, [isConnected, offlineFlag]);
-
-  const { showToast } = useToast();
-  const [isRedirecting, setIsRedirecting] = useState(false);
-  const redirectStarted = useRef(false);
-  const heartbeatWaitRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const heartbeatWaitDone = useRef(false);
-  const [forceTick, setForceTick] = useState(0);
+  const { canAccessOffline = false, isCheckingCache = false } = options;
 
   useEffect(() => {
-    if (redirectStarted.current) return;
-
+    // Aguarda auth e verificação de cache
     if (isLoading || isCheckingCache) return;
 
-    console.log('[useRequireAuth] DECISION:', { canAccessOffline, isConnected, isOffline, offlineFlag, hasLocalCache, user: !!user, isCheckingCache, isLoading });
-
-    if (canAccessOffline) {
-      console.log('[useRequireAuth] Acesso offline permitido via cache local');
-      if (heartbeatWaitRef.current) {
-        clearTimeout(heartbeatWaitRef.current);
-        heartbeatWaitRef.current = null;
-      }
-      heartbeatWaitDone.current = false;
-      return;
-    }
+    // Se há cache offline, permite acesso mesmo sem user
+    if (!user && canAccessOffline) return;
 
     if (!user) {
-      // Se parece online mas tem cache, espera o heartbeat confirmar (UMA vez)
-      if (isConnected === true && hasLocalCache && allowOfflineAccess && !heartbeatWaitDone.current) {
-        if (!heartbeatWaitRef.current) {
-          console.log('[useRequireAuth] Aguardando heartbeat confirmar status de rede...');
-          heartbeatWaitRef.current = setTimeout(() => {
-            heartbeatWaitRef.current = null;
-            heartbeatWaitDone.current = true;
-            setForceTick(t => t + 1);
-          }, 4000);
-        }
-        return;
+      const currentPath = pathname;
+      if (currentPath && currentPath !== '/login') {
+        try {
+          sessionStorage.setItem(LOGIN_REDIRECT_KEY, currentPath);
+        } catch {}
       }
-
-      if (heartbeatWaitRef.current) {
-        clearTimeout(heartbeatWaitRef.current);
-        heartbeatWaitRef.current = null;
-      }
-
-      console.log('[useRequireAuth] Iniciando Graceful Redirect para login');
-      
-      redirectStarted.current = true;
-      setIsRedirecting(true);
-
-      // Se voltamos de offline para online e a sessão é inválida, avisa o usuário
-      if (isConnected === true) {
-        showToast('Sessão expirada. Redirecionando...', 'warning');
-      }
-
-      setTimeout(() => {
-        // Salva a rota original antes de redirecionar para login
-        const currentPath = pathname;
-        if (currentPath && currentPath !== '/login') {
-          try {
-            sessionStorage.setItem(LOGIN_REDIRECT_KEY, currentPath);
-          } catch {}
-        }
-        router.replace('/login');
-      }, theme.animations.durations.redirect);
-
+      router.replace('/login');
       return;
     }
 
@@ -149,16 +62,11 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
     if (userRoleIndex < minRoleIndex) {
       router.replace('/unauthorized');
     }
-  }, [user, profile, isLoading, isCheckingCache, isConnected, minRole, canAccessOffline, pathname, router, showToast, forceTick]);
+  }, [user, profile, isLoading, minRole, pathname, router, canAccessOffline, isCheckingCache]);
 
-  const isAuthorized =
-    !isLoading &&
-    !isCheckingCache &&
-    (!!user || canAccessOffline || isRedirecting) &&
-    (!user || !!profile?.active) &&
-    (!user || ROLE_HIERARCHY.indexOf(profile.role) >= ROLE_HIERARCHY.indexOf(minRole));
+  const isAuthorized = !isLoading && !!user && !!profile?.active;
 
-  return { isLoading: isLoading || isCheckingCache, isAuthorized, isOffline, hasLocalCache, isRedirecting, isConfirmingNetwork };
+  return { isLoading, isAuthorized };
 }
 
 /**
