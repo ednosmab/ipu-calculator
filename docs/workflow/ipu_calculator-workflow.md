@@ -26,7 +26,20 @@ git push origin refactor
 
 ### 2. Enviando para Testes (Staging)
 Quando o código estiver pronto para ser testado na Web:
+
+**Automático (recomendado):** O script bumpa versão, mergeia e faz push:
 ```bash
+./scripts/merge-to-develop.sh
+```
+
+**Manual:**
+```bash
+# Bump versão (obrigatório — ativa cache novo no SW)
+node scripts/bump-version.js
+git add package.json
+git commit -m "chore: bump version to $(node -p \"require('./package.json').version\")"
+git push origin refactor
+
 git checkout develop
 git merge refactor
 git push origin develop
@@ -78,6 +91,7 @@ npm run build
 - **Configuração de Ambiente**: Use a variável `EXPO_PUBLIC_APP_ENV` para diferenciar os ambientes.
   - `staging`: Habilita ferramentas de debug (ex: Debug Panel). Deve ser configurada no painel da Vercel para o ambiente de Preview/Staging.
   - `production`: Desabilita ferramentas de debug para o usuário final.
+- **Bump de versão automático**: O script `merge-to-develop.sh` já bumpa a versão. Se for manual, não esqueça de rodar `node scripts/bump-version.js` antes do merge. Isso garante que o Service Worker sirva assets novos.
 - **Conflitos**: Se houver conflito no merge, o VS Code avisará. Resolva os conflitos, salve os arquivos e complete o commit.
 - **Lint + Testes antes do Push**: Execute `npm run lint` e `npm test` localmente antes de fazer push para evitar falhas no CI.
 - **Porta presa**: Antes de iniciar o serve, verifique se a porta está livre.
