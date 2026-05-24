@@ -27,7 +27,7 @@ export const useServiceWorkerUpdate = () => {
       isInitializedRef.current = true;
       return;
     }
-    setUpdateAvailable(true);
+    window.location.reload();
   }, []);
 
   const applyUpdate = useCallback(async () => {
@@ -38,10 +38,8 @@ export const useServiceWorkerUpdate = () => {
       if (registration?.waiting) {
         registration.waiting.postMessage({ type: 'SKIP_WAITING' });
       }
-      window.location.reload();
     } catch (e) {
       console.error('[SW] Apply update error:', e);
-      window.location.reload();
     }
   }, []);
 
