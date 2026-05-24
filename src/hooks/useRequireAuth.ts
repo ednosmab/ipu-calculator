@@ -14,6 +14,7 @@ import { theme } from '@/design-system';
 const ROLE_HIERARCHY: Role[] = ['viewer', 'editor', 'admin'];
 
 const LOGIN_REDIRECT_KEY = 'ipu_login_redirect';
+const OFFLINE_ACCESS_KEY = 'ipu_offline_access';
 
 /**
  * Chame no topo de qualquer tela protegida.
@@ -50,18 +51,17 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
     check();
   }, [allowOfflineAccess]);
 
+  const offlineFlag = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(OFFLINE_ACCESS_KEY) : null;
   const isOffline = isConnected === false || isConnected === null;
-  const canAccessOffline = allowOfflineAccess && isOffline && hasLocalCache;
+  const canAccessOffline = allowOfflineAccess && (isOffline || offlineFlag === 'true') && hasLocalCache;
 
   const { showToast } = useToast();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const redirectStarted = useRef(false);
 
   useEffect(() => {
-    // Se já iniciamos o processo de redirecionamento, não fazemos nada aqui
     if (redirectStarted.current) return;
 
-    // Só prossegue se o Auth e o Cache Check terminarem
     if (isLoading || isCheckingCache) return;
 
     if (canAccessOffline) {

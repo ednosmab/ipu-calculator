@@ -46,6 +46,7 @@ export default function LoginScreen() {
   }, []);
 
   const handleAccessOffline = () => {
+    try { sessionStorage.setItem('ipu_offline_access', 'true'); } catch {}
     router.replace('/models');
   };
 
