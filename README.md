@@ -2,7 +2,7 @@
 > Precisão Industrial em Alta Performance, Online ou Offline.
 
 [![CI](https://github.com/ednosmab/ipu-calculator/actions/workflows/ci.yml/badge.svg)](https://github.com/ednosmab/ipu-calculator/actions/workflows/ci.yml)
-**Version:** 1.2.1 | **License:** Proprietary | **Platform:** PWA / Mobile (Expo)
+**Version:** 1.2.2 | **License:** Proprietary | **Platform:** PWA / Mobile (Expo)
 
 ---
 
