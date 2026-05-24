@@ -4,9 +4,10 @@ import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { theme } from '@/design-system';
 
 export default function Page() {
-  const { isAuthorized, isOffline, hasLocalCache, isConfirmingNetwork } = useRequireAuth('viewer', true);
+  const { isLoading: authLoading, isAuthorized, isOffline, hasLocalCache, isConfirmingNetwork } = useRequireAuth('viewer', true);
+  const showLoader = authLoading || isConfirmingNetwork;
 
-  if (isConfirmingNetwork) {
+  if (showLoader) {
     return (
       <View style={styles.confirmingContainer}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -31,6 +32,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.bg,
   },
 });
