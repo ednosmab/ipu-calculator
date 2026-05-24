@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, '../package.json'), 'utf8'));
-const version = process.env.EXPO_PUBLIC_APP_VERSION || packageJson.version;
+const version = packageJson.version;
 
 // Update dist/ service worker (generated after expo export)
 const distSwPath = path.join(__dirname, '../dist/service-worker.js');
