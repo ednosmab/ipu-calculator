@@ -55,6 +55,16 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
   const isOffline = isConnected === false || isConnected === null;
   const canAccessOffline = allowOfflineAccess && (isOffline || offlineFlag === 'true') && hasLocalCache;
 
+  // Track real connectivity transitions to clear the offline flag
+  const prevConnectedRef = useRef<boolean | null>(null);
+  useEffect(() => {
+    // Only clear when user was confirmed offline (false) and comes back online (true)
+    if (prevConnectedRef.current === false && isConnected === true && offlineFlag === 'true') {
+      try { sessionStorage.removeItem(OFFLINE_ACCESS_KEY); } catch {}
+    }
+    prevConnectedRef.current = isConnected;
+  }, [isConnected, offlineFlag]);
+
   const { showToast } = useToast();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const redirectStarted = useRef(false);
