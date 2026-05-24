@@ -11,6 +11,7 @@ type Props = {
   loading?: boolean;
   icon?: ReactNode;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 };
 
 export const Button = ({ 
@@ -20,8 +21,9 @@ export const Button = ({
   size = 'md',
   disabled = false,
   loading = false,
-  icon, 
-  style 
+  icon,
+  style,
+  testID,
 }: Props) => {
   const isDisabled = disabled || loading;
 
@@ -29,6 +31,7 @@ export const Button = ({
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
+      testID={testID}
       accessibilityLabel={title}
       accessibilityRole="button"
       style={({ pressed }) => [
