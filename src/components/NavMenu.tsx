@@ -3,6 +3,7 @@ import { theme } from '@/design-system/theme';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter, usePathname } from 'expo-router';
+import { APP_VERSION } from '@/core/version';
 import { FontAwesome5 } from '@expo/vector-icons';
 import React, { useState, useCallback, useRef } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, View } from 'react-native';
@@ -113,7 +114,7 @@ export const NavMenu = () => {
               )}
 
               <View style={styles.footer}>
-                <Text style={styles.version}>v{process.env.EXPO_PUBLIC_APP_VERSION ?? '1.0.0'}</Text>
+                <Text style={styles.version}>v{APP_VERSION}</Text>
               </View>
             </VStack>
           </Animated.View>
