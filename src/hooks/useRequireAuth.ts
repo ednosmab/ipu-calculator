@@ -67,6 +67,7 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
 
   const { showToast } = useToast();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isConfirmingNetwork, setIsConfirmingNetwork] = useState(false);
   const redirectStarted = useRef(false);
   const heartbeatWaitRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heartbeatWaitDone = useRef(false);
@@ -81,6 +82,7 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
 
     if (canAccessOffline) {
       console.log('[useRequireAuth] Acesso offline permitido via cache local');
+      setIsConfirmingNetwork(false);
       if (heartbeatWaitRef.current) {
         clearTimeout(heartbeatWaitRef.current);
         heartbeatWaitRef.current = null;
@@ -94,6 +96,7 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
       if (isConnected === true && hasLocalCache && allowOfflineAccess && !heartbeatWaitDone.current) {
         if (!heartbeatWaitRef.current) {
           console.log('[useRequireAuth] Aguardando heartbeat confirmar status de rede...');
+          setIsConfirmingNetwork(true);
           heartbeatWaitRef.current = setTimeout(() => {
             heartbeatWaitRef.current = null;
             heartbeatWaitDone.current = true;
@@ -103,6 +106,7 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
         return;
       }
 
+      setIsConfirmingNetwork(false);
       if (heartbeatWaitRef.current) {
         clearTimeout(heartbeatWaitRef.current);
         heartbeatWaitRef.current = null;
@@ -152,7 +156,7 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
     (!user || !!profile?.active) &&
     (!user || ROLE_HIERARCHY.indexOf(profile.role) >= ROLE_HIERARCHY.indexOf(minRole));
 
-  return { isLoading: isLoading || isCheckingCache, isAuthorized, isOffline, hasLocalCache, isRedirecting };
+  return { isLoading: isLoading || isCheckingCache, isAuthorized, isOffline, hasLocalCache, isRedirecting, isConfirmingNetwork };
 }
 
 /**
