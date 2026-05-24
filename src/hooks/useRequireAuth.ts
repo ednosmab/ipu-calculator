@@ -69,6 +69,7 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
   const [isRedirecting, setIsRedirecting] = useState(false);
   const redirectStarted = useRef(false);
   const heartbeatWaitRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartbeatWaitDone = useRef(false);
   const [forceTick, setForceTick] = useState(0);
 
   useEffect(() => {
@@ -84,17 +85,21 @@ export function useRequireAuth(minRole: Role = 'viewer', allowOfflineAccess = fa
         clearTimeout(heartbeatWaitRef.current);
         heartbeatWaitRef.current = null;
       }
+      heartbeatWaitDone.current = false;
       return;
     }
 
     if (!user) {
-      // Se parece online mas tem cache, espera o heartbeat confirmar antes de redirect
-      if (isConnected === true && hasLocalCache && allowOfflineAccess && !heartbeatWaitRef.current) {
-        console.log('[useRequireAuth] Aguardando heartbeat confirmar status de rede...');
-        heartbeatWaitRef.current = setTimeout(() => {
-          heartbeatWaitRef.current = null;
-          setForceTick(t => t + 1);
-        }, 4000);
+      // Se parece online mas tem cache, espera o heartbeat confirmar (UMA vez)
+      if (isConnected === true && hasLocalCache && allowOfflineAccess && !heartbeatWaitDone.current) {
+        if (!heartbeatWaitRef.current) {
+          console.log('[useRequireAuth] Aguardando heartbeat confirmar status de rede...');
+          heartbeatWaitRef.current = setTimeout(() => {
+            heartbeatWaitRef.current = null;
+            heartbeatWaitDone.current = true;
+            setForceTick(t => t + 1);
+          }, 4000);
+        }
         return;
       }
 
