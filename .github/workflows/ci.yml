@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, refactor]
   pull_request:
-    branches: [main, refactor]
+    branches: [main, develop, refactor]
 
 jobs:
   lint-and-test:
