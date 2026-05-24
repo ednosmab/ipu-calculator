@@ -80,7 +80,7 @@ export const ModelsScreen = ({ isOffline, hasLocalCache }: Props) => {
 
   const totalModels = ipuModels.length + calibrationModels.length;
 
-  const showOfflineBanner = isOffline && !user && totalModels > 0;
+  const showOfflineBanner = isOffline && totalModels > 0;
 
   const footer = (
     <View style={styles.fabWrapper}>
@@ -115,7 +115,9 @@ export const ModelsScreen = ({ isOffline, hasLocalCache }: Props) => {
         <View style={styles.offlineBanner}>
           <FontAwesome5 name="wifi" size={16} color={theme.colors.warning} />
           <Text style={styles.offlineBannerText}>
-            Conecte-se à internet e faça login para atualizar a lista de modelos
+            {user
+              ? 'Conecte-se à internet para atualizar a lista de modelos'
+              : 'Conecte-se à internet e faça login para atualizar a lista de modelos'}
           </Text>
         </View>
       )}
