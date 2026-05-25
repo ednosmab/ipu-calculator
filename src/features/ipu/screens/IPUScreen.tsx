@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Modal as RNModal, View } from 'react-native';
 import { logService } from '@/core/logging/LogService';
 import { createModelUseCase } from '@/features/models/application/modelUseCases';
-import { Button, Input, Card, theme, HStack, VStack, Text } from '@/design-system';
+import { Button, Input, Card, HStack, VStack, Text, theme } from '@/design-system';
 import { InputRef } from '@/design-system/components/Input';
 import { ResultCard } from '@/components/ResultCard';
 import { HistoryList } from '@/components/HistoryList';
@@ -15,12 +15,7 @@ import { useTranslation } from '@/i18n/TranslationContext';
 import { parseNumber } from '@/core/parsers/numberParser';
 import { styles } from './IPUScreen.styles';
 
-type Props = {
-  goBack: () => void;
-  goToCalibration: () => void;
-};
-
-export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
+export const IPUScreen = () => {
   const { t } = useTranslation();
   const { toast, success, error: showError } = useToast();
   const screenRef = useRef<ScreenLayoutRef>(null);
@@ -109,23 +104,6 @@ export const IPUScreen = ({ goBack, goToCalibration }: Props) => {
       <ScreenLayout
         ref={screenRef}
         title={t('calculateInjection')}
-        footer={
-          <HStack gap="sm" style={{ width: '100%' }}>
-            <Button
-              title={t('back')}
-              variant="secondary"
-              onPress={goBack}
-              style={{ flex: 1 }}
-              icon={<FontAwesome5 name="arrow-left" size={20} color={theme.colors.textSecondary} />}
-            />
-            <Button
-              title={t('goToCalibration')}
-              onPress={goToCalibration}
-              style={{ flex: 1 }}
-              icon={<FontAwesome5 name="tint" size={20} color={theme.colors.primaryText} />}
-            />
-          </HStack>
-        }
       >
       <VStack gap="lg">
         <ResultCard result={result} />
