@@ -56,9 +56,6 @@ jest.mock('@/features/models/application/modelUseCases', () => ({
 }));
 
 describe('IPUScreen Integration Tests', () => {
-  const mockGoBack = jest.fn();
-  const mockGoToCalibration = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -66,7 +63,7 @@ describe('IPUScreen Integration Tests', () => {
   it('should render all input fields and calculate button', async () => {
     const { getByLabelText } = render(
       <TranslationProvider>
-        <IPUScreen goBack={mockGoBack} goToCalibration={mockGoToCalibration} />
+        <IPUScreen />
       </TranslationProvider>
     );
 
@@ -80,7 +77,7 @@ describe('IPUScreen Integration Tests', () => {
   it('should calculate the result when values are entered', async () => {
     const { getByLabelText, findByText } = render(
       <TranslationProvider>
-        <IPUScreen goBack={mockGoBack} goToCalibration={mockGoToCalibration} />
+        <IPUScreen />
       </TranslationProvider>
     );
 
@@ -100,7 +97,7 @@ describe('IPUScreen Integration Tests', () => {
   it('should show validation errors when fields are empty', async () => {
     const { getAllByText, getByLabelText } = render(
       <TranslationProvider>
-        <IPUScreen goBack={mockGoBack} goToCalibration={mockGoToCalibration} />
+        <IPUScreen />
       </TranslationProvider>
     );
 
@@ -121,7 +118,7 @@ describe('IPUScreen Integration Tests', () => {
 
     const { getByLabelText, queryByText, findByLabelText } = render(
       <TranslationProvider>
-        <IPUScreen goBack={mockGoBack} goToCalibration={mockGoToCalibration} />
+        <IPUScreen />
       </TranslationProvider>
     );
 
