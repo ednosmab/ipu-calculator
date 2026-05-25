@@ -1,6 +1,6 @@
 import { logService } from '@/core/logging/LogService';
 import { InputRef } from '@/design-system/components/Input';
-import { Button, Input, Card, theme, Toggle, HStack, VStack, Text } from '@/design-system';
+import { Button, Input, Card, Toggle, VStack, Text, theme } from '@/design-system';
 import { ResultCard } from '@/components/ResultCard';
 import { HistoryList } from '@/components/HistoryList';
 import { ScreenLayout, ScreenLayoutRef } from '@/components/ScreenLayout';
@@ -10,12 +10,7 @@ import { useCalibration } from '../hooks/useCalibration';
 import { useTranslation } from '@/i18n/TranslationContext';
 import { styles } from './CalibrationScreen.styles';
 
-type Props = {
-  goBack: () => void;
-  goToCalculator: () => void;
-};
-
-export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
+export const CalibrationScreen = () => {
   const screenRef = useRef<ScreenLayoutRef>(null);
   const extractedWeightRef = useRef<InputRef>({ focus: () => {}, current: null });
   const averageValueRef = useRef<InputRef>({ focus: () => {}, current: null });
@@ -82,23 +77,6 @@ export const CalibrationScreen = ({ goBack, goToCalculator }: Props) => {
     <ScreenLayout
       ref={screenRef}
       title={t('calibrateFlow')}
-      footer={
-        <HStack gap="sm" style={{ width: '100%' }}>
-          <Button
-            title={t('back')}
-            variant="secondary"
-            onPress={goBack}
-            style={{ flex: 1 }}
-            icon={<FontAwesome5 name="arrow-left" size={20} color={theme.colors.textSecondary} />}
-          />
-          <Button
-            title={t('goToCalculator')}
-            onPress={goToCalculator}
-            style={{ flex: 1 }}
-            icon={<FontAwesome5 name="calculator" size={20} color={theme.colors.primaryText} />}
-          />
-        </HStack>
-      }
     >
       <VStack gap="lg">
         <ResultCard result={result} />

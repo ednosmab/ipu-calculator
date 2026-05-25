@@ -46,9 +46,6 @@ jest.mock('@/i18n/TranslationContext', () => ({
 }));
 
 describe('CalibrationScreen Integration Tests', () => {
-  const mockGoBack = jest.fn();
-  const mockGoToCalculator = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -56,7 +53,7 @@ describe('CalibrationScreen Integration Tests', () => {
   it('should render all basic input fields', async () => {
     const { getByLabelText, getByText } = render(
       <TranslationProvider>
-        <CalibrationScreen goBack={mockGoBack} goToCalculator={mockGoToCalculator} />
+        <CalibrationScreen />
       </TranslationProvider>
     );
 
@@ -71,7 +68,7 @@ describe('CalibrationScreen Integration Tests', () => {
   it('should calculate the adjustment result correctly', async () => {
     const { getByLabelText, getByText, findByText } = render(
       <TranslationProvider>
-        <CalibrationScreen goBack={mockGoBack} goToCalculator={mockGoToCalculator} />
+        <CalibrationScreen />
       </TranslationProvider>
     );
 
@@ -89,7 +86,7 @@ describe('CalibrationScreen Integration Tests', () => {
   it('should show helper fields when toggle is active', async () => {
     const { getByRole, queryByLabelText, getByLabelText, getByText } = render(
       <TranslationProvider>
-        <CalibrationScreen goBack={mockGoBack} goToCalculator={mockGoToCalculator} />
+        <CalibrationScreen />
       </TranslationProvider>
     );
 
