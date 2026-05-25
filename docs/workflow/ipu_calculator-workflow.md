@@ -25,25 +25,22 @@ git push origin refactor
 ```
 
 ### 2. Enviando para Testes (Staging)
-Quando o código estiver pronto para ser testado na Web:
+Quando o código estiver pronto para ser testado na Web, crie um **Pull Request** no GitHub para rodar CI e garantir que tudo passa antes do merge:
 
-**Automático (recomendado):** O script bumpa versão, mergeia e faz push:
+**Automático (recomendado):**
 ```bash
 ./scripts/merge-to-develop.sh
 ```
+O script pusha `refactor` e abre um PR `refactor → develop`. Espere o CI ficar verde e faça o merge pelo GitHub.
 
 **Manual:**
 ```bash
-# Bump versão (obrigatório — ativa cache novo no SW)
-node scripts/bump-version.js
-git add package.json
-git commit -m "chore: bump version to $(node -p \"require('./package.json').version\")"
 git push origin refactor
-
-git checkout develop
-git merge refactor
-git push origin develop
+# Depois abra PR manualmente em:
+# https://github.com/ednosmab/ipu-calculator/pull/new/refactor...develop
 ```
+
+> **Após o merge**: O `bump.yml` bumpa versão e builda automaticamente.
 > **Ação**: Acesse o [Link de Teste](https://ipu-calculator-staging.vercel.app) e verifique se tudo funciona.
 
 ### 3. Publicando para Produção (Main)
@@ -91,7 +88,7 @@ npm run build
 - **Configuração de Ambiente**: Use a variável `EXPO_PUBLIC_APP_ENV` para diferenciar os ambientes.
   - `staging`: Habilita ferramentas de debug (ex: Debug Panel). Deve ser configurada no painel da Vercel para o ambiente de Preview/Staging.
   - `production`: Desabilita ferramentas de debug para o usuário final.
-- **Bump de versão automático**: O script `merge-to-develop.sh` já bumpa a versão. Se for manual, não esqueça de rodar `node scripts/bump-version.js` antes do merge. Isso garante que o Service Worker sirva assets novos.
+- **Bump de versão automático**: O `bump.yml` no GitHub bumpa a versão ao receber push na `develop`. Após o merge do PR, o bump acontece automaticamente. Isso garante que o Service Worker sirva assets novos.
 - **Conflitos**: Se houver conflito no merge, o VS Code avisará. Resolva os conflitos, salve os arquivos e complete o commit.
 - **Lint + Testes antes do Push**: Execute `npm run lint` e `npm test` localmente antes de fazer push para evitar falhas no CI.
 - **Porta presa**: Antes de iniciar o serve, verifique se a porta está livre.
