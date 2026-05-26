@@ -10,6 +10,7 @@ const mockPendingModel: CalculationModel = {
   inputs: { isocyanate: 100, polyol: 150 },
   createdAt: Date.now() - 10000,
   updatedAt: Date.now() - 10000,
+  version: 1,
   syncStatus: 'pending',
   localAction: 'created' as const,
 };
@@ -21,6 +22,7 @@ const mockSyncedModel: CalculationModel = {
   inputs: { targetWeight: 1000, machineValue: 100, actualWeight: 900 },
   createdAt: Date.now() - 10000,
   updatedAt: Date.now() - 10000,
+  version: 2,
   syncStatus: 'synced',
   localAction: null,
 };
@@ -29,11 +31,13 @@ describe('Schema Migration Service', () => {
   beforeEach(async () => {
     await asyncStorageClient.remove(STORAGE_KEYS.CACHE_VERSION);
     await asyncStorageClient.remove(STORAGE_KEYS.MODELS);
+    await asyncStorageClient.remove(STORAGE_KEYS.MODELS_BACKUP);
   });
 
   afterEach(async () => {
     await asyncStorageClient.remove(STORAGE_KEYS.CACHE_VERSION);
     await asyncStorageClient.remove(STORAGE_KEYS.MODELS);
+    await asyncStorageClient.remove(STORAGE_KEYS.MODELS_BACKUP);
   });
 
   describe('needsMigration', () => {
@@ -121,6 +125,45 @@ describe('Schema Migration Service', () => {
       const result = await schemaMigrationService.migrateIfNeeded();
 
       expect(result.count).toBe(3);
+    });
+  });
+
+  describe('backup and restore', () => {
+    it('should create backup before migration', async () => {
+      await asyncStorageClient.set(STORAGE_KEYS.CACHE_VERSION, '0.9.0');
+      await asyncStorageClient.set(STORAGE_KEYS.MODELS, [mockPendingModel]);
+
+      await schemaMigrationService.migrateIfNeeded();
+
+      const backup = await asyncStorageClient.get<{ data: unknown; schemaVersion: string }>(STORAGE_KEYS.MODELS_BACKUP);
+      expect(backup).not.toBeNull();
+      expect(backup!.schemaVersion).toBe('0.9.0');
+    });
+
+    it('should restore backup successfully', async () => {
+      await asyncStorageClient.set(STORAGE_KEYS.CACHE_VERSION, '0.9.0');
+      await asyncStorageClient.set(STORAGE_KEYS.MODELS, [mockPendingModel]);
+      await schemaMigrationService.backup();
+
+      await asyncStorageClient.remove(STORAGE_KEYS.MODELS);
+      await asyncStorageClient.remove(STORAGE_KEYS.CACHE_VERSION);
+
+      const restored = await schemaMigrationService.restoreBackup();
+      expect(restored).toBe(true);
+
+      const models = await schemaMigrationService.getModels();
+      expect(models).toHaveLength(1);
+      expect(models[0].id).toBe('pending-1');
+    });
+
+    it('should return false when no backup exists', async () => {
+      const restored = await schemaMigrationService.restoreBackup();
+      expect(restored).toBe(false);
+    });
+
+    it('should not backup when there are no models', async () => {
+      const backedUp = await schemaMigrationService.backup();
+      expect(backedUp).toBe(false);
     });
   });
 

@@ -11,6 +11,7 @@ export const modelSyncService = {
       name: model.name,
       type: model.type,
       inputs: model.inputs,
+      version: model.version,
       updated_at: new Date(model.updatedAt).toISOString(),
     });
 

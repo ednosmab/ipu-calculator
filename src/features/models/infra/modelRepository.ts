@@ -45,12 +45,40 @@ const isExpired = (expiresAt: number): boolean => {
   return Date.now() > expiresAt;
 };
 
+const recoveryAndRefresh = async (): Promise<CalculationModel[]> => {
+  try {
+    const { schemaMigrationService } = await import('../application/schemaMigrationService');
+    const restored = await schemaMigrationService.restoreBackup();
+    if (restored) {
+      logger.info('[modelRepository] Backup restaurado com sucesso');
+      return getAll(true);
+    }
+  } catch (backupErr) {
+    logger.error('[modelRepository] Falha ao restaurar backup', backupErr);
+  }
+
+  logger.warn('[modelRepository] Backup falhou — limpando cache e forçando refresh remoto');
+  await asyncStorageClient.remove(STORAGE_KEYS.MODELS);
+  try {
+    const { fetchRemoteModelsUseCase } = await import('../application/fetchRemoteModelsUseCase');
+    fetchRemoteModelsUseCase();
+  } catch (fetchErr) {
+    logger.error('[modelRepository] Falha ao acionar refresh remoto após recovery', fetchErr);
+  }
+  return [];
+};
+
 const getAll = async (forceRefresh = false): Promise<CalculationModel[]> => {
   try {
     const cached = await asyncStorageClient.get<CacheMetadata>(STORAGE_KEYS.MODELS);
 
     if (!cached) {
-      logger.info('[modelRepository] Cache miss — returning []');
+      const hasSchemaVersion = await asyncStorageClient.get<string>(STORAGE_KEYS.CACHE_VERSION);
+      if (hasSchemaVersion) {
+        logger.warn('[modelRepository] Cache corrompido (schema existe mas models não) — tentando backup');
+        return recoveryAndRefresh();
+      }
+      logger.info('[modelRepository] Cache vazio — returning []');
       return [];
     }
 
@@ -75,7 +103,7 @@ const getAll = async (forceRefresh = false): Promise<CalculationModel[]> => {
     return data;
   } catch (e) {
     logger.error('[modelRepository] Erro crítico ao ler cache', e);
-    return [];
+    return recoveryAndRefresh();
   }
 };
 

@@ -3,6 +3,7 @@ import { modelSyncService } from '../infra/modelSyncService';
 import { pendingOpsService } from '../infra/pendingOpsService';
 import { MAX_ATTEMPTS } from '../domain/pendingOperation';
 import { logger } from '@/core/logging/logger';
+import { getDeviceId } from '@/core/device/deviceId';
 
 export const processPendingDeletesUseCase = async (): Promise<{ processed: number; failed: number }> => {
   const pendingIds = await pendingOpsService.getPendingDeletes();
@@ -75,7 +76,8 @@ export const syncModelsUseCase = async (): Promise<void> => {
 
   if (pendingModels.length === 0) return;
 
-  logger.info(`[Sync] Iniciando sincronização de ${pendingModels.length} modelos pendentes...`);
+  const deviceId = await getDeviceId();
+  logger.info(`[Sync] Iniciando sincronização de ${pendingModels.length} modelos pendentes [device:${deviceId.slice(0, 8)}]`);
 
   let syncedCount = 0;
   for (const model of pendingModels) {

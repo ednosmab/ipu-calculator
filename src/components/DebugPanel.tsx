@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { theme } from '@/design-system';
 import { CACHE_VERSION } from '@/core/versioning/cacheVersion';
 import { CONFIG } from '@/core/config';
 import { useAuth } from '@/hooks/useAuth';
+import { modelRepository } from '@/features/models/infra/modelRepository';
 
 type LogEntry = {
   type: 'error' | 'warn' | 'info';
@@ -23,8 +24,30 @@ export const DebugPanel = ({ visible, debugInfo }: DebugPanelProps) => {
   const originalConsoleWarn = useRef<typeof console.warn>(console.warn);
   const originalConsoleLog = useRef<typeof console.log>(console.log);
   
-  // Auth info
+  const formatArg = (a: unknown): string => {
+  if (a instanceof Error) return a.message;
+  if (typeof a === 'object' && a !== null) {
+    try { return JSON.stringify(a); } catch { return String(a); }
+  }
+  return String(a);
+};
+
+// Auth info
   const { user, profile, session, isLoading: authLoading } = useAuth();
+
+  const [modelsCache, setModelsCache] = useState<{ name: string; version: number; syncStatus: string }[]>([]);
+
+  const loadModels = useCallback(() => {
+    modelRepository.getAll().then(data => {
+      setModelsCache(data.map(m => ({ name: m.name, version: m.version, syncStatus: m.syncStatus })));
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    loadModels();
+    const unsub = modelRepository.subscribe(loadModels);
+    return unsub;
+  }, [loadModels]);
 
   const addLog = (type: LogEntry['type'], message: string) => {
     const timestamp = new Date().toLocaleTimeString('pt-BR', { hour12: false });
@@ -80,19 +103,19 @@ export const DebugPanel = ({ visible, debugInfo }: DebugPanelProps) => {
     // Override console.error
     console.error = (...args: any[]) => {
       originalConsoleError.current(...args);
-      addLog('error', args.map(a => (a instanceof Error ? a.message : String(a))).join(' '));
+      addLog('error', args.map(formatArg).join(' '));
     };
 
     // Override console.warn
     console.warn = (...args: any[]) => {
       originalConsoleWarn.current(...args);
-      addLog('warn', args.map(a => (a instanceof Error ? a.message : String(a))).join(' '));
+      addLog('warn', args.map(formatArg).join(' '));
     };
 
     // Override console.log
     console.log = (...args: any[]) => {
       originalConsoleLog.current(...args);
-      addLog('info', args.map(a => (a instanceof Error ? a.message : String(a))).join(' '));
+      addLog('info', args.map(formatArg).join(' '));
     };
 
     window.addEventListener('error', handleError);
@@ -182,6 +205,14 @@ export const DebugPanel = ({ visible, debugInfo }: DebugPanelProps) => {
         <Text style={styles.infoText}>Profile: {profile ? `${profile.role} (${profile.active ? 'Ativo' : 'Inativo'})` : 'Nenhum'}</Text>
         <Text style={styles.infoText}>Profile Name: {profile?.name || 'Nenhum'}</Text>
         <Text style={styles.infoText}>Session: {session?.access_token ? '***' + session.access_token.slice(-6) : 'Nenhuma'}</Text>
+
+        <Text style={styles.sectionTitle}>Models Cache ({modelsCache.length})</Text>
+        {modelsCache.length === 0 && <Text style={styles.infoText}>Vazio</Text>}
+        {modelsCache.map((m, i) => (
+          <Text key={i} style={styles.infoText}>
+            #{i + 1} {m.name} — v{m.version} [{m.syncStatus}]
+          </Text>
+        ))}
 
         {debugInfo && (
           <>

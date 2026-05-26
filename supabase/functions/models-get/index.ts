@@ -24,7 +24,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: models, error } = await supabase
       .from('models')
-      .select('id, name, type, inputs, created_at, updated_at')
+      .select('id, name, type, inputs, created_at, updated_at, version')
       .order('updated_at', { ascending: false });
 
     if (error) {

@@ -1,9 +1,11 @@
 import { edgeFunctionsClient } from '@/core/api/edgeFunctionsClient';
 import { modelRepository } from '../infra/modelRepository';
 import { CalculationModel } from '../domain/calculationModel';
+import { getDeviceId } from '@/core/device/deviceId';
 
 export const fetchRemoteModelsUseCase = async (): Promise<void> => {
-  console.log('[fetchRemoteModelsUseCase] Iniciando busca de modelos remotos...');
+  const deviceId = await getDeviceId();
+  console.log(`[fetchRemoteModelsUseCase] Iniciando busca de modelos remotos... [device:${deviceId.slice(0, 8)}]`);
 
   try {
     console.log('[fetchRemoteModelsUseCase] Chamando edgeFunctionsClient.getModels()');
@@ -11,7 +13,7 @@ export const fetchRemoteModelsUseCase = async (): Promise<void> => {
 
     console.log('[fetchRemoteModelsUseCase] Resposta recebida:', {
       modelCount: data?.length ?? 0,
-      models: data?.map(m => ({ id: m.id, name: m.name })),
+      models: data?.map(m => ({ id: m.id, name: m.name, version: m.version })),
     });
 
     await modelRepository.saveWithLock(
@@ -41,6 +43,7 @@ export const fetchRemoteModelsUseCase = async (): Promise<void> => {
           inputs: item.inputs,
           createdAt: new Date(item.created_at).getTime(),
           updatedAt: new Date(item.updated_at).getTime(),
+          version: item.version,
           syncStatus: 'synced' as const,
           localAction: null,
         }));
@@ -56,8 +59,10 @@ export const fetchRemoteModelsUseCase = async (): Promise<void> => {
           const localIndex = updated.findIndex((m) => m.id === rm.id);
 
           if (localIndex >= 0) {
-            if (rm.updatedAt > updated[localIndex].updatedAt) {
-              console.log(`[fetchRemoteModelsUseCase] Atualizando modelo: ${rm.name}`);
+            const local = updated[localIndex];
+            const remoteNewer = rm.version > local.version || (rm.version === local.version && rm.updatedAt > local.updatedAt);
+            if (remoteNewer) {
+              console.log(`[fetchRemoteModelsUseCase] Atualizando modelo: ${rm.name} (v${local.version} → v${rm.version})`);
               updated[localIndex] = rm;
               mergedCount++;
             }
@@ -89,7 +94,8 @@ export const fetchRemoteModelsUseCase = async (): Promise<void> => {
       })()
     );
 
-    console.log('[fetchRemoteModelsUseCase] ✅ Sincronização concluída com sucesso');
+    const doneDeviceId = await getDeviceId();
+    console.log(`[fetchRemoteModelsUseCase] ✅ Sincronização concluída com sucesso [device:${doneDeviceId.slice(0, 8)}]`);
   } catch (e: unknown) {
     const error = e as Error;
 
