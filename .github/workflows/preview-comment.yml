@@ -3,6 +3,10 @@ name: Preview Comment
 on:
   deployment_status
 
+permissions:
+  issues: write
+  pull-requests: write
+
 jobs:
   comment:
     if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Preview'
