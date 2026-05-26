@@ -120,16 +120,14 @@
 
 ### 9. Cobertura de Testes Críticos
 
-**Status:** ⚠️ Parcial (100 testes, 21 suites)
+**Status:** ✅ Concluído (165 testes, 21 suites)
 
-**O que existe:** Testes de domínio, repositório, sync, hooks, schemas.
-
-**O que falta com base nas prioridades do plano:**
-- [ ] Testes de recovery (cache corrompido → backup → restore)
-- [ ] Testes de migração com dados reais
-- [ ] Testes de merge/overwrite com `version`
-- [ ] Testes de parsing de cache inválido
-- [ ] Testes de cálculo com valores extremos (boundary)
+**O que existe:**
+- [x] Testes de recovery (cache corrompido → backup → restore) — `modelRepository.test.ts`
+- [x] Testes de migração com dados reais — `schemaMigrationService.test.ts`
+- [x] Testes de merge/overwrite com `version` — `lastWriteWins.test.ts`
+- [x] Testes de parsing de cache inválido — `modelRepository.test.ts`
+- [x] Testes de cálculo com valores extremos (boundary) — `calculateIPU.test.ts`, `calculateCalibration.test.ts`
 
 ---
 

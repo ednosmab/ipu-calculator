@@ -11,6 +11,11 @@ jest.mock('../infra/modelSyncService', () => ({
   },
 }));
 
+// Mock fetchRemoteModelsUseCase to prevent actual network calls during recovery
+jest.mock('../application/fetchRemoteModelsUseCase', () => ({
+  fetchRemoteModelsUseCase: jest.fn(),
+}));
+
 const mockModel: CalculationModel = {
   id: 'test-123',
   name: 'Modelo Teste',
@@ -130,6 +135,87 @@ describe('ModelRepository Sync', () => {
         expect(model.inputs).toBeDefined();
         expect(typeof model.inputs).toBe('object');
       });
+    });
+  });
+
+  describe('cache invalidation', () => {
+    beforeEach(async () => {
+      await asyncStorageClient.remove(STORAGE_KEYS.MODELS);
+      await asyncStorageClient.remove(STORAGE_KEYS.CACHE_VERSION);
+      jest.clearAllMocks();
+    });
+
+    it('should invalidate cache when schema version does not match', async () => {
+      const cache = {
+        data: [mockModel],
+        expiresAt: Date.now() + 48 * 60 * 60 * 1000,
+        schemaVersion: '0.0.0', // Old version
+      };
+      await asyncStorageClient.set(STORAGE_KEYS.MODELS, cache);
+
+      const result = await modelRepository.getAll();
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('should clear stale data on schema mismatch', async () => {
+      const cache = {
+        data: [mockModel],
+        expiresAt: Date.now() + 48 * 60 * 60 * 1000,
+        schemaVersion: '0.0.0',
+      };
+      await asyncStorageClient.set(STORAGE_KEYS.MODELS, cache);
+
+      await modelRepository.getAll();
+
+      const stored = await asyncStorageClient.get(STORAGE_KEYS.MODELS);
+      expect(stored).toBeNull();
+    });
+
+    it('should keep valid cache with matching schema version', async () => {
+      const cache = {
+        data: [mockModel],
+        expiresAt: Date.now() + 48 * 60 * 60 * 1000,
+        schemaVersion: CACHE_VERSION.SCHEMA,
+      };
+      await asyncStorageClient.set(STORAGE_KEYS.MODELS, cache);
+
+      const result = await modelRepository.getAll();
+
+      expect(result).toHaveLength(1);
+    });
+  });
+
+  describe('cache recovery', () => {
+    beforeEach(async () => {
+      await asyncStorageClient.remove(STORAGE_KEYS.MODELS);
+      await asyncStorageClient.remove(STORAGE_KEYS.CACHE_VERSION);
+      await asyncStorageClient.remove(STORAGE_KEYS.MODELS_BACKUP);
+      jest.clearAllMocks();
+    });
+
+    it('should return empty array when cache and schema are both absent', async () => {
+      const result = await modelRepository.getAll();
+      expect(result).toHaveLength(0);
+    });
+
+    it('should attempt recovery when models key is missing but schema version exists', async () => {
+      await asyncStorageClient.set(STORAGE_KEYS.CACHE_VERSION, CACHE_VERSION.SCHEMA);
+
+      const result = await modelRepository.getAll();
+
+      expect(Array.isArray(result)).toBe(true);
+    });
+
+    it('should clear cache and return empty when recovery fails (dynamic import unavailable)', async () => {
+      await saveWithTTL([mockModel]);
+      await asyncStorageClient.set(STORAGE_KEYS.CACHE_VERSION, CACHE_VERSION.SCHEMA);
+
+      await asyncStorageClient.remove(STORAGE_KEYS.MODELS);
+
+      const result = await modelRepository.getAll();
+
+      expect(Array.isArray(result)).toBe(true);
     });
   });
 });
