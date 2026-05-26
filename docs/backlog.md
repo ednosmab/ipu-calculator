@@ -90,15 +90,13 @@
 
 ### 7. Recovery Seguro
 
-**Status:** ⚠️ Parcial
+**Status:** ✅ Concluído
 
-**O que existe:** `schemaMigrationService.ts` que valida versão e marca pendentes para re-sync.
+**O que existe:** Sistema de recovery em três níveis no `modelRepository.getAll()`.
 
-**O que falta:** Não há backup para recovery em caso de cache corrompido.
-
-- [ ] Adicionar try/catch no parsing do cache
-- [ ] Em caso de falha, restaurar do backup (item 6)
-- [ ] Se backup também falhar, limpar cache e forçar refresh remoto
+- [x] Adicionar try/catch no parsing do cache
+- [x] Em caso de falha, restaurar do backup (item 6)
+- [x] Se backup também falhar, limpar cache e forçar refresh remoto
 
 ---
 
