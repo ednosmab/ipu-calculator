@@ -33,4 +33,5 @@ jobs:
         run: npm test
 
       - name: Build validation
+        if: matrix.node-version == 20
         run: npm run build
