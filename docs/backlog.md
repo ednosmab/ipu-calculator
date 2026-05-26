@@ -39,13 +39,17 @@
 
 ### 3. Device ID Persistente
 
-**Status:** ❌ Não implementado
+**Status:** ✅ Parcial
 
-**O que existe:** Nada.
+**O que existe:** `src/core/device/deviceId.ts` com `crypto.randomUUID()` + persistência em `AsyncStorage`. DeviceId aparece em logs de sincronização (DebugPanel/console) para debug.
 
-- [ ] Criar `src/core/device/deviceId.ts` com `crypto.randomUUID()` + persistência em AsyncStorage
-- [ ] Incluir `deviceId` no `SyncMetadata`
-- [ ] Usar em logs de sincronização para debugging
+**O que não foi feito (deliberadamente):** Enviar `deviceId` no `SyncMetadata` para o servidor.
+- **Motivo:** Não há necessidade atual — `version` já resolve conflitos. Enviar UUID persistente expõe rastreamento sem benefício real.
+- **Quando escalar:** Se no futuro houver necessidade de auditoria por dispositivo ou bloqueio de sync por device, o envio pode ser implementado.
+
+- [x] Criar `src/core/device/deviceId.ts` com `crypto.randomUUID()` + persistência em AsyncStorage
+- [ ] (Futuro) Incluir `deviceId` no `SyncMetadata` e enviar ao servidor
+- [x] Usar em logs de sincronização para debugging
 
 ---
 

@@ -1,9 +1,11 @@
 import { edgeFunctionsClient } from '@/core/api/edgeFunctionsClient';
 import { modelRepository } from '../infra/modelRepository';
 import { CalculationModel } from '../domain/calculationModel';
+import { getDeviceId } from '@/core/device/deviceId';
 
 export const fetchRemoteModelsUseCase = async (): Promise<void> => {
-  console.log('[fetchRemoteModelsUseCase] Iniciando busca de modelos remotos...');
+  const deviceId = await getDeviceId();
+  console.log(`[fetchRemoteModelsUseCase] Iniciando busca de modelos remotos... [device:${deviceId.slice(0, 8)}]`);
 
   try {
     console.log('[fetchRemoteModelsUseCase] Chamando edgeFunctionsClient.getModels()');
@@ -92,7 +94,8 @@ export const fetchRemoteModelsUseCase = async (): Promise<void> => {
       })()
     );
 
-    console.log('[fetchRemoteModelsUseCase] ✅ Sincronização concluída com sucesso');
+    const doneDeviceId = await getDeviceId();
+    console.log(`[fetchRemoteModelsUseCase] ✅ Sincronização concluída com sucesso [device:${doneDeviceId.slice(0, 8)}]`);
   } catch (e: unknown) {
     const error = e as Error;
 

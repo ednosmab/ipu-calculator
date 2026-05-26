@@ -25,10 +25,36 @@ export const schemaMigrationService = {
     });
   },
 
+  async backup(): Promise<boolean> {
+    const raw = await asyncStorageClient.get<unknown>(STORAGE_KEYS.MODELS);
+    if (!raw) return false;
+    const savedVersion = await asyncStorageClient.get<string>(STORAGE_KEYS.CACHE_VERSION);
+    return asyncStorageClient.set(STORAGE_KEYS.MODELS_BACKUP, {
+      data: raw,
+      backedUpAt: Date.now(),
+      schemaVersion: savedVersion ?? 'unknown',
+    });
+  },
+
+  async restoreBackup(): Promise<boolean> {
+    const backup = await asyncStorageClient.get<{
+      data: unknown;
+      schemaVersion: string;
+    }>(STORAGE_KEYS.MODELS_BACKUP);
+    if (!backup) return false;
+    const success = await asyncStorageClient.set(STORAGE_KEYS.MODELS, backup.data);
+    if (success) {
+      await asyncStorageClient.set(STORAGE_KEYS.CACHE_VERSION, backup.schemaVersion);
+    }
+    return success;
+  },
+
   async migrateIfNeeded(): Promise<{ migrated: boolean; count: number }> {
     if (!(await this.needsMigration())) {
       return { migrated: false, count: 0 };
     }
+
+    await this.backup();
 
     const models = await this.getModels();
     const pendingModels = models.filter(m => m.syncStatus === 'pending');
