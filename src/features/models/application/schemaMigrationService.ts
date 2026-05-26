@@ -39,10 +39,11 @@ export const schemaMigrationService = {
     }
 
     const migratedModels = models.map(m => {
+      const base = { ...m, version: m.version ?? 1 };
       if (m.syncStatus === 'pending') {
-        return { ...m, updatedAt: Date.now() };
+        return { ...base, updatedAt: Date.now() };
       }
-      return m;
+      return base;
     });
 
     await this.saveModels(migratedModels);

@@ -23,6 +23,7 @@ export const createModelUseCase = async (input: CreateModelInput): Promise<Calcu
     inputs: input.inputs,
     createdAt: now,
     updatedAt: now,
+    version: 1,
     syncStatus: 'pending',
     localAction: 'created',
   };
@@ -39,7 +40,7 @@ export const updateModelUseCase = async (model: CalculationModel): Promise<boole
     throw new Error('Já existe um modelo com este nome');
   }
   
-  const updated: CalculationModel = { ...model, updatedAt: Date.now(), syncStatus: 'pending', localAction: 'edited' };
+  const updated: CalculationModel = { ...model, updatedAt: Date.now(), version: model.version + 1, syncStatus: 'pending', localAction: 'edited' };
   return modelRepository.update(updated);
 };
 

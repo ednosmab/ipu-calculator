@@ -115,6 +115,7 @@ export const edgeFunctionsClient = {
     name: string;
     type: string;
     inputs: Record<string, number>;
+    version: number;
     updated_at: string;
   }): Promise<boolean> {
     const result = await fetchWithAuth('/models-sync', {
@@ -138,6 +139,7 @@ export const edgeFunctionsClient = {
     name: string;
     type: string;
     inputs: Record<string, number>;
+    version: number;
     created_at: string;
     updated_at: string;
   }[]> {
@@ -146,6 +148,7 @@ export const edgeFunctionsClient = {
       name: string;
       type: string;
       inputs: Record<string, number>;
+      version: number;
       created_at: string;
       updated_at: string;
     }[]>('/models-get', {

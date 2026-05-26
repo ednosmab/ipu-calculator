@@ -16,7 +16,7 @@ Deno.serve(async (req: Request) => {
   try {
     const { user } = await requireAuth(req, 'editor');
 
-    const { id, name, type, inputs, updated_at } = await req.json();
+    const { id, name, type, inputs, version, updated_at } = await req.json();
 
     if (!id || !name || !type) return err('INVALID_PAYLOAD', 400);
     if (!['ipu', 'calibration'].includes(type)) return err('INVALID_MODEL_TYPE', 400);
@@ -33,6 +33,7 @@ Deno.serve(async (req: Request) => {
         name,
         type,
         inputs,
+        version: version ?? 1,
         updated_at: updated_at || new Date().toISOString(),
       });
 

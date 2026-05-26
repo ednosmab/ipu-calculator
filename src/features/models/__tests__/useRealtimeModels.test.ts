@@ -14,6 +14,7 @@ const mockModel: CalculationModel = {
   inputs: { isocyanate: 100, polyol: 150 },
   createdAt: Date.now(),
   updatedAt: Date.now(),
+  version: 1,
   syncStatus: 'synced',
   localAction: null,
 };

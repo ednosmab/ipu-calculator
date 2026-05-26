@@ -10,6 +10,7 @@ const mockPendingModel: CalculationModel = {
   inputs: { isocyanate: 100, polyol: 150 },
   createdAt: Date.now() - 10000,
   updatedAt: Date.now() - 10000,
+  version: 1,
   syncStatus: 'pending',
   localAction: 'created' as const,
 };
@@ -21,6 +22,7 @@ const mockSyncedModel: CalculationModel = {
   inputs: { targetWeight: 1000, machineValue: 100, actualWeight: 900 },
   createdAt: Date.now() - 10000,
   updatedAt: Date.now() - 10000,
+  version: 2,
   syncStatus: 'synced',
   localAction: null,
 };

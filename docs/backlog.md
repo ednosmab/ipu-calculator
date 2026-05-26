@@ -29,11 +29,11 @@
 
 **O que falta:** Não há `version` counter nem `deviceId` nas entidades. O sync compara apenas timestamps.
 
-- [ ] Adicionar campo `version: number` na interface `CalculationModel`
-- [ ] Incrementar `CACHE_VERSION.SCHEMA` (atual `2.1.0` → `2.2.0`)
-- [ ] Incrementar `version` a cada escrita local (`modelUseCases.ts`)
-- [ ] Atualizar estratégia de merge no `fetchRemoteModelsUseCase.ts` para considerar `version`
-- [ ] Adicionar migração no `schemaMigrationService.ts`
+- [x] Adicionar campo `version: number` na interface `CalculationModel`
+- [x] Incrementar `CACHE_VERSION.SCHEMA` (atual `2.1.0` → `2.2.0`)
+- [x] Incrementar `version` a cada escrita local (`modelUseCases.ts`)
+- [x] Atualizar estratégia de merge no `fetchRemoteModelsUseCase.ts` para considerar `version`
+- [x] Adicionar migração no `schemaMigrationService.ts`
 
 ---
 
