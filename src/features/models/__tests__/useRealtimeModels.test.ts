@@ -99,6 +99,8 @@ describe('useRealtimeModels', () => {
     it('should subscribe to the Supabase Realtime channel on mount', async () => {
       renderHook(() => useRealtimeModels());
 
+      await act(async () => {});
+
       await waitFor(() => {
         expect(supabase.channel).toHaveBeenCalledWith('realtime-models');
       });
