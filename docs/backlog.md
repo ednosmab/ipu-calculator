@@ -163,12 +163,14 @@
 
 ### 12. Preview Deploy por PR
 
-**Status:** ❌ Não implementado
+**Status:** ✅ Concluído
 
-**O que existe:** Nada.
+**O que existe:**
+- Vercel já deploya previews automaticamente para PRs (confirmado: deployments Preview no GitHub)
+- `.github/workflows/preview-comment.yml` — comenta URL do preview no PR automaticamente
 
-- [ ] Configurar Vercel para deploy automático de PRs (já é padrão, verificar se está ativo)
-- [ ] Adicionar comentário automático no PR com URL do preview
+- [x] Configurar Vercel para deploy automático de PRs (já é padrão, verificar se está ativo)
+- [x] Adicionar comentário automático no PR com URL do preview
 - [ ] (Opcional) Adicionar validação de Lighthouse/bundle size no preview
 
 ---
