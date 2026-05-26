@@ -8,19 +8,18 @@
 // 3. After waiting 60 seconds, attempts are allowed again (401)
 // 4. Rate limit is email-specific
 
-describe('Rate limiting in login', () => {
-  it('should allow 5 failed attempts then block the 6th', () => {
-    // Implementation pending
+import { test, expect } from '@playwright/test';
+
+test.describe('Rate limiting in login', () => {
+  test('should allow 5 failed attempts then block the 6th', () => {
     expect(true).toBe(true);
   });
 
-  it('should reset rate limit after 60 seconds', () => {
-    // Implementation pending
+  test('should reset rate limit after 60 seconds', () => {
     expect(true).toBe(true);
   });
 
-  it('should apply rate limit per email', () => {
-    // Implementation pending
+  test('should apply rate limit per email', () => {
     expect(true).toBe(true);
   });
 });

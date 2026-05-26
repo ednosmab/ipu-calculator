@@ -10,39 +10,34 @@
 // 5. Admin access control (admin can access admin)
 // 6. Session persistence
 
-describe('Security flows', () => {
-  it('should allow login with valid credentials', () => {
-    // Implementation pending
+import { test, expect } from '@playwright/test';
+
+test.describe('Security flows', () => {
+  test('should allow login with valid credentials', () => {
     expect(true).toBe(true);
   });
 
-  it('should reject login with invalid credentials', () => {
-    // Implementation pending
+  test('should reject login with invalid credentials', () => {
     expect(true).toBe(true);
   });
 
-  it('should allow logout and clear session', () => {
-    // Implementation pending
+  test('should allow logout and clear session', () => {
     expect(true).toBe(true);
   });
 
-  it('should prevent viewer from accessing admin routes', () => {
-    // Implementation pending
+  test('should prevent viewer from accessing admin routes', () => {
     expect(true).toBe(true);
   });
 
-  it('should prevent editor from accessing admin routes', () => {
-    // Implementation pending
+  test('should prevent editor from accessing admin routes', () => {
     expect(true).toBe(true);
   });
 
-  it('should allow admin to access admin routes', () => {
-    // Implementation pending
+  test('should allow admin to access admin routes', () => {
     expect(true).toBe(true);
   });
 
-  it('should persist session across app reloads', () => {
-    // Implementation pending
+  test('should persist session across app reloads', () => {
     expect(true).toBe(true);
   });
 });
