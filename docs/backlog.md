@@ -78,11 +78,15 @@
 
 ### 6. Backup Defensivo de Cache
 
-**Status:** ❌ Não implementado
+**Status:** ⚠️ Quase pronto (prioridade baixa)
 
-**O que existe:** Nada.
+**O que existe:**
+- `schemaMigrationService.backup()` já salva em `@ipu:models_backup` antes de cada migração
+- `schemaMigrationService.restoreBackup()` para recovery manual
+- `modelRepository.getAll()` tenta restaurar backup automático se cache corrompido
 
-- [ ] Antes de migrações de schema, fazer backup em `@ipu:models_backup`
+**Observação:** O sistema de backup + recovery já está funcional e rodando. O que falta é versionamento da chave (`models_backup_v2`, etc.), que tem baixo valor prático porque migrações são idempotentes e o último backup já cobre o caso de falha. Pode ser implementado se houver tempo, mas não bloqueia nada.
+
 - [ ] Versionar backups (ex: `@ipu:models_backup_v2`)
 - [ ] Limitar retenção (ex: manter apenas último backup)
 
@@ -102,17 +106,12 @@
 
 ### 8. Proteção de Overwrite
 
-**Status:** ⚠️ Parcial
+**Status:** ✅ Concluído
 
-**O que existe:** Comparação por `updatedAt` no `fetchRemoteModelsUseCase.ts`.
-
-**O que falta:** Sem `version` counter, conflitos simultâneos podem perder dados.
-
-- [ ] Após implementar item 2 (version tracking), atualizar a lógica de merge:
-  ```ts
-  if (remote.version > local.version) applyRemote()
-  ```
-- [ ] Manter fallback para `updatedAt` se `version` for igual
+**Implementado:**
+- [x] `version` counter incrementado a cada escrita local (`modelUseCases.ts:43`)
+- [x] Merge considera `version` primeiro, fallback `updatedAt` se igual (`fetchRemoteModelsUseCase.ts:63`)
+- [x] Testes de merge/overwrite com `version` — `lastWriteWins.test.ts`
 
 ---
 
@@ -152,15 +151,13 @@
 
 ### 11. Branch Protection
 
-**Status:** ❌ Não implementado no GitHub
+**Status:** ✅ Concluído
 
-**O que existe:** Política documentada em `docs/workflow/ipu_calculator-workflow.md`.
+**Configurado via API do GitHub:**
+- `main`: CI obrigatório (lint-and-test 18/20), strict, PR obrigatório (1 review), enforce admins
+- `develop`: CI obrigatório (lint-and-test 18/20), sem PR obrigatório
 
-**O que falta:**
-- [ ] Configurar branch protection no GitHub:
-  - `main`: CI obrigatório, sem push direto, PR obrigatório
-  - `develop`: CI obrigatório
-- [ ] Atualizar documentação com as regras configuradas
+**Documentação:** `docs/workflow/ipu_calculator-workflow.md` já reflete as regras.
 
 ---
 
