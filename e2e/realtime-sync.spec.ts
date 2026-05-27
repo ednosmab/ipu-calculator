@@ -1,4 +1,5 @@
 import { test, expect, BrowserContext, Page } from '@playwright/test';
+import { cleanupE2EModels } from './helpers/cleanup';
 
 /**
  * E2E: Realtime Sync Between Two Clients
@@ -57,24 +58,6 @@ async function createModel(page: Page, name: string, time: string) {
   await expect(page.locator('text=Novo Modelo')).not.toBeVisible({ timeout: 10_000 });
 }
 
-async function deleteModelByName(page: Page, name: string) {
-  const modelCard = page.getByTestId(`model-card-${name}`).first();
-  if (!(await modelCard.isVisible().catch(() => false))) return;
-
-  const card = modelCard.locator('..').locator('..').locator('..');
-  const iconButtons = card.locator('div[role="button"]');
-  const count = await iconButtons.count();
-  if (count > 0) {
-    await iconButtons.last().click();
-  }
-
-  const confirmButton = page.getByRole('button', { name: /excluir/i });
-  if (await confirmButton.isVisible().catch(() => false)) {
-    await confirmButton.click();
-    await page.waitForTimeout(1_000);
-  }
-}
-
 test.describe('Realtime Sync: Two Clients', () => {
   let contextA: BrowserContext | null = null;
   let contextB: BrowserContext | null = null;
@@ -94,13 +77,15 @@ test.describe('Realtime Sync: Two Clients', () => {
 
     await login(pageA, TEST_USER_EMAIL!, TEST_USER_PASSWORD!);
     await login(pageB, TEST_USER_EMAIL!, TEST_USER_PASSWORD!);
+
+    // Clean any leftover E2E models from previous runs
+    await cleanupE2EModels(pageA);
   });
 
   test.afterAll(async () => {
     if (pageA) {
       try {
-        await goToModels(pageA);
-        await deleteModelByName(pageA, MODEL_NAME);
+        await cleanupE2EModels(pageA);
       } catch {
         // Ignore cleanup errors
       }

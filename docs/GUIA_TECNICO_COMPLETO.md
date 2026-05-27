@@ -1,6 +1,5 @@
 # Guia Técnico Completo — IPU Calculator
 
-> **Versão:** 1.2.9  
 > **Plataforma:** React Native + Expo (web/PWA, iOS, Android)  
 > **Backend:** Supabase (Edge Functions + PostgreSQL)  
 > **Última atualização:** Maio 2026
@@ -1199,11 +1198,34 @@ export async function requireAuth(req: Request, minRole: Role = 'viewer') {
 #### `_shared/cors.ts` — CORS Dinâmico
 
 ```typescript
-// Permite localhost (desenvolvimento)
-// Permite *.vercel.app (preview branches, staging, production)
-// Permite origens configuradas (ALLOWED_ORIGIN)
-// Fallback: primeira origem válida
+const PROD_ORIGIN = Deno.env.get('ALLOWED_ORIGIN') ?? 'https://ipu-calculator.vercel.app';
+const STAGING_ORIGIN = Deno.env.get('ALLOWED_ORIGIN_STAGING') ?? 'https://ipu-calculator-staging.vercel.app';
+const validOrigins = [PROD_ORIGIN, STAGING_ORIGIN];
+const isDev = Deno.env.get('DENO_DEPLOYMENT_ID') === undefined; // auto-detecção local
+
+export function handleCors(req: Request): Response | null {
+  const origin = req.headers.get('origin') ?? '';
+  if (req.method === 'OPTIONS') {
+    // Permite localhost (desenvolvimento)
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) { ... }
+    // Permite *.vercel.app (preview branches, staging, production)
+    if (origin.endsWith('.vercel.app')) { ... }
+    // Produção: permite apenas origens configuradas
+    const allowed = validOrigins.includes(origin) ? origin : validOrigins[0];
+    return new Response(null, { status: 200, headers: { ... } });
+  }
+  return null;
+}
+
+// Para respostas não-OPTIONS: determina o Origin dinamicamente
+export function getCorsHeaders(origin?: string | null) { ... }
 ```
+
+**Características:**
+- `DENO_DEPLOYMENT_ID` ausente → auto-detecção de ambiente local (dev)
+- `ALLOWED_ORIGIN_STAGING` para staging separado da produção
+- `getCorsHeaders()` para respostas não-OPTIONS (ex: erros 401/403 também precisam de CORS)
+- Fallback: `validOrigins[0]` se origem não reconhecida
 
 #### `_shared/auditLogger.ts` — Log de Auditoria
 
@@ -1353,6 +1375,7 @@ const checkIsStandalone = () =>
 
 ```yaml
 name: CI
+
 on:
   push:
     branches: [main, refactor]
@@ -1361,36 +1384,72 @@ on:
 
 jobs:
   lint-and-test:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [18, 20]    # Matriz de ambientes
+
     steps:
-      - checkout
-      - setup-node (com cache npm)
-      - npm ci
-      - npm run lint
-      - npm test
-      - npm run build               # Validação de build
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js \${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: \${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build validation
+        if: matrix.node-version == 20  # Node 18 não suporta metro-config
+        run: npm run build
 ```
 
 #### `bump.yml` — Versionamento Automático
 
 ```
-On: push to develop
+On: push to develop (exceto commits com [skip ci])
 1. Extrai versão do package.json
-2. Calcula bump (major/minor/patch baseado no commit)
-3. Atualiza package.json, app.json, src/core/version.ts
-4. Cria tag git
-5. Commit + push
+2. Incrementa patch (major/minor manual quando necessário)
+3. Atualiza package.json, app.json e src/core/version.ts
+4. Builda o projeto
+5. Commit + push com [skip ci] (evita loop)
 ```
+
+> **Nota:** O bump automático só executa para commits **sem** `[skip ci]` no subject. Isso previne loop infinito quando o próprio workflow faz push. A versão é gerenciada exclusivamente pelo CI — nunca manualmente.
 
 #### `preview-comment.yml` — Preview Deploy
 
+```yaml
+on:
+  deployment_status
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  comment:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Preview'
+    steps:
+      - Usa actions/github-script@v7 para:
+        a. Encontrar PR aberto para o ref do deploy
+        b. Buscar URL do preview no deployment_status
+        c. Criar ou atualizar comentário usando marker <!-- vercel-preview -->
 ```
-On: PR opened
-1. Aguarda deploy da Vercel
-2. Comenta URL do preview no PR
-```
+
+**Detalhes:**
+- Trigger: `deployment_status` (aguarda deploy da Vercel concluir)
+- Permissions: `issues: write` + `pull-requests: write` (necessário para criar/editar comentários)
+- Upsert: verifica se já existe comentário com o marker; se sim, atualiza; se não, cria novo
 
 ### 13.2 Estrutura de Branches
 
@@ -1412,7 +1471,25 @@ On: PR opened
 7. Merge → main → produção
 ```
 
-### 13.4 Scripts Locais
+### 13.4 Branch Protection
+
+**Configurado via API do GitHub:**
+
+| Branch | CI Obrigatório | PR Obrigatório | Approvals | [skip ci] Permitted |
+|--------|---------------|----------------|-----------|---------------------|
+| `main` | lint-and-test (18, 20) | Sim | 1 review | ❌ |
+| `develop` | lint-and-test (18, 20) | Não | — | ✅ (bump automático) |
+
+- **`main`**: strict mode, enforce admins, PR obrigatório com 1 review
+- **`develop`**: CI obrigatório mas sem PR obrigatório — permite que o `bump.yml` faça push direto com `[skip ci]`
+
+**Convenção `[skip ci]`:** O `bump.yml` (linha 9) verifica:
+```yaml
+if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+```
+Isso garante que o commit de bump (`chore: bump version [skip ci]`) não dispare o próprio bump novamente, evitando loop infinito.
+
+### 13.5 Scripts Locais
 
 ```bash
 npm run lint           # ESLint
@@ -1487,7 +1564,12 @@ e2e/
 ├── offline-sync.spec.ts            # Comportamento offline
 ├── rate-limiting.spec.ts           # Rate limit
 ├── security-flows.spec.ts          # Fluxos de segurança
-└── edge-functions-integration.spec.ts
+├── edge-functions-integration.spec.ts
+└── helpers/
+    └── cleanup.ts                  # Limpeza automática de modelos E2E (prefixo E2E_SYNC_)
+                                      - goToModels() com waitForFunction (polling DOM)
+                                      - findE2EModelNames() via data-testid
+                                      - deleteModelByName() via UI (clique + confirm)
 
 supabase/functions/__tests__/
 ├── auth-login-rate-limit.test.ts
@@ -1520,6 +1602,19 @@ describe('calculateIPU', () => {
   });
 });
 ```
+
+### 14.5 Limpeza de Dados E2E
+
+Testes E2E no Playwright criam modelos reais no Supabase com prefixo `E2E_SYNC_`. O helper `e2e/helpers/cleanup.ts` remove esses modelos via UI (clique + confirm) nos hooks `beforeAll`/`afterAll` de cada spec.
+
+**Mecanismo:**
+- `goToModels(page)`: navega para `/models` e aguarda cards ou estado vazio via `waitForFunction` (polling DOM)
+- `findE2EModelNames(page)`: localiza cards com `[data-testid^="model-card-E2E_SYNC_"]`
+- `deleteModelByName(page, name)`: clica no último ícone (lixeira) e confirma no modal
+
+**Bugfix conhecido:** Substituído `waitForTimeout(2000)` por `waitForFunction` — o timeout fixo perdia modelos porque a página não terminava de renderizar após autenticação + fetch remoto.
+
+**Melhoria futura (backlog item 10.1):** Quando o app escalar, implementar limpeza via Edge Function com SERVICE_ROLE_KEY (bypassa UI), script CI dedicado, e cron job para remover registros expirados.
 
 ---
 

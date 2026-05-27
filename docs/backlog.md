@@ -147,6 +147,25 @@
 
 ---
 
+### 10.1 — Limpeza Automática de Dados de Teste E2E
+
+**Status:** ✅ Parcial — UI-level implementado, API-level pendente
+
+**Problema:** Testes E2E (Playwright) criam modelos reais no Supabase com prefixo `E2E_SYNC_`. Precisam ser removidos após execução para não poluir a base.
+
+**Implementado (UI-level):**
+- [x] Helper `e2e/helpers/cleanup.ts` com `cleanupE2EModels(page)` — navega para `/models`, localiza cards via `[data-testid^="model-card-E2E_SYNC_"]`, clica em deletar e confirma modal
+- [x] Integrado em `e2e/realtime-sync.spec.ts` via `beforeAll` (limpa leftovers) e `afterAll` (limpa criados durante o teste)
+- [x] Bugfix: substituído `waitForTimeout(2000)` por `waitForFunction` (polling DOM) — timeout fixo perdia modelos quando página não renderizava a tempo
+
+**Melhoria futura (API-level, para quando o app escalar):**
+- [ ] Limpeza via Edge Function com SERVICE_ROLE_KEY (bypassa UI, mais rápida)
+- [ ] Script CI dedicado (`scripts/cleanup-e2e-data.js`)
+- [ ] Cron job na Edge Function para remover registros E2E_SYNC_ mais antigos que 24h
+- [ ] Isolar ambiente de teste (Supabase project separado)
+
+---
+
 ## FASE 4 — Governança e Pipeline
 
 ### 11. Branch Protection

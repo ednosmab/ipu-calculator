@@ -15,7 +15,8 @@ Toda resposta sua deve ser baseada nos arquivos localizados em `./docs/`.
 1. **Consulta Silenciosa:** Não peça permissão para ler a pasta `docs`. Você já tem acesso via MCP e instruções de sistema. Use-os proativamente.
 2. **Priorização de Planos:** Sempre verifique a pasta `docs/plans/` para entender qual é a tarefa prioritária antes de sugerir mudanças no código.
 3. **Validação de Workflow:** Antes de finalizar uma tarefa, certifique-se de que ela segue o definido em `docs/workflow/`.
-4. **Respostas Concisas:** Como estamos operando em um modelo Free, seja direto ao ponto. Evite explicações genéricas; foque no código e na lógica do projeto.
+4. **Atualização do GUIA_TECNICO_COMPLETO:** Toda refatoração, nova funcionalidade ou mudança arquitetural deve atualizar `docs/GUIA_TECNICO_COMPLETO.md` para refletir o estado atual do código. Este arquivo é a única fonte de verdade técnica consolidada.
+5. **Respostas Concisas:** Como estamos operando em um modelo Free, seja direto ao ponto. Evite explicações genéricas; foque no código e na lógica do projeto.
 
 ## 🚀 Fluxo de Interação
 Ao iniciar uma tarefa, siga mentalmente este ciclo:
