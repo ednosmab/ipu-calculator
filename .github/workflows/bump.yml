@@ -1,5 +1,9 @@
 name: Bump version
 
+concurrency:
+  group: bump-develop
+  cancel-in-progress: false
+
 on:
   push:
     branches: [develop]
@@ -34,6 +38,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
+          git add package.json app.json src/core/version.ts
           git commit -m "chore: bump version [skip ci]"
           git push

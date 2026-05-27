@@ -147,6 +147,25 @@
 
 ---
 
+### 10.1 — Limpeza Automática de Dados de Teste E2E
+
+**Status:** ✅ Parcial — UI-level implementado, API-level pendente
+
+**Problema:** Testes E2E (Playwright) criam modelos reais no Supabase com prefixo `E2E_SYNC_`. Precisam ser removidos após execução para não poluir a base.
+
+**Implementado (UI-level):**
+- [x] Helper `e2e/helpers/cleanup.ts` com `cleanupE2EModels(page)` — navega para `/models`, localiza cards via `[data-testid^="model-card-E2E_SYNC_"]`, clica em deletar e confirma modal
+- [x] Integrado em `e2e/realtime-sync.spec.ts` via `beforeAll` (limpa leftovers) e `afterAll` (limpa criados durante o teste)
+- [x] Bugfix: substituído `waitForTimeout(2000)` por `waitForFunction` (polling DOM) — timeout fixo perdia modelos quando página não renderizava a tempo
+
+**Melhoria futura (API-level, para quando o app escalar):**
+- [ ] Limpeza via Edge Function com SERVICE_ROLE_KEY (bypassa UI, mais rápida)
+- [ ] Script CI dedicado (`scripts/cleanup-e2e-data.js`)
+- [ ] Cron job na Edge Function para remover registros E2E_SYNC_ mais antigos que 24h
+- [ ] Isolar ambiente de teste (Supabase project separado)
+
+---
+
 ## FASE 4 — Governança e Pipeline
 
 ### 11. Branch Protection
@@ -172,6 +191,100 @@
 - [x] Configurar Vercel para deploy automático de PRs (já é padrão, verificar se está ativo)
 - [x] Adicionar comentário automático no PR com URL do preview
 - [ ] (Opcional) Adicionar validação de Lighthouse/bundle size no preview
+
+---
+
+---
+
+## FASE 5 — Escalabilidade e Maturidade (pós-escala)
+
+> 🔮 Itens para Tech Lead avaliar **quando o projeto escalar** (5+ usuários ou time multi-dev).
+> Atualmente não justificam o custo-benefício para o cenário de 1 usuário com baixa constância.
+
+### 13. Observability — Sentry
+
+**Status:** ⏳ Código pronto, falta DSN
+
+**O que existe:** `src/core/monitoring/sentryService.ts` + `ErrorBoundary` com integração Sentry já implementados.
+
+**O que falta:**
+- [ ] Criar conta no Sentry.io
+- [ ] Configurar `EXPO_PUBLIC_SENTRY_DSN` na Vercel
+- [ ] Validar captura de erros em produção
+
+---
+
+### 14. Quality Gates Automáticos (Git Hooks)
+
+**Status:** 📋 Pendente
+
+**O que falta:**
+- [ ] Prettier — formatação automática de código
+- [ ] Husky v9 — hooks de pre-commit
+- [ ] lint-staged — rodar linters só nos arquivos staged
+- [ ] commitlint — validar Conventional Commits no commit
+- [ ] CI `tsc --noEmit` sem `|| true` (hoje não quebra o build em erro de tipo)
+
+---
+
+### 15. Segurança e Análise Estática
+
+**Status:** 📋 Pendente
+
+**O que falta:**
+- [ ] CodeQL — GitHub Actions para scanning de vulnerabilidades
+- [ ] SonarCloud — análise contínua de qualidade e cobertura
+
+---
+
+### 16. Performance
+
+**Status:** 📋 Pendente
+
+**O que falta:**
+- [ ] Lighthouse CI — budgets de performance no CI
+- [ ] Bundle analysis — `source-map-explorer` ou similar
+- [ ] Performance budgets no preview deploy
+
+---
+
+### 17. Contrato de API
+
+**Status:** 📋 Pendente
+
+**O que falta:**
+- [ ] OpenAPI/Swagger spec para as Edge Functions
+- [ ] Documentação de endpoints atualizada no `GUIA_TECNICO_COMPLETO.md`
+
+---
+
+### 18. Acessibilidade
+
+**Status:** 📋 Pendente
+
+**O que falta:**
+- [ ] jest-axe para testes unitários de a11y
+- [ ] axe-playwright para testes E2E de acessibilidade
+
+---
+
+### 19. Infraestrutura como Código
+
+**Status:** 📋 Pendente
+
+**O que falta:**
+- [ ] Terraform ou Pulumi para Supabase + Vercel
+- [ ] Docker compose para ambiente local
+
+---
+
+### 20. Design System — Storybook
+
+**Status:** 📋 Pendente
+
+**O que falta:**
+- [ ] Configurar Storybook para catálogo visual dos 12 componentes atômicos
+- [ ] Documentar variantes e estados
 
 ---
 
