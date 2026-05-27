@@ -140,9 +140,7 @@ npm run test:e2e         # Playwright E2E (realtime sync)
 
 ## 📋 Tasks Pendentes
 
-| Task | Prioridade | Status |
-| :--- | :--- | :--- |
-| Corrigir teste `useRealtimeModels.should refetch models when a Realtime event is received` | baixa | skipped |
+_nenhuma no momento_
 
 ---
 

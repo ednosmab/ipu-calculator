@@ -1,5 +1,9 @@
 name: CI
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [main, refactor]
@@ -9,15 +13,18 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
-    
+    strategy:
+      matrix:
+        node-version: [20]
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
       - name: Install dependencies
@@ -28,3 +35,12 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+      - name: TypeScript check
+        run: npx tsc --noEmit || true
+
+      - name: npm audit
+        run: npm audit --audit-level=high
+
+      - name: Build validation
+        run: npm run build

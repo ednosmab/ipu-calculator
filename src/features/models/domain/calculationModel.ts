@@ -11,6 +11,7 @@ export interface CalculationModel {
   inputs: Record<string, number>;
   createdAt: number;
   updatedAt: number;
+  version: number;
   syncStatus: 'synced' | 'pending';
   localAction: LocalAction;
 }
@@ -22,6 +23,7 @@ export const modelSchema = z.object({
   inputs: z.record(z.string(), z.number()),
   createdAt: z.number(),
   updatedAt: z.number(),
+  version: z.number(),
   syncStatus: z.enum(['synced', 'pending']),
   localAction: z.enum(['created', 'edited']).nullable(),
 });

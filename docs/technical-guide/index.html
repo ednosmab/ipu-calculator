@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia Técnico Completo — IPU Calculator</title>
+    <link rel="icon" type="image/x-icon" href="../public/favicon.ico">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <button id="menu-toggle" class="menu-toggle" aria-label="Abrir menu">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>IPU Docs</h2>
+                <div class="sidebar-actions">
+                    <button id="collapse-sidebar" class="collapse-sidebar desktop-only" aria-label="Recolher menu">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button id="close-menu" class="close-menu mobile-only" aria-label="Fechar menu">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <nav id="nav-menu" class="nav-menu">
+                <!-- Links gerados dinamicamente -->
+            </nav>
+        </aside>
+
+        <div class="overlay" id="overlay"></div>
+
+        <main class="content-area" id="content-area">
+            <button id="expand-sidebar" class="expand-sidebar desktop-only hidden" aria-label="Expandir menu">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            <div id="content" class="markdown-body">
+                <div class="loading">Processando documentação...</div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Importação do conteúdo via arquivo JS para evitar bloqueios de fetch -->
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

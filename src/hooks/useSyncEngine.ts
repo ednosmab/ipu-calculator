@@ -6,15 +6,17 @@ import { schemaMigrationService } from '@/features/models/application/schemaMigr
 import { logger } from '@/core/logging/logger';
 
 import { useNetworkStatus } from './useNetworkStatus';
+import { getDeviceId } from '@/core/device/deviceId';
 
 const runSync = async () => {
-  logger.info('[SyncEngine] Iniciando sincronização...');
+  const deviceId = await getDeviceId();
+  logger.info(`[SyncEngine] Iniciando sincronização... [device:${deviceId.slice(0, 8)}]`);
   try {
     await syncModelsUseCase();
     await fetchRemoteModelsUseCase();
     await processPendingDeletesUseCase();
     await processPendingEditsUseCase();
-    logger.info('[SyncEngine] Sincronização concluída');
+    logger.info(`[SyncEngine] Sincronização concluída [device:${deviceId.slice(0, 8)}]`);
   } catch (error) {
     logger.error('[SyncEngine] Erro durante runSync:', error);
   }

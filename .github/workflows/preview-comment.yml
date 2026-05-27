@@ -1,0 +1,59 @@
+name: Preview Comment
+
+on:
+  deployment_status
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  comment:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Preview'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find PR and comment preview URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const ref = context.payload.deployment.ref;
+
+            const { data: pulls } = await github.rest.pulls.list({
+              owner, repo,
+              head: ref,
+              state: 'open',
+              per_page: 1,
+            });
+
+            if (pulls.length === 0) {
+              console.log(`No open PR found for ref: ${ref}`);
+              return;
+            }
+
+            const prNumber = pulls[0].number;
+            const previewUrl = context.payload.deployment_status.environment_url;
+
+            const marker = '<!-- vercel-preview -->';
+            const body = `${marker}\n### 🌐 Preview Deploy\n\n**URL:** ${previewUrl}\n\n_Deploy automático concluído._`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner, repo,
+              issue_number: prNumber,
+            });
+
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner, repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo,
+                issue_number: prNumber,
+                body,
+              });
+            }

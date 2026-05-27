@@ -14,6 +14,7 @@ const mockModel: CalculationModel = {
   inputs: { isocyanate: 100, polyol: 150 },
   createdAt: Date.now(),
   updatedAt: Date.now(),
+  version: 1,
   syncStatus: 'synced',
   localAction: null,
 };
@@ -98,6 +99,8 @@ describe('useRealtimeModels', () => {
   describe('Realtime subscription', () => {
     it('should subscribe to the Supabase Realtime channel on mount', async () => {
       renderHook(() => useRealtimeModels());
+
+      await act(async () => {});
 
       await waitFor(() => {
         expect(supabase.channel).toHaveBeenCalledWith('realtime-models');
