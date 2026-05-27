@@ -2,7 +2,7 @@
   "expo": {
     "name": "Calculadora IPU",
     "slug": "calculadora-ipu",
-    "version": "1.2.9",
+    "version": "1.2.16",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "calculadoraipu",
