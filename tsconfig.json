@@ -9,6 +9,12 @@
       ]
     }
   },
+  "exclude": [
+    "supabase",
+    "docs",
+    "node_modules",
+    "dist"
+  ],
   "include": [
     "**/*.ts",
     "**/*.tsx",
