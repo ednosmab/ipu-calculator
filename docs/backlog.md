@@ -194,6 +194,100 @@
 
 ---
 
+---
+
+## FASE 5 — Escalabilidade e Maturidade (pós-escala)
+
+> 🔮 Itens para Tech Lead avaliar **quando o projeto escalar** (5+ usuários ou time multi-dev).
+> Atualmente não justificam o custo-benefício para o cenário de 1 usuário com baixa constância.
+
+### 13. Observability — Sentry
+
+**Status:** ⏳ Código pronto, falta DSN
+
+**O que existe:** `src/core/monitoring/sentryService.ts` + `ErrorBoundary` com integração Sentry já implementados.
+
+**O que falta:**
+- [ ] Criar conta no Sentry.io
+- [ ] Configurar `EXPO_PUBLIC_SENTRY_DSN` na Vercel
+- [ ] Validar captura de erros em produção
+
+---
+
+### 14. Quality Gates Automáticos (Git Hooks)
+
+**Status:** 📋 Pendente
+
+**O que falta:**
+- [ ] Prettier — formatação automática de código
+- [ ] Husky v9 — hooks de pre-commit
+- [ ] lint-staged — rodar linters só nos arquivos staged
+- [ ] commitlint — validar Conventional Commits no commit
+- [ ] CI `tsc --noEmit` sem `|| true` (hoje não quebra o build em erro de tipo)
+
+---
+
+### 15. Segurança e Análise Estática
+
+**Status:** 📋 Pendente
+
+**O que falta:**
+- [ ] CodeQL — GitHub Actions para scanning de vulnerabilidades
+- [ ] SonarCloud — análise contínua de qualidade e cobertura
+
+---
+
+### 16. Performance
+
+**Status:** 📋 Pendente
+
+**O que falta:**
+- [ ] Lighthouse CI — budgets de performance no CI
+- [ ] Bundle analysis — `source-map-explorer` ou similar
+- [ ] Performance budgets no preview deploy
+
+---
+
+### 17. Contrato de API
+
+**Status:** 📋 Pendente
+
+**O que falta:**
+- [ ] OpenAPI/Swagger spec para as Edge Functions
+- [ ] Documentação de endpoints atualizada no `GUIA_TECNICO_COMPLETO.md`
+
+---
+
+### 18. Acessibilidade
+
+**Status:** 📋 Pendente
+
+**O que falta:**
+- [ ] jest-axe para testes unitários de a11y
+- [ ] axe-playwright para testes E2E de acessibilidade
+
+---
+
+### 19. Infraestrutura como Código
+
+**Status:** 📋 Pendente
+
+**O que falta:**
+- [ ] Terraform ou Pulumi para Supabase + Vercel
+- [ ] Docker compose para ambiente local
+
+---
+
+### 20. Design System — Storybook
+
+**Status:** 📋 Pendente
+
+**O que falta:**
+- [ ] Configurar Storybook para catálogo visual dos 12 componentes atômicos
+- [ ] Documentar variantes e estados
+
+---
+
 ## ❌ O QUE NÃO IMPLEMENTAR
 
 Itens explicitamente fora de escopo conforme o plano:
