@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (id === 'introducao') {
             const logoHtml = `
             <div class="intro-logo-container">
-                <img src="../public/favicon.ico" alt="IPU Calculator Ícone" class="intro-logo">
+                <img src="favicon.ico" alt="IPU Calculator Ícone" class="intro-logo">
             </div>`;
             html = logoHtml + html;
         }
