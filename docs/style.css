@@ -347,6 +347,9 @@ body {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 1.5em;
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .markdown-body th,
@@ -403,5 +406,62 @@ body {
     .content-area {
         margin-left: 0;
         padding: 80px 24px 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        font-size: 15px;
+    }
+
+    .content-area {
+        padding: 72px 16px 32px;
+    }
+
+    .sidebar {
+        width: 100%;
+    }
+
+    .sidebar-header {
+        padding: 16px;
+    }
+
+    .nav-link {
+        padding: 8px 16px;
+        font-size: 0.95rem;
+    }
+
+    .markdown-body {
+        font-size: 15px;
+    }
+
+    .markdown-body h1 {
+        font-size: 1.6rem;
+    }
+
+    .markdown-body h2 {
+        font-size: 1.3rem;
+    }
+
+    .markdown-body h3 {
+        font-size: 1.15rem;
+    }
+
+    .markdown-body code {
+        font-size: 0.85em;
+    }
+
+    .markdown-body th,
+    .markdown-body td {
+        padding: 8px 10px;
+    }
+
+    .intro-logo {
+        width: 80px;
+        height: 80px;
+    }
+
+    .loading {
+        font-size: 1rem;
     }
 }
