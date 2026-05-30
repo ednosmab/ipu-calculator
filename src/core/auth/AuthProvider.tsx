@@ -111,7 +111,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Fallback: Tenta via Edge Function (mais robusto, bypass RLS)
     try {
-      console.log('[Auth] Tentando fallback via auth-validate...');
       const validateRes = await fetchWithTimeout(
         `${CONFIG.EDGE_FUNCTIONS_URL}/auth-validate`,
         {
@@ -132,6 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Default fallback (mínimo privilégio)
+    console.warn('[Auth] Perfil não encontrado para userId ' + userId + ' — usando fallback viewer. Crie o perfil no banco se necessário.');
     return {
       id: userId,
       name: 'Usuário',
@@ -142,9 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ── signIn ───────────────────────────────────────────────────
   const signIn = useCallback(async (email: string, password: string) => {
-    console.log(`[AuthProvider] signIn — email: ${email}`);
-
-    const res = await fetch(`${CONFIG.SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    const res = await fetch(`${CONFIG.EDGE_FUNCTIONS_URL}/auth-login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -154,25 +152,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     const data = await res.json();
-    console.log(`[AuthProvider] signIn response — status: ${res.status}`);
 
     if (!res.ok) {
-      const errorCode = data?.error_description ?? 'INVALID_CREDENTIALS';
-      console.error(`[AuthProvider] signIn error: ${errorCode}`);
+      const errorCode = data?.error ?? 'INVALID_CREDENTIALS';
+      console.error('[AuthProvider] signIn error:', errorCode);
       throw new Error(errorCode);
     }
 
-    const { access_token, user: userData } = data;
-    const newProfile = await fetchProfile(access_token, userData.id);
+    const { access_token } = data.session;
+    const profileData = data.profile;
 
     await Promise.all([
       sessionStorage.setToken(access_token),
-      sessionStorage.setProfile(JSON.stringify(newProfile)),
+      sessionStorage.setProfile(JSON.stringify(profileData)),
     ]);
 
     setSession({ access_token });
-    setUser({ id: userData.id, email: userData.email, role: newProfile.role });
-    setProfile(newProfile);
+    setUser({ id: profileData.id, email, role: profileData.role });
+    setProfile(profileData);
   }, []);
 
   // ── signOut ──────────────────────────────────────────────────
