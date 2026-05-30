@@ -56,23 +56,20 @@ self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => {
+      const oldCaches = cacheNames.filter(name => cacheWhitelist.indexOf(name) === -1);
       return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
+        oldCaches.map(cacheName => caches.delete(cacheName))
+      ).then(deleted => {
+        // Só notifica clientes se caches antigos foram removidos (nova versão ativada)
+        if (deleted.length > 0) {
+          self.clients.matchAll().then(clients => {
+            clients.forEach(client => {
+              client.postMessage({ type: 'SW_UPDATED' });
+            });
+          });
+        }
+      });
     })
   );
   self.clients.claim();
-
-  // Check for update and notify clients
-  self.registration.update().then(() => {
-    self.clients.matchAll().then(clients => {
-      clients.forEach(client => {
-        client.postMessage({ type: 'SW_UPDATED' });
-      });
-    });
-  });
 });

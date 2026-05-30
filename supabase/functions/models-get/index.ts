@@ -1,5 +1,7 @@
 // supabase/functions/models-get/index.ts
 // GET /models-get — busca modelos do servidor
+// Decisão arquitetural: modelos são globais/compartilhados (sem filtro por user_id).
+// Para isolar por usuário no futuro, adicionar .eq('created_by', user.id) na query.
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { handleCors } from '../_shared/cors.ts';
