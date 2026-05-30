@@ -42,3 +42,41 @@ Ao iniciar uma tarefa, siga mentalmente este ciclo:
     3. Gerar uma mensagem de commit curta e técnica seguindo o `docs/workflow/`.
     4. Executar o comando de commit na branch atual.
 - **Revisão:** Antes do commit, sempre perguntar: "As alterações acima estão corretas?". Se eu responder "COMMIT", proceda.
+
+---
+
+## 📋 Anchored Summary (Session State)
+
+> Atualizado automaticamente pelo agente ao final de cada sessão.
+> Esta seção captura o estado atual da implementação para continuidade entre sessões.
+
+### Sessão Atual — Correções de Auditoria (Itens 2, 4, 5)
+
+**Objetivo:** Resolver 3 ressalvas da auditoria de 2026-05-27 — interface de sessão sem `refresh_token`, config.ts resiliente, E2E tests com asserts reais.
+
+#### ✅ Concluído
+
+| Item | Arquivo(s) | O que mudou |
+|------|-----------|-------------|
+| 2 — `refresh_token` removido | `src/core/auth/AuthContext.tsx` | Interface `AuthSession` perdeu `refresh_token?` e `expires_at?` — contém só `access_token`. Nenhum código em `src/` referenciava esses campos. |
+| 4 — `config.ts` não crasha mais | `src/core/config.ts` | Substituído `throw Error` no módulo por `console.warn` + fallback vazio. Função `ensureConfig()` lança erro no ponto de uso (antes de fetch inválido). |
+| 5 — E2E tests com asserts reais | `e2e/security-flows.spec.ts`, `e2e/rate-limiting.spec.ts`, `e2e/edge-functions-integration.spec.ts` | 3 spec files populados com asserts reais: login/logout, rate limit (5→429), CRUD via Edge Functions. |
+
+#### 🔍 Decisões Relevantes
+
+- `config.ts` usa guarda em tempo de uso em vez de throw na importação — permite que testes e CI carreguem o módulo sem crash se env vars não estiverem presentes
+- `AuthSession` simplificada para conter apenas `access_token` — elimina risco de `refresh_token` vazar via sessionStorage ou log
+- E2E de rate-limit faz chamadas HTTP diretas à Edge Function (bypassa UI), enquanto security-flows e CRUD usam o app via Playwright
+
+#### ⏳ Próximos Passos
+
+- Executar E2E tests em ambiente com Supabase real (`npx playwright test e2e/security-flows.spec.ts`)
+- Verificar debounce de sugestão `lang` no input de pesquisa (mencionado brevemente, não priorizado)
+- Se multi-região futura, migrar rate limiter in-memory para Redis
+
+#### ⚠️ Contexto Crítico
+
+- `auth-login/index.ts` ainda acessa `data.session.refresh_token` internamente via Supabase SDK, mas a resposta HTTP filtra e `AuthSession` do cliente não tem mais o campo — vazamento impossível por construção
+- `config.ts` emite `console.warn` se env vars faltam — visível no terminal dev, mas build de produção ainda falha se vars não estiverem definidas (comportamento desejado: crashar cedo em produção)
+- E2E tests de rate-limit usam `fetch` direto (não `page.route`), dependem do Supabase real para execução
+- Lint: 0 erros, 47 warnings pré-existentes | Testes: 165 passed, 1 skipped

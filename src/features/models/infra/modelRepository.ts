@@ -1,7 +1,6 @@
 import { asyncStorageClient, STORAGE_KEYS } from '@/core/storage/asyncStorageClient';
 import { CACHE_VERSION } from '@/core/versioning/cacheVersion';
 import { CalculationModel, ModelType } from '../domain/calculationModel';
-import { createPendingOperation } from '../domain/pendingOperation';
 import { modelSyncService } from './modelSyncService';
 import { pendingOpsService } from './pendingOpsService';
 import { logger } from '@/core/logging/logger';
@@ -184,7 +183,6 @@ const update = async (model: CalculationModel): Promise<boolean> => {
     const success = await _saveToStorage(updatedLocal);
 
     if (success) {
-      await pendingOpsService.addPendingEdit(createPendingOperation('update', modelToSave));
       notify();
     }
     return success;

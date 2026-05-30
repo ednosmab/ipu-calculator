@@ -1,10 +1,17 @@
 // supabase/functions/_shared/cors.ts
-// CORS restrito aos domínios configurados — nunca usar '*' em produção
+// CORS restrito ao domínio do projeto — nunca usar '*' em produção
 
 const PROD_ORIGIN = Deno.env.get('ALLOWED_ORIGIN') ?? 'https://ipu-calculator.vercel.app';
 const STAGING_ORIGIN = Deno.env.get('ALLOWED_ORIGIN_STAGING') ?? 'https://ipu-calculator-staging.vercel.app';
+const VERCEL_PROJECT_PREFIX = Deno.env.get('VERCEL_PROJECT_PREFIX') ?? 'ipu-calculator';
 
 const validOrigins = [PROD_ORIGIN, STAGING_ORIGIN];
+
+// Regex para origens Vercel: permite apenas branches do projeto
+// Ex: ipu-calculator.vercel.app, ipu-calculator-staging.vercel.app, ipu-calculator-feat-branch.vercel.app
+const vercelOriginRegex = new RegExp(
+  `^https:\\/\\/${VERCEL_PROJECT_PREFIX}(-[a-z0-9-]+)?\\.vercel\\.app$`
+);
 
 // Permite todos para desenvolvimento local
 const isDev = Deno.env.get('DENO_DEPLOYMENT_ID') === undefined;
@@ -29,8 +36,8 @@ export function handleCors(req: Request): Response | null {
       });
     }
 
-    // Permite domínios da Vercel (main, staging, branch previews)
-    if (origin.endsWith('.vercel.app')) {
+    // Permite apenas origens Vercel que correspondam ao prefixo do projeto
+    if (vercelOriginRegex.test(origin)) {
       return new Response(null, {
         status: 200,
         headers: {
@@ -57,9 +64,9 @@ export function getCorsHeaders(origin?: string | null) {
   if (!origin) return { ...corsHeaders, 'Access-Control-Allow-Origin': validOrigins[0] };
 
   const isLocal = origin.includes('localhost') || origin.includes('127.0.0.1');
-  const isVercel = origin.endsWith('.vercel.app');
+  const isAllowedVercel = vercelOriginRegex.test(origin);
   
-  const allowedOrigin = (isLocal || isVercel || validOrigins.includes(origin)) 
+  const allowedOrigin = (isLocal || isAllowedVercel || validOrigins.includes(origin)) 
     ? origin 
     : validOrigins[0];
 

@@ -1,11 +1,53 @@
 // supabase/functions/auth-login/index.ts
 // POST /auth-login — valida credenciais, cria profile se não existir
+// Rate limiting: 5 tentativas por email a cada 60s (in-memory)
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { handleCors } from '../_shared/cors.ts';
 import { logAccess } from '../_shared/auditLogger.ts';
 import { ok, err } from '../_shared/response.ts';
 
+// ── Rate Limiter ──────────────────────────────────────────────
+// In-memory Map: funciona em produção pois cada Edge Function
+// mantém o isolate vivo. Para multi-região, migrar para Redis.
+interface RateLimitEntry {
+  count: number;
+  windowStart: number;
+}
+const rateLimitMap = new Map<string, RateLimitEntry>();
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+
+function isRateLimited(email: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(email);
+
+  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+    // Janela expirada ou nova — reseta
+    rateLimitMap.set(email, { count: 1, windowStart: now });
+    return false;
+  }
+
+  entry.count++;
+
+  if (entry.count > RATE_LIMIT_MAX) {
+    return true;
+  }
+
+  return false;
+}
+
+// Limpeza lazy de entradas expiradas (executa a cada chamada)
+function cleanupRateLimitMap(): void {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitMap.entries()) {
+    if (now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+      rateLimitMap.delete(key);
+    }
+  }
+}
+
+// ── Handler principal ─────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get('origin');
   const corsResponse = handleCors(req);
@@ -17,6 +59,13 @@ Deno.serve(async (req: Request) => {
     const { email, password } = await req.json();
 
     if (!email || !password) return err('INVALID_PAYLOAD', 400, origin);
+
+    // Rate limiting: verifica antes de qualquer operação
+    cleanupRateLimitMap();
+    if (isRateLimited(email)) {
+      console.warn(`[auth-login] Rate limit excedido para: ${email.replace(/(?<=.).(?=[^@]*@)/g, '*')}`);
+      return err('RATE_LIMITED', 429, origin);
+    }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -30,6 +79,13 @@ Deno.serve(async (req: Request) => {
     });
 
     if (error || !data.user || !data.session) {
+      logAccess({
+        supabase,
+        userId: null,
+        action: 'login_failed',
+        metadata: { email },
+        req,
+      });
       return err('INVALID_CREDENTIALS', 401, origin);
     }
 
@@ -85,8 +141,18 @@ Deno.serve(async (req: Request) => {
       return err('ACCOUNT_SUSPENDED', 403, origin);
     }
 
+    // Log de sucesso
+    logAccess({
+      supabase,
+      userId: data.user.id,
+      action: 'login',
+      req,
+    });
+
     return ok({
-      session: data.session,
+      session: {
+        access_token: data.session.access_token,
+      },
       profile: {
         id: data.user.id,
         name: profileData.name,

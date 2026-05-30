@@ -66,6 +66,15 @@ Embora os cálculos sejam o coração, a robustez da Calculadora IPU é garantid
 
 ---
 
+## 📖 Guia Técnico Completo
+A documentação completa da arquitetura, decisões técnicas e fluxos do projeto está disponível como um web viewer interativo via GitHub Pages:
+
+- **GitHub Pages:** [ednosmab.github.io/ipu-calculator](https://ednosmab.github.io/ipu-calculator/)
+
+> **Nota:** O Guia Técnico é servido a partir da branch `refactor`, pasta `/docs`. Para que o link funcione, o GitHub Pages deve estar ativo em **Settings > Pages > Source: Deploy from a branch > branch `refactor`, folder `/docs`**.
+
+---
+
 ## 🚀 Como Executar
 
 ### Pré-requisitos

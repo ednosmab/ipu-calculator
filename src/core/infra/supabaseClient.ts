@@ -1,3 +1,7 @@
+// ⚠️ USO RESTRITO: Este cliente é APENAS para conexão Realtime (WebSocket).
+// Não usar para operações autenticadas — o AsyncStorage não é seguro para tokens.
+// Para chamadas autenticadas, usar edgeFunctionsClient.ts que passa pelo sessionStorage.
+
 import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';

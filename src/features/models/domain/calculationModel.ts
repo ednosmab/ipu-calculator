@@ -4,6 +4,9 @@ export type ModelType = 'ipu' | 'calibration';
 
 export type LocalAction = 'created' | 'edited' | null;
 
+// Modelos são intencionalmente globais/compartilhados entre toda a equipe.
+// Não possuem created_by/owner porque qualquer editor pode gerenciar qualquer modelo.
+// Se no futuro for necessário isolar por usuário, adicionar coluna created_by uuid REFERENCES auth.users.
 export interface CalculationModel {
   id: string;
   name: string;
