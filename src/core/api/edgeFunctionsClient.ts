@@ -26,8 +26,6 @@ async function fetchWithAuth<T = unknown>(
 
   console.log(`[edgeFunctionsClient] ${endpoint}`, {
     hasToken: !!token,
-    tokenLength: token?.length ?? 0,
-    tokenPrefix: token ? token.substring(0, 20) + '...' : 'NONE',
     method: options.method || 'GET',
   });
 
