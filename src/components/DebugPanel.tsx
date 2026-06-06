@@ -144,6 +144,97 @@ export const DebugPanel = ({ visible, debugInfo }: DebugPanelProps) => {
     setLogs([]);
   };
 
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+
+  const copyLogs = async () => {
+    const lines: string[] = [];
+    const now = new Date().toISOString();
+    lines.push('=== IPU Calculator Debug Log ===');
+    lines.push(`Timestamp: ${now}`);
+    lines.push(`App Version: ${CACHE_VERSION.SW}`);
+    lines.push(`Schema: ${CACHE_VERSION.SCHEMA}`);
+    lines.push('');
+    lines.push('=== Config ===');
+    lines.push(`EDGE_FUNCTIONS_URL: ${CONFIG.EDGE_FUNCTIONS_URL}`);
+    lines.push(
+      `SUPABASE_ANON_KEY: ${
+        CONFIG.SUPABASE_ANON_KEY ? '***' + CONFIG.SUPABASE_ANON_KEY.slice(-6) : 'MISSING'
+      }`
+    );
+    lines.push('');
+    lines.push('=== Network ===');
+    lines.push(`Online (state): ${isOnline ? 'Sim' : 'Não'}`);
+    lines.push(
+      `Online (direct): ${
+        typeof navigator !== 'undefined' && navigator.onLine ? 'Sim' : 'Não'
+      }`
+    );
+    lines.push('');
+    lines.push('=== Auth ===');
+    lines.push(`Loading: ${authLoading ? 'Sim' : 'Não'}`);
+    lines.push(`User: ${user?.id ? user.id : 'Nenhum'}`);
+    lines.push(`Email: ${user?.email || 'Nenhum'}`);
+    lines.push(
+      `Profile: ${profile ? `${profile.role} (${profile.active ? 'Ativo' : 'Inativo'})` : 'Nenhum'}`
+    );
+    lines.push(`Profile Name: ${profile?.name || 'Nenhum'}`);
+    lines.push(
+      `Session: ${session?.access_token ? '***' + session.access_token.slice(-6) : 'Nenhuma'}`
+    );
+    lines.push(
+      `Refresh Token: ${
+        session?.refresh_token ? 'present' : 'ausente'
+      }`
+    );
+    lines.push('');
+    lines.push(`=== Models Cache (${modelsCache.length}) ===`);
+    if (modelsCache.length === 0) {
+      lines.push('(vazio)');
+    } else {
+      modelsCache.forEach((m, i) => {
+        lines.push(`#${i + 1} ${m.name} — v${m.version} [${m.syncStatus}]`);
+      });
+    }
+    if (debugInfo) {
+      lines.push('');
+      lines.push('=== PWA Info ===');
+      lines.push(debugInfo);
+    }
+    lines.push('');
+    lines.push(`=== Logs (${logs.length}) ===`);
+    logs.forEach(l => {
+      lines.push(`${l.timestamp} [${l.type.toUpperCase()}] ${l.message}`);
+    });
+
+    const text = lines.join('\n');
+
+    let copied = false;
+    try {
+      if (
+        typeof navigator !== 'undefined' &&
+        navigator.clipboard &&
+        typeof navigator.clipboard.writeText === 'function'
+      ) {
+        await navigator.clipboard.writeText(text);
+        copied = true;
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        copied = document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+    } catch (e) {
+      console.error('[DebugPanel] Falha ao copiar:', e);
+    }
+
+    setCopyFeedback(copied ? 'Copiado!' : 'Falhou');
+    setTimeout(() => setCopyFeedback(null), 2000);
+  };
+
   const checkNetworkNow = async () => {
     console.log('[DebugPanel] Check Now pressed!');
     addLog('info', '🔍 Verificando conectividade real...');
@@ -171,14 +262,22 @@ export const DebugPanel = ({ visible, debugInfo }: DebugPanelProps) => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Debug Panel{errorCount > 0 ? ` (${errorCount} errors)` : ''}</Text>
         <View style={styles.headerActions}>
-          <Pressable 
-            onPress={checkNetworkNow} 
+          <Pressable
+            onPress={checkNetworkNow}
             style={({ pressed }) => [styles.headerButton, pressed && { opacity: 0.5 }]}
           >
             <Text style={styles.headerButtonText}>Check Now</Text>
           </Pressable>
-          <Pressable 
-            onPress={clearLogs} 
+          <Pressable
+            onPress={copyLogs}
+            style={({ pressed }) => [styles.headerButton, pressed && { opacity: 0.5 }]}
+          >
+            <Text style={styles.headerButtonText}>
+              {copyFeedback ?? 'Copiar'}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={clearLogs}
             style={({ pressed }) => [styles.headerButton, pressed && { opacity: 0.5 }]}
           >
             <Text style={styles.headerButtonText}>Limpar</Text>
