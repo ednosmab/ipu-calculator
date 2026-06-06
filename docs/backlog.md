@@ -9,9 +9,10 @@
 
 Ordem de ataque sugerida ao retomar a próxima sessão:
 
-1. **Item 26 — UpdateBanner não atualiza a página** 🔴 (bug ativo reportado)
-2. **Item 21 — Validar refresh proativo em staging** 🟡 (depende de merge do PR #71)
-3. **Itens 22-25** — podem ser atacados em qualquer ordem; nenhum é bloqueante.
+1. **Item 27 — Realtime não dispara para CREATE/UPDATE** 🔴 (bug ativo reportado, parte do fix realtime da FASE 6)
+2. **Item 26 — UpdateBanner não atualiza a página** 🔴 (bug ativo reportado)
+3. **Item 21 — Validar refresh proativo em staging** 🟡 (depende de merge do PR #72/#73)
+4. **Itens 22-25** — podem ser atacados em qualquer ordem; nenhum é bloqueante.
 
 ---
 
@@ -429,6 +430,46 @@ const applyUpdate = useCallback(async () => {
 - [ ] Adicionar log explícito `[SW] applyUpdate: waiting=..., controller=...` para debug
 - [ ] Teste manual: deploy v1.0.0 → abrir aba → deploy v1.0.1 → esperar banner → clicar → verificar reload
 - [ ] Adicionar teste E2E em `e2e/` se viável (Playwright suporta service workers)
+
+---
+
+### 27. Realtime não dispara para CREATE/UPDATE (DELETE funciona)
+
+**Status:** 🟡 Correção proposta — aguardando revisão e deploy
+
+**Sintoma (Junho 2026):** Após merge do PR #72 (migration 006 + `setAuth(token)` no `useRealtimeModels`):
+- ✅ **DELETE** em um device aparece em tempo real no outro device
+- ❌ **CREATE** (INSERT) só aparece após hard reset manual (limpar cache + reload)
+- ❌ **UPDATE** (edição) só aparece após hard reset manual
+
+**Causa raiz (confirmada):** Hipótese #1 do diagnóstico original. A policy `models_select` em `001_auth_security.sql:49-56` usa subquery:
+```sql
+USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND active = true))
+```
+O Supabase Realtime avalia a SELECT policy no contexto de replicação lógica. Em INSERT/UPDATE, o contexto de avaliação da subquery difere do contexto usado para DELETE (que avalia apenas OLD row), fazendo a subquery falhar silenciosamente e o evento ser filtrado antes de chegar ao cliente.
+
+**Correção aplicada:**
+- Nova migration `007_simplify_models_rls_for_realtime.sql`:
+  - Cria `public.current_user_is_active()` como `SECURITY DEFINER` function (`LANGUAGE sql`, `STABLE`)
+  - Substitui a subquery na policy `models_select` por chamada à função
+  - SECURITY DEFINER garante execução consistente em ambos os contextos (API e realtime)
+- Logging melhorado em `useRealtimeModels.ts` para distinguir delivery (evento chegou ao client) vs processing (fetchModels executou)
+
+**Por que só SELECT policy e não todas?** A realtime só usa a SELECT policy para filtrar eventos. INSERT/UPDATE/DELETE policies são aplicadas via API/PostgREST, onde a subquery funciona normalmente.
+
+**Sub-itens propostos:**
+- [x] Identificar causa raiz (RLS subquery em contexto de replicação)
+- [x] Criar migration com SECURITY DEFINER function
+- [x] Aplicar migration 007 em staging via `npx supabase db push` (junho/2026)
+- [x] Melhorar logging do hook para debug futuro
+- [ ] Validar `relreplident = 'f'` em prod (sugestão, não bloqueia)
+- [ ] Validar realtime cross-device: INSERT e UPDATE chegam sem hard reset
+- [ ] Adicionar teste E2E em `e2e/realtime-sync.spec.ts` cobrindo INSERT e UPDATE cross-tab (DELETE já tem helper)
+- [ ] (Futuro) Atualizar policies INSERT/UPDATE/DELETE para usar a mesma função (consistência)
+
+**Arquivos modificados/criados nesta correção:**
+- `supabase/migrations/007_simplify_models_rls_for_realtime.sql` (novo)
+- `src/features/models/hooks/useRealtimeModels.ts` (logging estruturado do evento recebido)
 
 ---
 
