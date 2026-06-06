@@ -133,7 +133,17 @@ export const useRealtimeModels = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'models' },
         (payload) => {
-          console.log('[useRealtimeModels] Notificação realtime recebida:', payload.eventType);
+          // Log estruturado para distinguir delivery (chegou ao client)
+          // vs processing (fetchModels executou). Ajuda a diferenciar
+          // problemas de RLS/realtime (evento não chega) de problemas
+          // de merge/cache (evento chega mas lista não atualiza).
+          const eventId = payload.new?.id ?? payload.old?.id ?? 'unknown';
+          const eventName = payload.new?.name ?? payload.old?.name ?? null;
+          console.log('[useRealtimeModels] Notificação realtime recebida:', {
+            eventType: payload.eventType,
+            modelId: eventId,
+            modelName: eventName,
+          });
           fetchModels(true);
         }
       );
