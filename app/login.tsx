@@ -10,6 +10,7 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
 } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -33,6 +34,7 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -112,18 +114,35 @@ export default function LoginScreen() {
           />
 
           <Text style={styles.label}>Senha</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="••••••••"
-            placeholderTextColor={theme.colors.textSecondary}
-            secureTextEntry
-            editable={!isLoading}
-            onSubmitEditing={handleLogin}
-            accessibilityLabel="Campo de senha"
-            testID="login-password-input"
-          />
+          <View style={styles.passwordWrapper}>
+            <TextInput
+              style={styles.passwordInput}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="••••••••"
+              placeholderTextColor={theme.colors.textSecondary}
+              secureTextEntry={!showPassword}
+              editable={!isLoading}
+              onSubmitEditing={handleLogin}
+              accessibilityLabel="Campo de senha"
+              testID="login-password-input"
+            />
+            <Pressable
+              onPress={() => setShowPassword(prev => !prev)}
+              style={styles.eyeButton}
+              hitSlop={8}
+              disabled={isLoading}
+              accessibilityLabel={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              accessibilityRole="button"
+              testID="login-password-toggle"
+            >
+              <FontAwesome5
+                name={showPassword ? 'eye-slash' : 'eye'}
+                size={18}
+                color={theme.colors.textSecondary}
+              />
+            </Pressable>
+          </View>
 
           {/* Feedback de erro */}
           {errorCode && (
@@ -212,6 +231,29 @@ const styles = StyleSheet.create({
     padding: theme.spacing.sm,
     fontSize: theme.typography.sizes.md,
     color: theme.colors.text,
+  },
+  passwordWrapper: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  passwordInput: {
+    backgroundColor: theme.colors.bg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.roundness.md,
+    padding: theme.spacing.sm,
+    paddingRight: 44,
+    fontSize: theme.typography.sizes.md,
+    color: theme.colors.text,
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: theme.spacing.sm,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 32,
   },
   errorBox: {
     backgroundColor: `${theme.colors.error}18`,

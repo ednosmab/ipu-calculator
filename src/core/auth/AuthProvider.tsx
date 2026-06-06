@@ -159,17 +159,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error(errorCode);
     }
 
-    const { access_token } = data.session;
+    const { access_token, refresh_token, expires_at } = data.session;
     const profileData = data.profile;
 
     await Promise.all([
       sessionStorage.setToken(access_token),
       sessionStorage.setProfile(JSON.stringify(profileData)),
+      refresh_token
+        ? sessionStorage.setRefreshToken(refresh_token)
+        : Promise.resolve(),
     ]);
 
-    setSession({ access_token });
+    setSession({ access_token, refresh_token, expires_at });
     setUser({ id: profileData.id, email, role: profileData.role });
     setProfile(profileData);
+  }, []);
+
+  // ── updateSession (chamado por useTokenRefresh após refresh) ──
+  const updateSession = useCallback((newSession: AuthSession) => {
+    setSession(newSession);
   }, []);
 
   // ── signOut ──────────────────────────────────────────────────
@@ -196,7 +204,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, profile, session, isLoading, signIn, signOut }}
+      value={{ user, profile, session, isLoading, signIn, signOut, updateSession }}
     >
       {children}
     </AuthContext.Provider>

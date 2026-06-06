@@ -4,7 +4,10 @@ import { logger } from '@/core/logging/logger';
 
 export const modelSyncService = {
   async syncToRemote(model: CalculationModel): Promise<boolean> {
-    if (typeof navigator !== 'undefined' && !navigator.onLine) return false;
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      logger.warn('[modelSyncService] Sync abortado: navigator.onLine=false (rede pode estar inicializando)');
+      return false;
+    }
 
     const success = await edgeFunctionsClient.syncModel({
       id: model.id,
@@ -25,7 +28,10 @@ export const modelSyncService = {
   },
 
   async deleteFromRemote(id: string): Promise<boolean> {
-    if (typeof navigator !== 'undefined' && !navigator.onLine) return false;
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      logger.warn('[modelSyncService] Delete abortado: navigator.onLine=false (rede pode estar inicializando)');
+      return false;
+    }
 
     const success = await edgeFunctionsClient.deleteModel(id);
 
