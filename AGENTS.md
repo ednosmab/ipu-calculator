@@ -171,3 +171,42 @@ Ao iniciar uma tarefa, siga mentalmente este ciclo:
 - **Lint: 0 errors, 44 warnings** (redução de 3: removi `SUPABASE_URL` não-usado, 2 `Array<T>` → `T[]`). 0 warnings novos em arquivos da sessão.
 - **Testes: 23 suites, 207 passed, 1 skipped** (delta +1 suite, +26 testes desta sessão)
 - **Credenciais teste**: `admin@ipu.com` / `Admin@2026IPU` (UUID `a91e2352-e3ba-4f38-b150-7a84b0f9139a`)
+
+---
+
+### Sessão Atual — Fix Realtime Cross-Device (Junho 2026)
+
+**Objetivo:** Resolver dessincronização entre devices (PC e celular ambos logados no staging não recebem updates um do outro). Diagnóstico confirmou: (1) tabela `models` nunca foi adicionada à publicação `supabase_realtime` em nenhuma migration; (2) `supabaseClient.ts` usa `AsyncStorage` como storage de auth, mas `AuthProvider` salva em `window.sessionStorage` (web) / `expo-secure-store` (mobile) — storages não se conversam, cliente realtime opera como anônimo.
+
+#### ✅ Concluído
+
+| Item | Arquivo(s) | O que mudou |
+|------|-----------|-------------|
+| 1 — Migration realtime | `supabase/migrations/006_enable_realtime_for_models.sql` (novo) | `ALTER PUBLICATION supabase_realtime ADD TABLE public.models` + `REPLICA IDENTITY FULL` + `GRANT SELECT ON models TO anon, authenticated` |
+| 2 — Token sync no hook | `src/features/models/hooks/useRealtimeModels.ts:104-127` | Antes de subscrever o canal, chama `supabase.realtime.setAuth(token)` com o token vindo do `sessionStorage.getToken()`. Try/catch interno protege contra `sessionStorage` indisponível (testes jsdom antigos) |
+| 3 — sessionStorage resiliente | `src/core/auth/sessionStorage.ts:14` | `isWeb` agora checa `typeof window.sessionStorage !== 'undefined'` (jsdom antigo não tem) |
+| 4 — Migration aplicada em prod | `npx supabase db push` | Aplicadas 003, 004 (idempotente, skip coluna já existe), 005, 006 no projeto remoto |
+| 5 — Validação no banco | `npx supabase db query --linked` | Confirmado: `models` em `supabase_realtime`; `replica_identity = FULL`; hook com `search_path=""` |
+
+#### 🔍 Decisões Relevantes
+
+- **Por que `realtime.setAuth()` em vez de mexer no storage do `supabaseClient`?** Mais limpo: o comentário no topo do `supabaseClient.ts` já dizia "NÃO usar para operações autenticadas" — preservar essa garantia e injetar auth só no realtime é a menor mudança. Sincronizar storages exigiria duplicar a sessão em AsyncStorage, criando superfície de ataque.
+- **Por que `REPLICA IDENTITY FULL`?** Sem isso, `UPDATE` e `DELETE` enviam `payload.old = null` no evento realtime. RLS não consegue aplicar filtro por valor anterior (ex: "notificar apenas se `syncStatus` mudou"), e o payload chega incompleto.
+- **Por que `isWeb` agora checa `sessionStorage` também?** JSDom antigo (versão em uso nos testes) tem `window` mas não `window.sessionStorage`. Hooks que tentam `getItem` direto crashavam em teste.
+- **Por que a migration não foi para `develop` antes?** Bug foi reportado em produção (staging em uso ativo). Decisão de aplicar direto para validar correção end-to-end no mesmo ambiente que o usuário estava usando.
+
+#### ⏳ Próximos Passos
+
+- [ ] Build + deploy do front-end (alterações em `useRealtimeModels.ts` + `sessionStorage.ts`) → merge na branch `refactor` → PR para `develop`
+- [ ] Teste E2E manual: PC logado no staging cria modelo "TESTE 5" → celular recebe `[useRealtimeModels] Notificação realtime recebida: INSERT` em até 2s
+- [ ] Confirmar que o log do mobile não mostra mais `Sem token; realtime operará como anônimo` (deve mostrar `Token sincronizado com realtime client`)
+- [ ] Se houver regressão, reverter `setAuth()` e investigar via `console.log` do mobile qual `payload` está chegando (ou não)
+
+#### ⚠️ Contexto Crítico
+
+- **Frontend com fix ainda não está deployado**: migration 006 está aplicada no banco, mas o hook `useRealtimeModels.ts` corrigido só está no working tree do PC. Celular no staging atual **ainda usa o bundle antigo** que não chama `setAuth()`. Vai funcionar parcial: subscription conecta, mas RLS ainda bloqueia payloads até o novo bundle ser deployado.
+- **Migration é idempotente**: se algum device re-aplicar (via `db push` ou SQL Editor), bloco `DO $$` no início da migration 006 detecta que `models` já está na publicação e não duplica.
+- **Validação inicial no mobile** (logs do usuário): cache de 5 modelos (`#1 TAJ`, `#2 TESTE 4`, `#3 TESTE 3`, `#4 TESTE2`, `#5 TPA`) — cache local está íntegro, mas eventos realtime não chegam.
+- **`#5 TPA — v2` é a versão que o celular tem localmente** — útil para validar após o fix: criar v3 no PC e verificar se celular faz refetch e atualiza para v3.
+- **Lint: 0 errors, 44 warnings**. Testes: 23 suites, 208 passed, 1 skipped (delta +1 teste: `should not throw when sessionStorage is unavailable`).
+- **Não foi feito commit/push** das alterações do hook — usuário precisa revisar e pedir COMMIT/PUSH explicitamente.

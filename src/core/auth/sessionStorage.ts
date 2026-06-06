@@ -9,7 +9,7 @@ const SESSION_KEY = 'ipu_session';
 const PROFILE_KEY = 'ipu_profile';
 const REFRESH_TOKEN_KEY = 'ipu_refresh_token';
 
-const isWeb = typeof window !== 'undefined';
+const isWeb = typeof window !== 'undefined' && typeof window.sessionStorage !== 'undefined';
 
 export const sessionStorage = {
   async getToken(): Promise<string | null> {

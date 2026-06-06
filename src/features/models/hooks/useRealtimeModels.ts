@@ -5,6 +5,7 @@ import { fetchRemoteModelsUseCase } from '../application/fetchRemoteModelsUseCas
 import { CalculationModel } from '../domain/calculationModel';
 import { modelRepository } from '../infra/modelRepository';
 import { useAuth } from '@/hooks/useAuth';
+import { sessionStorage } from '@/core/auth/sessionStorage';
 
 export const useRealtimeModels = () => {
   const [models, setModels] = useState<CalculationModel[]>([]);
@@ -104,6 +105,28 @@ export const useRealtimeModels = () => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
     try {
+      // Sincroniza o token de auth do AuthProvider com o cliente Supabase
+      // usado para Realtime. Sem isso, o WebSocket conecta como anônimo
+      // e o RLS (TO authenticated em models) bloqueia os payloads.
+      // Try/catch protege contra ambientes sem sessionStorage (testes jsdom
+      // antigos, SSR, etc.) sem derrubar a renderização.
+      try {
+        sessionStorage.getToken().then((token) => {
+          if (token) {
+            try {
+              supabase.realtime.setAuth(token);
+              console.log('[useRealtimeModels] Token sincronizado com realtime client');
+            } catch (err) {
+              console.warn('[useRealtimeModels] Falha ao setar auth no realtime:', err);
+            }
+          } else {
+            console.warn('[useRealtimeModels] Sem token; realtime operará como anônimo (payloads bloqueados por RLS)');
+          }
+        });
+      } catch (storageError) {
+        console.warn('[useRealtimeModels] sessionStorage indisponível:', storageError);
+      }
+
       channel = supabase.channel('realtime-models');
 
       channel.on(

@@ -5,6 +5,16 @@
 
 ---
 
+## 🎯 PRÓXIMOS PASSOS IMEDIATOS
+
+Ordem de ataque sugerida ao retomar a próxima sessão:
+
+1. **Item 26 — UpdateBanner não atualiza a página** 🔴 (bug ativo reportado)
+2. **Item 21 — Validar refresh proativo em staging** 🟡 (depende de merge do PR #71)
+3. **Itens 22-25** — podem ser atacados em qualquer ordem; nenhum é bloqueante.
+
+---
+
 ## FASE 1 — Hardening Operacional
 
 ### 1. Build Validation no CI
@@ -285,6 +295,140 @@
 **O que falta:**
 - [ ] Configurar Storybook para catálogo visual dos 12 componentes atômicos
 - [ ] Documentar variantes e estados
+
+---
+
+## FASE 6 — Sessão Junho 2026 (Refresh Proativo + Auto-Reauth + Bugs Pendentes)
+
+Itens derivados do trabalho de refresh proativo de JWT, auto-reauth em 401, fechamento de 5 dependabot PRs incompatíveis e bug ativo reportado no banner de atualização PWA.
+
+### 21. Validar refresh proativo em staging
+
+**Status:** 🟡 Pendente (depende de merge do PR #71)
+
+**Contexto:** PR #71 (`refactor → develop`) implementa refresh automático de JWT + auto-recovery transparente em 401 do gateway. Foi deployado em produção via edge functions (`auth-refresh` com `--verify-jwt`, `auth-login` com `--no-verify-jwt` retornando `refresh_token`). Falta smoke test em ambiente real.
+
+**Cenários a validar (em `https://ipu-calculator-staging.vercel.app`):**
+- [ ] Login via curl retorna `{access_token, refresh_token, expires_in, expires_at}` no body
+- [ ] Aguardar ~55min em aba aberta OU reduzir JWT TTL no Supabase Dashboard (Auth → JWT Expiry) para 5min
+- [ ] Console DevTools mostra `[useTokenRefresh] Token refreshed successfully` antes da expiração
+- [ ] Forçar 401 (limpar `ipu_session` do sessionStorage) → auto-recovery OU toast "Sessão expirada" + redirect `/login` após 3 falhas
+- [ ] Realtime continua funcionando entre tabs (não regrediu)
+
+**Critério de aceitação:** Todos os 5 cenários verificados com logs correspondentes no console.
+
+---
+
+### 22. Upgrade Expo SDK 54 → 55
+
+**Status:** 🟡 Pendente (workload grande, não urgente)
+
+**Contexto:** Em junho/2026, 5 dependabot PRs foram fechadas por incompatibilidade com Expo SDK 54:
+- #65 `react-test-renderer 19.1.0→19.2.7` — peer `react@^19.2.7` (temos 19.1.0)
+- #66 `react-native 0.81.5→0.85.3` — requer Expo SDK 55+; breaking changes (`StyleSheet.absoluteFillObject` removido, Jest preset movido)
+- #67 `expo-secure-store 55.0.13→56.0.4` — requer Expo SDK 55+; 56.0.0 elevou iOS mínimo para 16.4
+- #68 `eslint-config-expo 10.0.0→56.0.4` — versão do config segue Expo SDK (56 = SDK 56)
+- #69 `react-native-reanimated 4.1.7→4.4.0` — peer `react-native@0.83-0.86` (temos 0.81.5)
+
+Três PRs adicionais de `dependabot ignore` foram aplicados para evitar reabertura.
+
+**Sub-itens:**
+- [ ] Auditar breaking changes: `StyleSheet.absoluteFillObject`, Jest preset location, novos peer deps
+- [ ] Atualizar `expo` no `package.json` (SDK 54 → 55) e rodar `npx expo install --fix`
+- [ ] Reabrir dependabot PRs e validar merge limpo
+- [ ] Validar 23 test suites / 207 testes após upgrade
+- [ ] Validar build de produção com `npm run build` (gera dist com SW cache versionado)
+- [ ] Testar em device iOS e Android (mínimo 16.4 iOS)
+- [ ] Atualizar `docs/GUIA_TECNICO_COMPLETO.md` seção 2.1 (versões)
+
+**Não-objetivo:** Não é uma única sessão — estimar 1-2 dias de trabalho com testes extensivos.
+
+---
+
+### 23. CI/CD aplica `--no-verify-jwt` em `auth-login` automaticamente
+
+**Status:** 🟡 Pendente (automatização útil)
+
+**Contexto:** ADR-55 documenta que `auth-login` é a única Edge Function deployada com flag `--no-verify-jwt` (chicken-and-egg: precisa de função sem JWT para entregar JWT). Atualmente o deploy é manual: cada nova função precisa lembrar da flag correta. Esquecer causa 401 do gateway que se manifesta como `INVALID_CREDENTIALS` para o usuário (silencioso).
+
+**Sub-itens:**
+- [ ] Criar `scripts/deploy-edge-functions.sh` com matriz `{nome → flag}`:
+  - `auth-login` → `--no-verify-jwt`
+  - todas as outras → sem flag (default `--verify-jwt`)
+- [ ] Script aceita deploy individual (`./deploy-edge-functions.sh auth-login`) ou em lote (sem argumentos)
+- [ ] Validar pós-deploy: `auth-login` anônimo retorna `INVALID_CREDENTIALS` (não `UNAUTHORIZED_NO_AUTH_HEADER`); `models-sync` anônimo retorna `UNAUTHORIZED_NO_AUTH_HEADER`
+- [ ] Documentar uso no `docs/workflow/ipu_calculator-workflow.md`
+
+---
+
+### 24. Telemetria de refreshes
+
+**Status:** 🔵 Pendente (nice-to-have)
+
+**Contexto:** Refresh proativo e auto-reauth estão implementados (PR #71), mas não há visibilidade de quantos refreshes falham por dia, quantos exigem auto-reauth, etc. Útil para dimensionar TTL do JWT e identificar padrões.
+
+**Sub-itens:**
+- [ ] Adicionar `action: 'token_refresh_success'` e `'token_refresh_failed'` no `auditLogger.ts`
+- [ ] Adicionar contadores em `admin-metrics`: refreshes totais nas últimas 24h, falhas, taxa de sucesso
+- [ ] Card de métrica no painel admin `/admin/metrics`: "Token Refreshes (24h)" com taxa de sucesso
+- [ ] Documentar em `docs/autentication/skill/access_logs_metrics_protocol.md`
+
+---
+
+### 25. CORS dev: aceitar IP LAN (RFC 1918)
+
+**Status:** 🔵 Pendente (nice-to-have)
+
+**Contexto:** `supabase/functions/_shared/cors.ts` linhas 29 e 66 só aceitam `localhost` e `127.0.0.1` em dev. Para testar o app em dispositivo físico (iOS/Android) via Wi-Fi local, o IP da máquina de dev (ex: `192.168.1.42:3000`) é bloqueado pelo CORS do Supabase → todas as Edge Functions retornam erro.
+
+**Sub-itens:**
+- [ ] Adicionar regex RFC 1918 em `getCorsHeaders()` e `handleCors()`:
+  - `192.168.0.0/16` → `^http://192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$`
+  - `10.0.0.0/8` → `^http://10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$`
+  - `172.16.0.0/12` → `^http://172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}(:\d+)?$`
+- [ ] Adicionar teste em `supabase/functions/__tests__/cors-config.test.ts` (se existir) ou criar
+- [ ] Documentar em `docs/skill/network_cors_protocol.md` como testar em device físico
+
+---
+
+### 26. UpdateBanner não atualiza a página
+
+**Status:** 🔴 Pendente — **PRÓXIMA SESSÃO** (bug ativo reportado pelo usuário)
+
+**Sintoma:** Usuário clica em "Atualizar" no banner de nova versão disponível, mas a página não é recarregada.
+
+**Causa raiz:** `useServiceWorkerUpdate.applyUpdate()` (linha 33-44) tem fallthrough silencioso:
+
+```ts
+const applyUpdate = useCallback(async () => {
+  const registration = await navigator.serviceWorker.getRegistration();
+  if (registration?.waiting) {                              // ← única ação
+    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+  }
+  // ❌ se waiting for null, função retorna sem fazer nada
+}, []);
+```
+
+**Por que clica e nada acontece (hipóteses ordenadas):**
+1. `registration.waiting === null` no momento do clique (update não está no estado `installed` ainda, ou foi consumido em reload anterior) → função retorna no-op, usuário sem feedback.
+2. Hook nunca chama `registration.update()` antes de checar `waiting` → estado stale se página ficou aberta > 1h sem `visibilitychange`.
+3. Hook escuta apenas `controllerchange`, não `message` → SW envia `SW_UPDATED` (linha 67 do `service-worker.js`) mas hook ignora.
+4. Sem loading state no botão → usuário clica, banner some/continua igual, sem indicação visual de progresso.
+
+**Arquivos afetados:**
+- `src/hooks/useServiceWorkerUpdate.ts:33-44` (causa raiz)
+- `src/components/UpdateBanner.tsx` (sem loading state)
+- `public/service-worker.js:55-74` (envia `SW_UPDATED` que hook ignora)
+
+**Sub-itens propostos:**
+- [ ] Forçar `registration.update()` antes de checar `waiting` em `applyUpdate`
+- [ ] Fallback: se `waiting` for null após update(), fazer `window.location.reload()` direto
+- [ ] Adicionar loading/disabled state no botão do `UpdateBanner` (visual feedback)
+- [ ] Escutar evento `message` (além de `controllerchange`) para `SW_UPDATED`
+- [ ] Tornar `isInitializedRef` mais robusto — considerar `navigator.serviceWorker.controller` na inicialização em vez de esperar primeiro `controllerchange`
+- [ ] Adicionar log explícito `[SW] applyUpdate: waiting=..., controller=...` para debug
+- [ ] Teste manual: deploy v1.0.0 → abrir aba → deploy v1.0.1 → esperar banner → clicar → verificar reload
+- [ ] Adicionar teste E2E em `e2e/` se viável (Playwright suporta service workers)
 
 ---
 
