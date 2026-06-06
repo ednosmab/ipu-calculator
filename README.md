@@ -2,7 +2,7 @@
 > Precisão Industrial em Alta Performance, Online ou Offline.
 
 [![CI](https://github.com/ednosmab/ipu-calculator/actions/workflows/ci.yml/badge.svg)](https://github.com/ednosmab/ipu-calculator/actions/workflows/ci.yml)
-**Version:** 1.2.0 | **License:** Proprietary | **Platform:** PWA / Mobile (Expo)
+**Version:** 1.2.12 | **License:** Proprietary | **Platform:** PWA / Mobile (Expo)
 
 ---
 
@@ -102,6 +102,7 @@ npm test
 
 ## 📜 Protocolos de Skill (Documentation as Code)
 O projeto é guiado por protocolos rigorosos localizados em `./docs/skill/`:
+- [🎬 Protocolo de Animação e Transição](docs/skill/animation_protocol.md)
 - [SKILL: Architectural Integrity & Dependency Guard](docs/skill/architectural_integrity_protocol.md)
 - [Background Sync Orchestration Protocol](docs/skill/background_sync_orchestration.md)
 - [SKILL: Cache Versioning Protocol](docs/skill/cache_versioning_protocol.md)
@@ -116,11 +117,14 @@ O projeto é guiado por protocolos rigorosos localizados em `./docs/skill/`:
 - [SKILL: i18n Protocol (Internacionalização)](docs/skill/i18n_protocol.md)
 - [SKILL: Model Persistence & Atomic Write Protocol](docs/skill/model_persistence_protocol.md)
 - [SKILL: Network Connectivity Protocol (Web & Mobile)](docs/skill/network_connectivity_protocol.md)
+- [Protocolo: Resolução de Erros de Rede e CORS (Vercel + Supabase)](docs/skill/network_cors_protocol.md)
 - [SKILL: Optimistic UI & Sync Indicators](docs/skill/optimistic_ui_sync_indicators.md)
+- [SKILL: Page Title Standardization](docs/skill/page-title-standard.md)
 - [SKILL: Desenvolvimento de Feature com Arquitetura e Testes](docs/skill/principal_skill.md)
 - [SKILL: PWA Lifecycle & Update Protocol](docs/skill/pwa_lifecycle_protocol.md)
 - [SKILL: Resilient Error Handling & UI Recovery](docs/skill/resilient_error_handling.md)
 - [SKILL: Schema Migration & Data Evolution Protocol](docs/skill/schema_migration_protocol.md)
+- [🛠️ Especificações Técnicas1. Posicionamento e AnatomiaLocalização Principal: Canto Superior Esquerdo (Top-Left).Zona de Toque (Touch Target): Mínimo de 44x44px ou 48x48dp para evitar erros de clique.Ícone: ☰ (três linhas horizontais de mesma espessura).Label (Opcional): Em apps voltados para público leigo ou idoso, incluir o texto "Menu" abaixo ou ao lado do ícone.2. Comportamento (Interaction Design)Tipo de Painel: Overlay Drawer (o menu desliza sobre o conteúdo).Scrim (Fundo): Escurecimento do conteúdo principal (opacidade entre 40% e 60%) para focar a atenção no menu.Gesto de Saída: O usuário deve conseguir fechar o menu clicando fora dele (na área do Scrim) ou deslizando para a esquerda (Swipe back).📐 Regras de Hierarquia de ConteúdoAo organizar os itens dentro do menu, utilize a seguinte ordem:Header: Identificação do usuário (Foto, Nome, Email).Navegação Secundária: Itens que não cabem na barra inferior (Configurações, Histórico, Favoritos).Suporte: Ajuda, FAQ, Termos de Uso.Footer: Botão de "Sair" (Logout) e versão do aplicativo.⚖️ Critérios de Decisão (Checklist de UX)CritérioUse Menu Hambúrguer se...Use Barra Inferior se...ImportânciaAs funções são de suporte/ajuste.As funções são o coração do app.QuantidadeVocê tem mais de 5 destinos principais.Você tem entre 3 e 5 destinos.FrequênciaO usuário acessa raramente (ex: Configurações).O usuário alterna o tempo todo (ex: Home/Busca).♿ Acessibilidade e Boas PráticasFoco de Teclado: Se o app for usado com leitores de tela, o foco deve "saltar" para dentro do menu assim que aberto.Contraste: Garantir contraste mínimo de 4.5:1 entre o ícone e a cor da barra superior.Reachability: Lembre-se que o canto superior esquerdo é a "Zona Vermelha" (difícil alcance). Não coloque ações críticas de conversão (como "Comprar Agora") apenas dentro do hambúrguer.🚀 Como Implementar (Dev Handoff)Animação: Duration: 300ms | Easing: Decelerate or Ease-out.Z-Index: Deve ser superior a qualquer outro elemento da página (ex: z-index: 1000).Estado: Manter o estado do scroll do menu independente do scroll da página principal.](docs/skill/side_navigation_design.md)
 - [SKILL: Sync Engine & Offline-First Architecture](docs/skill/sync_offline_architecture.md)
 - [SKILL: Testing Protocol](docs/skill/testing_protocol.md)
 ---
