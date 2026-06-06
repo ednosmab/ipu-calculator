@@ -141,6 +141,91 @@ describe('fetchWithAuth — error parsing', () => {
     expect(result.errorDetail?.code).toBe('NETWORK_ERROR');
   });
 
+  it('re-tenta em TIMEOUT e sucede na 2ª tentativa', async () => {
+    mockGetToken.mockResolvedValue('valid-token');
+    const abortError = Object.assign(new Error('Aborted'), { name: 'AbortError' });
+    const fetchMock = jest
+      .fn()
+      .mockRejectedValueOnce(abortError)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve(JSON.stringify({ models: [] })),
+      });
+    global.fetch = fetchMock;
+
+    const result = await fetchWithAuth('/models-get');
+
+    expect(result.ok).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('re-tenta em NETWORK_ERROR e sucede na 2ª tentativa', async () => {
+    mockGetToken.mockResolvedValue('valid-token');
+    const fetchMock = jest
+      .fn()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve(JSON.stringify({ models: [] })),
+      });
+    global.fetch = fetchMock;
+
+    const result = await fetchWithAuth('/models-get');
+
+    expect(result.ok).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('NÃO re-tenta em erros de gateway (4xx do Supabase)', async () => {
+    mockGetToken.mockResolvedValue('valid-token');
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      text: () =>
+        Promise.resolve(
+          JSON.stringify({ code: 'UNAUTHORIZED_NO_AUTH_HEADER', message: 'Missing token' })
+        ),
+    });
+
+    const result = await fetchWithAuth('/models-get');
+
+    expect(result.ok).toBe(false);
+    expect(result.errorDetail?.kind).toBe('gateway');
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('NÃO re-tenta em erros de função (4xx/5xx com {error})', async () => {
+    mockGetToken.mockResolvedValue('valid-token');
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      text: () => Promise.resolve(JSON.stringify({ error: 'INVALID_CREDENTIALS' })),
+    });
+
+    const result = await fetchWithAuth('/auth-login');
+
+    expect(result.ok).toBe(false);
+    expect(result.errorDetail?.kind).toBe('function');
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('retorna TIMEOUT após 1 retry (2 tentativas totais) em caso de cold start persistente', async () => {
+    mockGetToken.mockResolvedValue('valid-token');
+    const abortError = Object.assign(new Error('Aborted'), { name: 'AbortError' });
+    const fetchMock = jest.fn().mockRejectedValue(abortError);
+    global.fetch = fetchMock;
+
+    const result = await fetchWithAuth('/models-delete?id=abc');
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe('TIMEOUT');
+    expect(result.errorDetail?.kind).toBe('network');
+    expect(result.errorDetail?.code).toBe('TIMEOUT');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('retorna ok=true com data em sucesso 200', async () => {
     mockGetToken.mockResolvedValue('valid-token');
     mockFetchResponse({ models: [{ id: '1' }] });

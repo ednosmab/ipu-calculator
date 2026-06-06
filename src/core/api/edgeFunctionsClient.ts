@@ -11,7 +11,9 @@ import { CONFIG } from '@/core/config';
 
 const { SUPABASE_ANON_KEY } = CONFIG;
 
-const TIMEOUT_MS = 3500;
+const TIMEOUT_MS = 8000;
+const MAX_RETRIES = 1;
+const RETRY_BACKOFF_MS = 750;
 
 export type EdgeFunctionError =
   | {
@@ -43,6 +45,32 @@ async function getAuthToken(): Promise<string | null> {
 }
 
 export async function fetchWithAuth<T = unknown>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<EdgeFunctionResponse<T>> {
+  for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
+    const result = await fetchWithAuthOnce<T>(endpoint, options);
+
+    const isTransientNetworkError =
+      !result.ok &&
+      result.errorDetail?.kind === 'network' &&
+      (result.errorDetail.code === 'TIMEOUT' ||
+        result.errorDetail.code === 'NETWORK_ERROR');
+
+    if (!isTransientNetworkError || attempt > MAX_RETRIES) {
+      return result;
+    }
+
+    console.warn(
+      `[edgeFunctionsClient] 🔄 ${endpoint} tentativa ${attempt}/${MAX_RETRIES} falhou (${result.error}); retry em ${RETRY_BACKOFF_MS}ms...`
+    );
+    await new Promise(resolve => setTimeout(resolve, RETRY_BACKOFF_MS));
+  }
+
+  throw new Error('[edgeFunctionsClient] retry loop exited unexpectedly');
+}
+
+async function fetchWithAuthOnce<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<EdgeFunctionResponse<T>> {
