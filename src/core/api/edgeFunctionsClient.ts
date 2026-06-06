@@ -1,16 +1,40 @@
 // src/core/api/edgeFunctionsClient.ts
 // Cliente centralizado para chamadas às Edge Functions do Supabase
+//
+// Erros são tipados em 3 kinds para diagnóstico preciso:
+//   - gateway: 401/403 do gateway Supabase (antes da função) — code: UNAUTHORIZED_NO_AUTH_HEADER, etc.
+//   - function: 4xx/5xx da própria edge function — code: {error: 'INVALID_CREDENTIALS'|'RATE_LIMITED'|...}
+//   - network: fetch falhou — code: TIMEOUT | NETWORK_ERROR | NO_TOKEN
 
 import { sessionStorage } from '../auth/sessionStorage';
 import { CONFIG } from '@/core/config';
 
-const { SUPABASE_URL, SUPABASE_ANON_KEY } = CONFIG;
+const { SUPABASE_ANON_KEY } = CONFIG;
 
 const TIMEOUT_MS = 3500;
 
-interface EdgeFunctionResponse<T = unknown> {
+export type EdgeFunctionError =
+  | {
+      kind: 'gateway';
+      code: string;
+      message: string;
+      status: number;
+    }
+  | {
+      kind: 'function';
+      code: string;
+      status: number;
+    }
+  | {
+      kind: 'network';
+      code: 'TIMEOUT' | 'NETWORK_ERROR' | 'NO_TOKEN';
+      status: 0;
+    };
+
+export interface EdgeFunctionResponse<T = unknown> {
   data?: T;
   error?: string;
+  errorDetail?: EdgeFunctionError;
   ok: boolean;
 }
 
@@ -18,7 +42,7 @@ async function getAuthToken(): Promise<string | null> {
   return sessionStorage.getToken();
 }
 
-async function fetchWithAuth<T = unknown>(
+export async function fetchWithAuth<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<EdgeFunctionResponse<T>> {
@@ -40,6 +64,7 @@ async function fetchWithAuth<T = unknown>(
     return {
       ok: false,
       error: 'NO_TOKEN_AVAILABLE',
+      errorDetail: { kind: 'network', code: 'NO_TOKEN', status: 0 },
     };
   }
 
@@ -61,36 +86,53 @@ async function fetchWithAuth<T = unknown>(
 
     clearTimeout(timeoutId);
 
-    // Tenta ler o JSON; se falhar, pega o texto puro
-    let data: any;
     const text = await response.text();
+    let data: any = null;
+    let parseFailed = false;
     try {
       data = JSON.parse(text);
     } catch (parseError) {
+      parseFailed = true;
       console.error(`[edgeFunctionsClient] Falha ao parsear JSON de ${endpoint}:`, text);
-      data = { error: 'INVALID_JSON_RESPONSE' };
     }
 
-    console.log(`[edgeFunctionsClient] ${endpoint} ${response.status}`, {
-      ok: response.ok,
-      status: response.status,
-      error: data.error,
-    });
-
     if (!response.ok) {
-      const errorMessage = data.error ?? 'REQUEST_FAILED';
-      console.error(`[edgeFunctionsClient] ❌ ${endpoint} falhou: ${errorMessage} (${response.status})`);
+      // Detecta kind do erro:
+      // - Gateway Supabase retorna {code, message} (ex: UNAUTHORIZED_NO_AUTH_HEADER)
+      // - Edge function retorna {error, status} (ex: {error: 'INVALID_CREDENTIALS'})
+      const isGateway = !parseFailed && data?.code && !data?.error;
+
+      if (isGateway) {
+        const code = String(data.code);
+        const message = String(data.message ?? '');
+        console.error(
+          `[edgeFunctionsClient] 🛡️ ${endpoint} gateway block: ${code} (${response.status}) — ${message}`
+        );
+        return {
+          ok: false,
+          error: code,
+          errorDetail: { kind: 'gateway', code, message, status: response.status },
+        };
+      }
+
+      const errorMessage =
+        (data && !parseFailed ? (data.error ?? data.code) : null) ?? 'REQUEST_FAILED';
+      const errorCode = String(errorMessage);
+      console.error(
+        `[edgeFunctionsClient] ❌ ${endpoint} falhou: ${errorCode} (${response.status})`
+      );
 
       return {
         ok: false,
-        error: errorMessage,
+        error: errorCode,
+        errorDetail: { kind: 'function', code: errorCode, status: response.status },
       };
     }
 
     console.log(`[edgeFunctionsClient] ✅ ${endpoint} sucesso`);
     return {
       ok: true,
-      data: data as T,
+      data: (data ?? null) as T,
     };
   } catch (e: unknown) {
     clearTimeout(timeoutId);
@@ -103,6 +145,101 @@ async function fetchWithAuth<T = unknown>(
     return {
       ok: false,
       error: errorType,
+      errorDetail: { kind: 'network', code: errorType, status: 0 },
+    };
+  }
+}
+
+export interface RefreshSessionResponse {
+  session: {
+    access_token: string;
+    refresh_token: string;
+    expires_in: number;
+    expires_at: number;
+  };
+}
+
+/**
+ * Renova o access_token usando o refresh_token persistido.
+ * Retorna o novo session ou { ok: false, errorDetail.kind === 'gateway' }.
+ */
+export async function refreshSession(): Promise<
+  EdgeFunctionResponse<RefreshSessionResponse>
+> {
+  const refreshToken = await sessionStorage.getRefreshToken();
+  if (!refreshToken) {
+    return {
+      ok: false,
+      error: 'NO_REFRESH_TOKEN',
+      errorDetail: { kind: 'network', code: 'NO_TOKEN', status: 0 },
+    };
+  }
+
+  // Bypass de getAuthToken() para usar refresh_token em vez de access_token
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_ANON_KEY,
+  };
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  try {
+    const url = `${CONFIG.EDGE_FUNCTIONS_URL}/auth-refresh`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      signal: controller.signal,
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+
+    clearTimeout(timeoutId);
+    const text = await response.text();
+    let data: any = null;
+    let parseFailed = false;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      parseFailed = true;
+    }
+
+    if (!response.ok) {
+      const isGateway = !parseFailed && data?.code && !data?.error;
+      if (isGateway) {
+        return {
+          ok: false,
+          error: String(data.code),
+          errorDetail: {
+            kind: 'gateway',
+            code: String(data.code),
+            message: String(data.message ?? ''),
+            status: response.status,
+          },
+        };
+      }
+      const errorCode = String(
+        (data && !parseFailed ? data.error ?? data.code : null) ?? 'REFRESH_FAILED'
+      );
+      return {
+        ok: false,
+        error: errorCode,
+        errorDetail: { kind: 'function', code: errorCode, status: response.status },
+      };
+    }
+
+    return { ok: true, data: data as RefreshSessionResponse };
+  } catch (e: unknown) {
+    clearTimeout(timeoutId);
+    const error = e as Error;
+    const isTimeout = error.name === 'AbortError';
+    return {
+      ok: false,
+      error: isTimeout ? 'TIMEOUT' : 'NETWORK_ERROR',
+      errorDetail: {
+        kind: 'network',
+        code: isTimeout ? 'TIMEOUT' : 'NETWORK_ERROR',
+        status: 0,
+      },
     };
   }
 }
@@ -175,7 +312,7 @@ export const edgeFunctionsClient = {
 
   async getAdminUsers(): Promise<any[]> {
     const result = await fetchWithAuth<any[]>('/admin-users', { method: 'GET' });
-    
+
     if (!result.ok) {
       throw new Error(result.error ?? 'FAILED_TO_FETCH_USERS');
     }
@@ -207,4 +344,7 @@ export const edgeFunctionsClient = {
     });
     return result.ok;
   },
+
+  refreshSession,
+  fetchWithAuth,
 };
