@@ -435,7 +435,7 @@ const applyUpdate = useCallback(async () => {
 
 ### 27. Realtime não dispara para CREATE/UPDATE (DELETE funciona)
 
-**Status:** 🟢 Migration 008 aplicada — aguardando validação cross-device
+**Status:** 🟡 PR #76 criado — race condition client-side corrigida, aguardando validação final
 
 **Sintoma (Junho 2026):** Após merge do PR #72 (migration 006 + `setAuth(token)` no `useRealtimeModels`):
 - ✅ **DELETE** em um device aparece em tempo real no outro device
@@ -443,30 +443,42 @@ const applyUpdate = useCallback(async () => {
 - ❌ **UPDATE** (edição) só aparece após hard reset manual
 - ❌ O padrão "minimizar e abrir" funciona porque `AppState.addEventListener('change', ...)` chama `fetchModels(true)` — confirma que `fetchRemoteModelsUseCase` está ok, problema é delivery
 
-**Causa raiz (confirmada após migration 007 falhar):** a subquery original (`EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() ...)`) e a SECURITY DEFINER function da migration 007 (que ainda depende de `auth.uid()`) falham no contexto de replicação lógica do Supabase Realtime para INSERT (NEW row) e UPDATE (OLD+NEW rows), porque `auth.uid()` retorna NULL nesse contexto. DELETE funciona porque avalia apenas OLD row, onde `auth.uid()` está disponível.
+**Causa raiz REAL (confirmada via `realtime.subscription` no banco):**
+Migrations 007 e 008 (RLS) **não eram** o problema. O bug era **client-side race condition**:
+- `supabase.realtime.setAuth(token)` era chamado dentro de `sessionStorage.getToken().then(...)` (async)
+- `channel.subscribe()` é sync
+- O WebSocket iniciava o handshake **antes** do token ser setado → conectava como **anônimo**
+- `realtime.subscription` no banco confirmava: `role=anon`, `user_id=NULL`, `is_active=NULL`
 
-**Correção aplicada (migration 008):**
-- Atualiza `custom_access_token_hook` para injetar claim `is_active` no JWT (junto com `role` já existente)
-- Substitui a `models_select` policy para usar `(auth.jwt() ->> 'is_active')::boolean` em vez de subquery — a claim JWT é lida diretamente do token, sem depender de `auth.uid()` no contexto de replication
-- `COALESCE(..., true)` garante backward-compat: JWTs antigos (sem a claim) continuam tendo acesso até o próximo login
-- Dropa a função `current_user_is_active()` (dead code da migration 007)
-- Logging melhorado em `useRealtimeModels.ts` para distinguir delivery (evento chegou ao client) vs processing (fetchModels executou)
+**Por que DELETE funcionava mas INSERT/UPDATE não:** Em conexões anônimas, o realtime do supabase-js trata DELETE de forma diferente (payload precisa apenas de `old.id`, REPLICA IDENTITY FULL envia isso). INSERT/UPDATE precisam de avaliação completa da policy RLS com `auth.uid()`/`auth.jwt()`, e falham silenciosamente.
 
-**Por que só SELECT policy e não todas?** A realtime só usa a SELECT policy para filtrar eventos. INSERT/UPDATE/DELETE policies são aplicadas via API/PostgREST, onde a subquery funciona normalmente.
+**Correção aplicada (PR #76):**
+- `useRealtimeModels.ts`: setup do canal virou IIFE async que **aguarda** o token antes de chamar `setAuth()` e `subscribe()`
+- Flag `cancelled` evita vazamento se componente desmontar durante o fetch do token
+- Mantidas as migrations 007 e 008 (007 virou dead code removido pela 008, ambas aplicadas no prod)
+- Migrations são preventivas: protegem contra RLS subquery se alguém subscrever ao realtime sem `setAuth` no futuro
+
+**Validação server-side (após PR #76 mergeado):**
+```sql
+SELECT claims->>'role' AS role, claims->>'is_active' AS is_active, claims->>'sub' AS user_id
+FROM realtime.subscription;
+-- Esperado: role=authenticated, is_active=true, user_id=<uuid> (não mais anon)
+```
 
 **Sub-itens:**
-- [x] Identificar causa raiz (RLS subquery em contexto de replicação)
-- [x] Migration 007 (SECURITY DEFINER function) — não corrigiu
-- [x] Migration 008 (JWT claim approach) — aplicada em prod
-- [x] Logging estruturado do hook para debug futuro
+- [x] Identificar causa raiz (race condition client-side, não RLS)
+- [x] Migration 007 (SECURITY DEFINER function) — não corrigiu mas removida pela 008
+- [x] Migration 008 (JWT claim approach) — aplicada em prod (preventiva)
+- [x] PR #76: await token antes de subscribe (correção definitiva)
 - [ ] Validar realtime cross-device: INSERT e UPDATE chegam sem hard reset
-- [ ] Adicionar teste E2E em `e2e/realtime-sync.spec.ts` cobrindo INSERT e UPDATE cross-tab (DELETE já tem helper)
+- [ ] Validar `realtime.subscription` mostra `role=authenticated` após PR #76
+- [ ] Adicionar teste E2E em `e2e/realtime-sync.spec.ts` cobrindo INSERT e UPDATE cross-tab
 - [ ] (Futuro) Atualizar policies INSERT/UPDATE/DELETE para usar a mesma claim (consistência)
 
 **Arquivos modificados/criados nesta correção:**
-- `supabase/migrations/007_simplify_models_rls_for_realtime.sql` (não corrigiu)
-- `supabase/migrations/008_jwt_claim_for_models_rls.sql` (correção definitiva)
-- `src/features/models/hooks/useRealtimeModels.ts` (logging estruturado do evento recebido)
+- `supabase/migrations/007_simplify_models_rls_for_realtime.sql` (não corrigiu, função removida)
+- `supabase/migrations/008_jwt_claim_for_models_rls.sql` (correção defensiva, aplicada)
+- `src/features/models/hooks/useRealtimeModels.ts` (corrigido no PR #72 logging, PR #76 race condition)
 
 ---
 
