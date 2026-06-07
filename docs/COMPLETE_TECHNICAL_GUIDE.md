@@ -889,6 +889,15 @@ channel.subscribe((status) => {
 });
 ```
 
+**Gotcha crítico — JWT Custom Claim Reservado (ADR-56):** O `custom_access_token_hook` (SQL function chamada em todo login) **NUNCA** deve sobrescrever claims reservados do JWT Supabase — em especial `role`, `sub`, `aud`, `iss`, `exp`, `iat`. Esses claims são interpretados pelo realtime server e/ou pelo PostgREST para avaliar contexto de execução. Sobrescrever `role` com `viewer`/`admin`/`editor` faz o realtime executar `SET ROLE 'viewer'` no contexto de replication lógica → `ERROR 42704 (undefined_object)` → listener `postgres_changes` falha silenciosamente (DELETE parece funcionar, INSERT/UPDATE não chegam). Symptoms: `realtime.subscription` sempre vazia, system event no WS reporta `role "..." does not exist`. Fix: hook deve injetar apenas claims **não-reservados** (`is_active`, `user_role`, `app_metadata_*`).
+
+**Setup necessário para `postgres_changes` funcionar:**
+
+1. Migration `006_enable_realtime_for_models.sql`: `ALTER PUBLICATION supabase_realtime ADD TABLE public.models` + `REPLICA IDENTITY FULL` + `GRANT SELECT ON models TO anon, authenticated`
+2. Tabela precisa estar em `realtime.subscription` (query: `SELECT * FROM pg_publication_tables WHERE pubname = 'supabase_realtime'`)
+3. JWT deve ser do tipo `authenticated` (não `anon`) — aplicado via `supabase.realtime.setAuth(token)` no hook
+4. Policies RLS devem permitir SELECT para o role sendo usado
+
 ---
 
 ## 8. Camada de Domínio

@@ -9,8 +9,8 @@
 
 Ordem de ataque sugerida ao retomar a próxima sessão:
 
-1. **Item 27 — Realtime não dispara para CREATE/UPDATE** 🔴 (bug ativo reportado, parte do fix realtime da FASE 6)
-2. **Item 26 — UpdateBanner não atualiza a página** 🔴 (bug ativo reportado)
+1. **Commit + push da migration 009** (validação no mobile real é o último item 27 pendente)
+2. **Item 26 — UpdateBanner não atualiza a página** 🔴 (bug ativo reportado, próximo)
 3. **Item 21 — Validar refresh proativo em staging** 🟡 (depende de merge do PR #72/#73)
 4. **Itens 22-25** — podem ser atacados em qualquer ordem; nenhum é bloqueante.
 
@@ -435,50 +435,63 @@ const applyUpdate = useCallback(async () => {
 
 ### 27. Realtime não dispara para CREATE/UPDATE (DELETE funciona)
 
-**Status:** 🟡 PR #76 criado — race condition client-side corrigida, aguardando validação final
+**Status:** ✅ **CONCLUÍDO** — migration 009 corrige causa raiz (JWT `role` claim overwrite)
 
-**Sintoma (Junho 2026):** Após merge do PR #72 (migration 006 + `setAuth(token)` no `useRealtimeModels`):
-- ✅ **DELETE** em um device aparece em tempo real no outro device
-- ❌ **CREATE** (INSERT) só aparece após hard reset manual (limpar cache + reload)
-- ❌ **UPDATE** (edição) só aparece após hard reset manual
-- ❌ O padrão "minimizar e abrir" funciona porque `AppState.addEventListener('change', ...)` chama `fetchModels(true)` — confirma que `fetchRemoteModelsUseCase` está ok, problema é delivery
+**Sintoma (Junho 2026):**
+- ✅ **DELETE** parecia funcionar via realtime (na verdade era só o `processPendingDeletesUseCase` rodando após o servidor confirmar — o evento realtime em si nunca chegava ao cliente)
+- ❌ **INSERT** só aparecia após hard reset manual ou `AppState` mudar
+- ❌ **UPDATE** idem
+- ❌ `realtime.subscription` sempre vazia (0 rows) — listener `postgres_changes` nunca era ativado
 
-**Causa raiz REAL (confirmada via `realtime.subscription` no banco):**
-Migrations 007 e 008 (RLS) **não eram** o problema. O bug era **client-side race condition**:
-- `supabase.realtime.setAuth(token)` era chamado dentro de `sessionStorage.getToken().then(...)` (async)
-- `channel.subscribe()` é sync
-- O WebSocket iniciava o handshake **antes** do token ser setado → conectava como **anônimo**
-- `realtime.subscription` no banco confirmava: `role=anon`, `user_id=NULL`, `is_active=NULL`
+**Causa raiz REAL (confirmada via `node + ws` puro contra Supabase Realtime):**
+A função SQL `custom_access_token_hook` (migration 001, originalmente bem-intencionada) **sobrescrevia o claim reservado `role` do JWT** com o `role` de aplicação vindo de `public.profiles` (valores: `admin`, `editor`, `viewer`). O JWT emitido continha `"role": "viewer"` em vez de `"role": "authenticated"`. Quando o realtime server tentava avaliar as policies RLS no contexto de replication lógica, executava `SET ROLE 'viewer'` — mas essa role Postgres não existe, gerando `ERROR 42704 (undefined_object) role "viewer" does not exist` e fazendo o listener `postgres_changes` falhar silenciosamente.
 
-**Por que DELETE funcionava mas INSERT/UPDATE não:** Em conexões anônimas, o realtime do supabase-js trata DELETE de forma diferente (payload precisa apenas de `old.id`, REPLICA IDENTITY FULL envia isso). INSERT/UPDATE precisam de avaliação completa da policy RLS com `auth.uid()`/`auth.jwt()`, e falham silenciosamente.
+**Por que DELETE "funcionava" mas INSERT/UPDATE não:**
+- supabase-js trata DELETE anonimamente: payload do DELETE é só `{old: {id, ...}}` — REPLICA IDENTITY FULL envia isso mesmo sem auth avaliada
+- INSERT/UPDATE precisam de avaliação RLS completa (`auth.uid()`, `auth.jwt()`) para o payload — sem listener ativo, não chegam nunca
+- "Funcionar" o DELETE era ilusão: era a sincronização REST após o servidor confirmar, não o evento realtime
 
-**Correção aplicada (PR #76):**
-- `useRealtimeModels.ts`: setup do canal virou IIFE async que **aguarda** o token antes de chamar `setAuth()` e `subscribe()`
-- Flag `cancelled` evita vazamento se componente desmontar durante o fetch do token
-- Mantidas as migrations 007 e 008 (007 virou dead code removido pela 008, ambas aplicadas no prod)
-- Migrations são preventivas: protegem contra RLS subquery se alguém subscrever ao realtime sem `setAuth` no futuro
+**Por que AppState change "resolvia" o problema visualmente:**
+- `useModels` chama `fetchRemoteModelsUseCase(true)` ao detectar mudança de estado
+- Isso é um REST GET independente do realtime — pega o que tá no banco no momento
 
-**Validação server-side (após PR #76 mergeado):**
-```sql
-SELECT claims->>'role' AS role, claims->>'is_active' AS is_active, claims->>'sub' AS user_id
-FROM realtime.subscription;
--- Esperado: role=authenticated, is_active=true, user_id=<uuid> (não mais anon)
-```
+**Correção aplicada (migration 009):**
+- Reescrito `custom_access_token_hook` para **NÃO** sobrescrever o claim reservado `role`
+- Hook agora injeta **apenas** a claim não-reservada `is_active` no JWT
+- Migration 008 (claim `is_active`) é mantida — útil como atalho para RLS sem subquery
+- Migrations 006 e 007 mantidas como defensivas
+- **Zero alteração de código frontend** — só migration; mobile só precisa fazer logout/login para obter novo JWT com `role: authenticated`
+
+**Validação (teste WS direto contra Supabase Realtime):**
+- JWT decodificado: `"role": "authenticated"`, `"is_active": true`, `"sub": "a91e2352-..."` ✓
+- Subscription WS: `id: 47470285` registrada, `SYSTEM: Subscribed to PostgreSQL` (sem erro 42704) ✓
+- Teste E2E INSERT → UPDATE → DELETE: **3 eventos recebidos** em sequência ✓
+- WAL replication lag: 0 (slot `confirmed_flush_lsn` = `pg_current_wal_lsn()`) ✓
+- Realtime server confirmado funcional em todo o ciclo
 
 **Sub-itens:**
-- [x] Identificar causa raiz (race condition client-side, não RLS)
-- [x] Migration 007 (SECURITY DEFINER function) — não corrigiu mas removida pela 008
-- [x] Migration 008 (JWT claim approach) — aplicada em prod (preventiva)
-- [x] PR #76: await token antes de subscribe (correção definitiva)
-- [ ] Validar realtime cross-device: INSERT e UPDATE chegam sem hard reset
-- [ ] Validar `realtime.subscription` mostra `role=authenticated` após PR #76
-- [ ] Adicionar teste E2E em `e2e/realtime-sync.spec.ts` cobrindo INSERT e UPDATE cross-tab
-- [ ] (Futuro) Atualizar policies INSERT/UPDATE/DELETE para usar a mesma claim (consistência)
+- [x] Identificar causa raiz (claim reservado `role` sobrescrito)
+- [x] Reescrever `custom_access_token_hook` removendo overwrite de `role` (migration 009)
+- [x] Migration 009 aplicada em prod via `npx supabase db push`
+- [x] Validar JWT agora emite `role: authenticated` (decodificar token)
+- [x] Validar WS subscription sem erro 42704 (teste com `node + ws`)
+- [x] Validar INSERT/UPDATE/DELETE chegam via WS em sequência
+- [x] PR #76 (client-side fix defensivo) mergeado em `dc6eb80`
+- [ ] Validar cross-device real: PC cria modelo → mobile recebe em <2s
+- [ ] (Futuro) Adicionar teste E2E em `e2e/realtime-sync.spec.ts` cobrindo INSERT e UPDATE cross-tab
+- [ ] (Futuro) Considerar mover todas as 6 policies RLS para usar `auth.jwt() ->> 'is_active'` em vez de subquery (consistência)
 
 **Arquivos modificados/criados nesta correção:**
-- `supabase/migrations/007_simplify_models_rls_for_realtime.sql` (não corrigiu, função removida)
-- `supabase/migrations/008_jwt_claim_for_models_rls.sql` (correção defensiva, aplicada)
-- `src/features/models/hooks/useRealtimeModels.ts` (corrigido no PR #72 logging, PR #76 race condition)
+- `supabase/migrations/009_fix_realtime_hook_role_claim.sql` (correção definitiva, aplicada em prod)
+- `docs/adr/README.md` (ADR-56 documentado)
+- `docs/COMPLETE_TECHNICAL_GUIDE.md` (seção 7.7 com gotcha documentado)
+- `src/features/models/hooks/useRealtimeModels.ts` (PR #76 defensivo, mergeado)
+- Migrations 006, 007, 008 mantidas (preventivas)
+
+**Por que o bug demorou para ser diagnosticado:**
+- Diagnóstico inicial culpou `setAuth()` assíncrono (race condition client-side) — ref #76 corrigiu isso mas não era a causa raiz
+- Apenas teste WS puro (`node + ws`) revelou a mensagem exata: `role "viewer" does not exist` no system event
+- O realtime server estava funcional o tempo todo — falhava só no eval de RLS
 
 ---
 
