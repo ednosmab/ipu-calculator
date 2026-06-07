@@ -435,40 +435,37 @@ const applyUpdate = useCallback(async () => {
 
 ### 27. Realtime não dispara para CREATE/UPDATE (DELETE funciona)
 
-**Status:** 🟡 Correção proposta — aguardando revisão e deploy
+**Status:** 🟢 Migration 008 aplicada — aguardando validação cross-device
 
 **Sintoma (Junho 2026):** Após merge do PR #72 (migration 006 + `setAuth(token)` no `useRealtimeModels`):
 - ✅ **DELETE** em um device aparece em tempo real no outro device
 - ❌ **CREATE** (INSERT) só aparece após hard reset manual (limpar cache + reload)
 - ❌ **UPDATE** (edição) só aparece após hard reset manual
+- ❌ O padrão "minimizar e abrir" funciona porque `AppState.addEventListener('change', ...)` chama `fetchModels(true)` — confirma que `fetchRemoteModelsUseCase` está ok, problema é delivery
 
-**Causa raiz (confirmada):** Hipótese #1 do diagnóstico original. A policy `models_select` em `001_auth_security.sql:49-56` usa subquery:
-```sql
-USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND active = true))
-```
-O Supabase Realtime avalia a SELECT policy no contexto de replicação lógica. Em INSERT/UPDATE, o contexto de avaliação da subquery difere do contexto usado para DELETE (que avalia apenas OLD row), fazendo a subquery falhar silenciosamente e o evento ser filtrado antes de chegar ao cliente.
+**Causa raiz (confirmada após migration 007 falhar):** a subquery original (`EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() ...)`) e a SECURITY DEFINER function da migration 007 (que ainda depende de `auth.uid()`) falham no contexto de replicação lógica do Supabase Realtime para INSERT (NEW row) e UPDATE (OLD+NEW rows), porque `auth.uid()` retorna NULL nesse contexto. DELETE funciona porque avalia apenas OLD row, onde `auth.uid()` está disponível.
 
-**Correção aplicada:**
-- Nova migration `007_simplify_models_rls_for_realtime.sql`:
-  - Cria `public.current_user_is_active()` como `SECURITY DEFINER` function (`LANGUAGE sql`, `STABLE`)
-  - Substitui a subquery na policy `models_select` por chamada à função
-  - SECURITY DEFINER garante execução consistente em ambos os contextos (API e realtime)
+**Correção aplicada (migration 008):**
+- Atualiza `custom_access_token_hook` para injetar claim `is_active` no JWT (junto com `role` já existente)
+- Substitui a `models_select` policy para usar `(auth.jwt() ->> 'is_active')::boolean` em vez de subquery — a claim JWT é lida diretamente do token, sem depender de `auth.uid()` no contexto de replication
+- `COALESCE(..., true)` garante backward-compat: JWTs antigos (sem a claim) continuam tendo acesso até o próximo login
+- Dropa a função `current_user_is_active()` (dead code da migration 007)
 - Logging melhorado em `useRealtimeModels.ts` para distinguir delivery (evento chegou ao client) vs processing (fetchModels executou)
 
 **Por que só SELECT policy e não todas?** A realtime só usa a SELECT policy para filtrar eventos. INSERT/UPDATE/DELETE policies são aplicadas via API/PostgREST, onde a subquery funciona normalmente.
 
-**Sub-itens propostos:**
+**Sub-itens:**
 - [x] Identificar causa raiz (RLS subquery em contexto de replicação)
-- [x] Criar migration com SECURITY DEFINER function
-- [x] Aplicar migration 007 em staging via `npx supabase db push` (junho/2026)
-- [x] Melhorar logging do hook para debug futuro
-- [ ] Validar `relreplident = 'f'` em prod (sugestão, não bloqueia)
+- [x] Migration 007 (SECURITY DEFINER function) — não corrigiu
+- [x] Migration 008 (JWT claim approach) — aplicada em prod
+- [x] Logging estruturado do hook para debug futuro
 - [ ] Validar realtime cross-device: INSERT e UPDATE chegam sem hard reset
 - [ ] Adicionar teste E2E em `e2e/realtime-sync.spec.ts` cobrindo INSERT e UPDATE cross-tab (DELETE já tem helper)
-- [ ] (Futuro) Atualizar policies INSERT/UPDATE/DELETE para usar a mesma função (consistência)
+- [ ] (Futuro) Atualizar policies INSERT/UPDATE/DELETE para usar a mesma claim (consistência)
 
 **Arquivos modificados/criados nesta correção:**
-- `supabase/migrations/007_simplify_models_rls_for_realtime.sql` (novo)
+- `supabase/migrations/007_simplify_models_rls_for_realtime.sql` (não corrigiu)
+- `supabase/migrations/008_jwt_claim_for_models_rls.sql` (correção definitiva)
 - `src/features/models/hooks/useRealtimeModels.ts` (logging estruturado do evento recebido)
 
 ---
