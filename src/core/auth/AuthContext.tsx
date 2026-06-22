@@ -14,6 +14,8 @@ export interface UserProfile {
 
 export interface AuthSession {
   access_token: string;
+  refresh_token?: string;
+  expires_at?: number;
 }
 
 export interface AuthContextValue {
@@ -29,6 +31,8 @@ export interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<void>;
   /** Realiza logout via Edge Function /auth-logout e limpa storage */
   signOut: () => Promise<void>;
+  /** Atualiza tokens após refresh (chamado por useTokenRefresh quando outra aba renovou) */
+  updateSession: (session: AuthSession) => void;
 }
 
 export const AuthContext = createContext<AuthContextValue>({
@@ -38,4 +42,5 @@ export const AuthContext = createContext<AuthContextValue>({
   isLoading: true,
   signIn: async () => {},
   signOut: async () => {},
+  updateSession: () => {},
 });

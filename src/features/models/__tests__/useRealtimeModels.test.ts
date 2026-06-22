@@ -229,4 +229,19 @@ describe('useRealtimeModels', () => {
         expect(localCallback).toBeDefined();
       });
     });
+
+  describe('realtime auth sync', () => {
+    it('should not throw when sessionStorage is unavailable', async () => {
+      // Garante que mesmo sem sessionStorage (e.g., jsdom antigo), o hook
+      // não quebra a renderização nem a subscription.
+      renderHook(() => useRealtimeModels());
+
+      await act(async () => {});
+
+      await waitFor(() => {
+        expect(supabase.channel).toHaveBeenCalledWith('realtime-models');
+      });
+      expect(mockChannel.subscribe).toHaveBeenCalled();
+    });
+  });
 });

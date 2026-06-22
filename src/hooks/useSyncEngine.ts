@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
-import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import { syncModelsUseCase , processPendingDeletesUseCase, processPendingEditsUseCase } from '@/features/models/application/syncModelsUseCase';
 import { fetchRemoteModelsUseCase } from '@/features/models/application/fetchRemoteModelsUseCase';
 import { schemaMigrationService } from '@/features/models/application/schemaMigrationService';
 import { logger } from '@/core/logging/logger';
 
 import { useNetworkStatus } from './useNetworkStatus';
+import { useAuth } from './useAuth';
 import { getDeviceId } from '@/core/device/deviceId';
 
 const runSync = async () => {
@@ -22,37 +22,38 @@ const runSync = async () => {
   }
 };
 
+type SyncState = 'uninitialized' | 'online' | 'offline';
+
 export const useSyncEngine = () => {
   const isConnected = useNetworkStatus();
-  const prevConnected = useRef<boolean | null>(null);
-  const isInitialized = useRef(false);
+  const { isLoading: authLoading, user } = useAuth();
+  const syncState = useRef<SyncState>('uninitialized');
 
   useEffect(() => {
-    const init = async () => {
-      if (isInitialized.current) return;
-      isInitialized.current = true;
-      
-      try {
-        const migration = await schemaMigrationService.migrateIfNeeded();
-        if (migration.migrated) {
-          logger.info(`[Migration] ${migration.count} modelos pendentes marcados para re-sync`);
-        }
-        await runSync();
-      } catch (error) {
-        logger.error('[SyncEngine] Erro na inicialização:', error);
+    if (isConnected === true && !authLoading && user) {
+      if (syncState.current === 'uninitialized') {
+        syncState.current = 'online';
+        const init = async () => {
+          try {
+            const migration = await schemaMigrationService.migrateIfNeeded();
+            if (migration.migrated) {
+              logger.info(`[Migration] ${migration.count} modelos pendentes marcados para re-sync`);
+            }
+            await runSync();
+          } catch (error) {
+            logger.error('[SyncEngine] Erro na inicialização:', error);
+          }
+        };
+        init();
+      } else if (syncState.current === 'offline') {
+        syncState.current = 'online';
+        logger.info('[SyncEngine] Conexão restabelecida, iniciando sincronização...');
+        runSync();
       }
-    };
-
-    if (isConnected === true) {
-      init();
+    } else if (isConnected === false || isConnected === null) {
+      if (syncState.current === 'online') {
+        syncState.current = 'offline';
+      }
     }
-  }, [isConnected]);
-
-  useEffect(() => {
-    if (prevConnected.current === false && isConnected === true) {
-      logger.info('[SyncEngine] Conexão restabelecida, iniciando sincronização...');
-      runSync();
-    }
-    prevConnected.current = isConnected;
-  }, [isConnected]);
+  }, [isConnected, authLoading, user]);
 };

@@ -1,5 +1,6 @@
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AuthProvider } from '@/core/auth/AuthProvider';
+import { TokenRefreshBootstrap } from '@/core/auth/TokenRefreshBootstrap';
 import { DebugPanel } from '@/components/DebugPanel';
 import { TranslationProvider, useTranslation } from '@/i18n/TranslationContext';
 import { Button, Text, theme } from '@/design-system';
@@ -94,6 +95,7 @@ function AppContent() {
     <AuthProvider>
       <TranslationProvider>
         <ToastProvider>
+          <TokenRefreshBootstrap />
           <Head>
             <title>Calculadora IPU</title>
             <link rel="manifest" href="/manifest.json" />

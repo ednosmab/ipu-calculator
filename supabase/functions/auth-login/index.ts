@@ -152,6 +152,9 @@ Deno.serve(async (req: Request) => {
     return ok({
       session: {
         access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+        expires_in: data.session.expires_in,
+        expires_at: data.session.expires_at,
       },
       profile: {
         id: data.user.id,

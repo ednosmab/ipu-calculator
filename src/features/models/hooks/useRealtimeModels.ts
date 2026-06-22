@@ -5,6 +5,7 @@ import { fetchRemoteModelsUseCase } from '../application/fetchRemoteModelsUseCas
 import { CalculationModel } from '../domain/calculationModel';
 import { modelRepository } from '../infra/modelRepository';
 import { useAuth } from '@/hooks/useAuth';
+import { sessionStorage } from '@/core/auth/sessionStorage';
 
 export const useRealtimeModels = () => {
   const [models, setModels] = useState<CalculationModel[]>([]);
@@ -102,31 +103,71 @@ export const useRealtimeModels = () => {
     }
 
     let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
 
-    try {
-      channel = supabase.channel('realtime-models');
-
-      channel.on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'models' },
-        (payload) => {
-          console.log('[useRealtimeModels] Notificação realtime recebida:', payload.eventType);
-          fetchModels(true);
+    // Setup async: aguardar o token ANTES de criar/subscrever o canal.
+    // Por que? O WebSocket handshake do Supabase Realtime captura o auth
+    // no momento do subscribe(). Se setAuth() for chamado depois (como
+    // era antes via .then() no getToken), o WS conecta como anônimo e
+    // as policies RLS (TO authenticated) filtram os eventos. DELETE
+    // parecia funcionar porque o realtime do supabase-js trata DELETE
+    // de forma diferente do INSERT/UPDATE em conexões anônimas
+    // (payload.old = id basta, sem precisar de leitura de policy completa).
+    (async () => {
+      try {
+        let token: string | null = null;
+        try {
+          token = await sessionStorage.getToken();
+        } catch (storageError) {
+          console.warn('[useRealtimeModels] sessionStorage indisponível:', storageError);
         }
-      );
 
-      channel.subscribe((status) => {
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.warn('[useRealtimeModels] Realtime indisponível. Operando em modo local.');
-        } else if (status === 'SUBSCRIBED') {
-          console.log('[useRealtimeModels] ✅ Realtime conectado com sucesso.');
+        if (cancelled) return;
+
+        if (token) {
+          try {
+            supabase.realtime.setAuth(token);
+            console.log('[useRealtimeModels] Token sincronizado com realtime client');
+          } catch (err) {
+            console.warn('[useRealtimeModels] Falha ao setar auth no realtime:', err);
+          }
+        } else {
+          console.warn('[useRealtimeModels] Sem token; realtime operará como anônimo (payloads bloqueados por RLS)');
         }
-      });
-    } catch (e) {
-      console.warn('[useRealtimeModels] Erro ao configurar realtime:', e);
-    }
+
+        if (cancelled) return;
+
+        channel = supabase.channel('realtime-models');
+
+        channel.on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'models' },
+          (payload) => {
+            const eventId = payload.new?.id ?? payload.old?.id ?? 'unknown';
+            const eventName = payload.new?.name ?? payload.old?.name ?? null;
+            console.log('[useRealtimeModels] Notificação realtime recebida:', {
+              eventType: payload.eventType,
+              modelId: eventId,
+              modelName: eventName,
+            });
+            fetchModels(true);
+          }
+        );
+
+        channel.subscribe((status) => {
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            console.warn('[useRealtimeModels] Realtime indisponível. Operando em modo local.');
+          } else if (status === 'SUBSCRIBED') {
+            console.log('[useRealtimeModels] ✅ Realtime conectado com sucesso.');
+          }
+        });
+      } catch (e) {
+        console.warn('[useRealtimeModels] Erro ao configurar realtime:', e);
+      }
+    })();
 
     return () => {
+      cancelled = true;
       unsubscribeRepo();
       appStateSubscription.remove();
       if (typeof document !== 'undefined') {

@@ -56,6 +56,8 @@ Este diretório documenta as principais decisões técnicas e arquiteturais do p
 | 31 | [Erros Internos sem Stack Trace](#31-erros-internos-sem-stack-trace) | `INTERNAL_ERROR` genérico para o cliente |
 | 32 | [Redirecionamento Inteligente Pós-Login](#32-redirecionamento-inteligente-pós-login) | Salva rota original no sessionStorage |
 | 33 | [useRequireAuth com 3 Destinos](#33-userequireauth-com-3-destinos) | `/login`, `/suspended`, `/unauthorized` |
+| 55 | [auth-login como Única Função Pública](#55-auth-login-como-única-função-pública) | Deploy com `--no-verify-jwt`; todas as outras mantêm `--verify-jwt` |
+| 56 | [JWT Custom Claim NÃO-Reservado](#56-jwt-custom-claim-não-reservado) | Hook injeta apenas `is_active`; claim `role` permanece `authenticated` (Postgres role) |
 
 ### UI/UX e Design System
 | # | Decisão | Resumo |
@@ -860,6 +862,124 @@ Este diretório documenta as principais decisões técnicas e arquiteturais do p
 
 ---
 
+### 55 — auth-login como Única Função Pública
+
+**Contexto:** O edge function `auth-login` precisa ser invocado por usuários **antes** de terem um JWT válido — é o endpoint que entrega o token. Porém, o Supabase CLI aplica `--verify-jwt` por padrão em todos os deploys, o que faz o gateway retornar `401 UNAUTHORIZED_NO_AUTH_HEADER` para chamadas anônimas. Resultado: chicken-and-egg (precisa de token pra chamar a função, mas precisa chamar a função pra ter token). Em maio/2026 esse problema causou falha de login em produção que só foi diagnosticada após o app exibir `INVALID_CREDENTIALS` (mensagem genérica, sem indicar que o gateway estava bloqueando).
+
+**Decisão:** Deploy de `auth-login` **sempre** com flag `--no-verify-jwt`. Todas as demais Edge Functions (`auth-validate`, `models-sync`, `models-delete`, `models-get`, `admin-*`) continuam com `--verify-jwt` (default) para exigir JWT válido.
+
+```bash
+# auth-login (público — recebe credenciais, devolve token)
+npx supabase functions deploy auth-login --project-ref <ref> --no-verify-jwt
+
+# todas as outras (autenticadas — exigem JWT)
+npx supabase functions deploy models-sync --project-ref <ref>
+npx supabase functions deploy models-delete --project-ref <ref>
+npx supabase functions deploy admin-users --project-ref <ref>
+# etc.
+```
+
+**Alternativas:**
+
+- **Forçar o app a enviar um JWT falso** — não funciona; gateway valida assinatura.
+- **Refatorar login para usar Supabase Auth nativo direto** — quebra o `ADR-21` (Edge Functions como única camada de dados) e perde o audit log automático.
+- **Criar endpoint separado de "token exchange"** — over-engineering para o porte do projeto.
+
+**Justificativa:**
+
+- **Mínima superfície pública:** apenas `auth-login` é exposta sem auth — todas as outras 9+ funções continuam exigindo JWT válido.
+- **Defesa em profundidade mantida:** `auth-login` ainda valida credenciais via `supabase.auth.signInWithPassword` (não confia em payload do cliente); rate limiting (5/min/email) no in-memory; audit log de tentativas falhas.
+- **Diagnóstico explícito:** gateway retorna `UNAUTHORIZED_NO_AUTH_HEADER` (não `INVALID_CREDENTIALS`), o que torna o problema óbvio se voltar a ocorrer.
+- **Compatibilidade:** o comando de deploy é o mesmo, só com um flag a mais — fácil de documentar em script CI/CD.
+
+**Comando de verificação pós-deploy:**
+
+```bash
+# Deve funcionar SEM Authorization header (login anônimo)
+curl -s -X POST "https://<project>.supabase.co/functions/v1/auth-login" \
+  -H "Content-Type: application/json" \
+  -H "apikey: <anon_key>" \
+  -d '{"email":"x@x.com","password":"wrong"}'
+# Esperado: 401 INVALID_CREDENTIALS (NÃO UNAUTHORIZED_NO_AUTH_HEADER)
+
+# Deve BLOQUEAR sem Authorization header (função autenticada)
+curl -s -X POST "https://<project>.supabase.co/functions/v1/models-sync" \
+  -H "Content-Type: application/json" \
+  -H "apikey: <anon_key>" \
+  -d '{}'
+# Esperado: 401 UNAUTHORIZED_NO_AUTH_HEADER
+```
+
+**Arquivos:** `supabase/functions/auth-login/index.ts`, `.github/workflows/ci.yml` (futuro: automatizar deploy com flag correto).
+
+---
+
+### 56 — JWT Custom Claim NÃO-Reservado
+
+**Contexto:** O `custom_access_token_hook` (função SQL invocada pelo Supabase em todo login para injetar claims customizadas no JWT) estava sobrescrevendo o claim **`role`** (claim **reservada** do Supabase, que mapeia para `auth.role()` no SQL → role Postgres) com o `role` de aplicação vindo de `public.profiles` (valores: `admin`, `editor`, `viewer`). O JWT emitido continha `"role": "viewer"` em vez de `"role": "authenticated"`. Quando o realtime server tentava avaliar as policies RLS no contexto de replication lógica, executava `SET ROLE 'viewer'` — mas a role Postgres `viewer` não existe. Resultado: `ERROR 42704 (undefined_object) role "viewer" does not exist` no servidor realtime, fazendo o listener `postgres_changes` falhar silenciosamente.
+
+**Sintomas observados em junho/2026:**
+- DELETE parecia funcionar via realtime (na verdade era a sincronização após o servidor confirmar — o evento realtime não chegava ao cliente, mas o `modelRepository.removeLocal` rodava após o `processPendingDeletesUseCase`)
+- INSERT e UPDATE não chegavam: o mobile só via o modelo novo/editado após `AppState` mudar (background → foreground) ou hard reset
+- `realtime.subscription` sempre vazia (0 rows) — o listener postgres_changes nunca era ativado
+- `realtime.messages_2026_06_07` vazia para tabela `models` — eventos não eram nem processados
+- Diagnosticado via teste com `node + ws` puro: a subscription registrava `id: 47470285` (phx_reply `status: ok`), mas logo após chegava um `system` event: `"Unable to subscribe to changes... role \"viewer\" does not exist"`
+
+**Decisão:** Reescrever o `custom_access_token_hook` (migration 009) para:
+1. **NÃO** sobrescrever o claim `role` — deixa o Supabase setar o valor padrão `authenticated`
+2. Manter apenas a claim não-reservada `is_active` no JWT
+3. As policies RLS continuam usando a subquery em `public.profiles` para determinar o role de aplicação (admin/editor/viewer) — fonte da verdade única no banco
+
+```sql
+-- ANTES (migration 008 — bug):
+claims := jsonb_set(claims, '{role}',      to_jsonb(user_role));   -- ❌ sobrescreve claim reservado
+claims := jsonb_set(claims, '{is_active}', to_jsonb(user_active));
+
+-- DEPOIS (migration 009 — fix):
+claims := jsonb_set(claims, '{is_active}', to_jsonb(user_active)); -- ✅ apenas claim não-reservado
+-- claim 'role' permanece 'authenticated' (default Supabase → role Postgres)
+```
+
+**Alternativas:**
+
+- **Criar uma role Postgres `viewer` para match o claim** — polui o schema do Supabase Cloud com roles customizadas; quebra o invariante do Supabase de que `role` é apenas uma das 3 padrões (`anon`, `authenticated`, `service_role`).
+- **Mover todas as policies RLS para usar `auth.jwt() ->> 'user_role'`** — funciona, mas requer reescrever 6 policies e sincronizar com o novo nome de claim; não há ganho real porque a subquery em `profiles` já é rápida e indexada.
+- **Desativar o `custom_access_token_hook`** — perderíamos a claim `is_active`, que é usada pela policy `models_select` (migration 008) para não depender de subquery.
+
+**Justificativa:**
+
+- **Backward-compat mantida:** JWTs antigos (sem `is_active` claim) continuam funcionando — a policy usa `COALESCE(... ::boolean, true)`.
+- **Zero impacto nas policies existentes:** nenhuma policy depende de `auth.role() = 'admin'/'editor'/'viewer'` — todas usam subquery em `profiles` ou `auth.jwt() ->> 'is_active'`.
+- **Realtime funcionando:** o listener `postgres_changes` é ativado imediatamente; eventos INSERT/UPDATE/DELETE chegam via WebSocket sem necessidade de hard reset ou AppState change.
+- **Defesa em profundidade preservada:** o role de aplicação continua sendo avaliado no banco a cada request (não no JWT), então suspensão de conta e mudança de role têm efeito imediato.
+- **Diagnóstico claro:** se a regressão voltar a ocorrer, o system event do WebSocket reporta explicitamente `role "..." does not exist`, facilitando a identificação.
+
+**Comando de verificação pós-fix:**
+
+```bash
+# 1. Decodificar JWT e confirmar 'role' = 'authenticated'
+TOKEN=$(curl -s -X POST "$EDGE_FUNCTIONS_URL/auth-login" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@ipu.com","password":"..."}' | jq -r '.session.access_token')
+echo "$TOKEN" | cut -d'.' -f2 | base64 -d | jq
+# esperado: "role": "authenticated", "is_active": true
+
+# 2. Confirmar que NENHUMA policy usa auth.role()
+npx supabase db query --linked \
+  --query "SELECT tablename, policyname FROM pg_policies
+           WHERE schemaname = 'public'
+             AND (qual::text LIKE '%auth.role%' OR with_check::text LIKE '%auth.role%');"
+# esperado: 0 rows
+
+# 3. Validar realtime event com node + ws
+node -e "...subscribe to public.models with event: '*'... INSERT row ... receive event"
+# esperado: phx_reply status: ok + system event "Subscribed to PostgreSQL" + INSERT event
+```
+
+**Arquivos:** `supabase/migrations/009_fix_realtime_hook_role_claim.sql`
+
+---
+
 ## ❌ Fora de Escopo (Decisões Explícitas de Não Implementar)
 
 | Decisão | Motivo |
@@ -876,4 +996,4 @@ Este diretório documenta as principais decisões técnicas e arquiteturais do p
 
 ---
 
-*Documento gerado em 2026-05-26. Última atualização: 2026-05-26.*
+*Documento gerado em 2026-05-26. Última atualização: 2026-06-05.*

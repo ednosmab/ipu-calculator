@@ -7,8 +7,9 @@ import * as SecureStore from 'expo-secure-store';
 
 const SESSION_KEY = 'ipu_session';
 const PROFILE_KEY = 'ipu_profile';
+const REFRESH_TOKEN_KEY = 'ipu_refresh_token';
 
-const isWeb = typeof window !== 'undefined';
+const isWeb = typeof window !== 'undefined' && typeof window.sessionStorage !== 'undefined';
 
 export const sessionStorage = {
   async getToken(): Promise<string | null> {
@@ -61,6 +62,30 @@ export const sessionStorage = {
     await Promise.all([
       sessionStorage.clearToken(),
       sessionStorage.clearProfile(),
+      sessionStorage.clearRefreshToken(),
     ]);
+  },
+
+  async getRefreshToken(): Promise<string | null> {
+    if (isWeb) {
+      return window.sessionStorage.getItem(REFRESH_TOKEN_KEY);
+    }
+    return SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+  },
+
+  async setRefreshToken(token: string): Promise<void> {
+    if (isWeb) {
+      window.sessionStorage.setItem(REFRESH_TOKEN_KEY, token);
+      return;
+    }
+    await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, token);
+  },
+
+  async clearRefreshToken(): Promise<void> {
+    if (isWeb) {
+      window.sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+      return;
+    }
+    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
   },
 };
