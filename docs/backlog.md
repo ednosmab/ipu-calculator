@@ -322,27 +322,27 @@ Itens derivados do trabalho de refresh proativo de JWT, auto-reauth em 401, fech
 
 ### 22. Upgrade Expo SDK 54 → 55
 
-**Status:** 🟡 Pendente (workload grande, não urgente)
+**Status:** ✅ Concluído (web/PWA)
 
-**Contexto:** Em junho/2026, 5 dependabot PRs foram fechadas por incompatibilidade com Expo SDK 54:
-- #65 `react-test-renderer 19.1.0→19.2.7` — peer `react@^19.2.7` (temos 19.1.0)
-- #66 `react-native 0.81.5→0.85.3` — requer Expo SDK 55+; breaking changes (`StyleSheet.absoluteFillObject` removido, Jest preset movido)
-- #67 `expo-secure-store 55.0.13→56.0.4` — requer Expo SDK 55+; 56.0.0 elevou iOS mínimo para 16.4
-- #68 `eslint-config-expo 10.0.0→56.0.4` — versão do config segue Expo SDK (56 = SDK 56)
-- #69 `react-native-reanimated 4.1.7→4.4.0` — peer `react-native@0.83-0.86` (temos 0.81.5)
+**Contexto:** Em junho/2026, 5 dependabot PRs foram fechadas por incompatibilidade com Expo SDK 54. Upgrade realizado em agosto/2026.
 
-Três PRs adicionais de `dependabot ignore` foram aplicados para evitar reabertura.
+**Mudanças aplicadas:**
+- `expo` 54.0.34 → 55.0.28, `react-native` 0.81.5 → 0.83.10, `react` 19.1.0 → 19.2.0
+- Todos os pacotes Expo migrados para unified versioning (55.x.x)
+- `babel-preset-expo` e `expo-modules-core` adicionados como devDeps (novo requirement SDK 55)
+- `app.json`: removido `newArchEnabled` (mandatory), `edgeToEdgeEnabled` (mandatory Android 16+), `experiments.reactCompiler` (now stable)
+- `StyleSheet.absoluteFillObject` substituído por positioning explícito em `NavMenu.tsx`
 
 **Sub-itens:**
-- [ ] Auditar breaking changes: `StyleSheet.absoluteFillObject`, Jest preset location, novos peer deps
-- [ ] Atualizar `expo` no `package.json` (SDK 54 → 55) e rodar `npx expo install --fix`
+- [x] Auditar breaking changes: `StyleSheet.absoluteFillObject`, Jest preset location, novos peer deps
+- [x] Atualizar `expo` no `package.json` (SDK 54 → 55) e rodar `npx expo install --fix`
 - [ ] Reabrir dependabot PRs e validar merge limpo
-- [ ] Validar 23 test suites / 207 testes após upgrade
-- [ ] Validar build de produção com `npm run build` (gera dist com SW cache versionado)
-- [ ] Testar em device iOS e Android (mínimo 16.4 iOS)
-- [ ] Atualizar `docs/GUIA_TECNICO_COMPLETO.md` seção 2.1 (versões)
+- [x] Validar 23 test suites / 213 testes após upgrade
+- [x] Validar build de produção com `npm run build` (gera dist com SW cache versionado)
+- [ ] Testar em device iOS e Android (mínimo 16.4 iOS) — requer Xcode 26
+- [x] Atualizar `docs/COMPLETE_TECHNICAL_GUIDE.md` seção 2.1 (versões)
 
-**Não-objetivo:** Não é uma única sessão — estimar 1-2 dias de trabalho com testes extensivos.
+**Pendente (mobile):** iOS requer Xcode 26 (publicado junto com Expo SDK 55). Build Android pode ser testado agora.
 
 ---
 

@@ -63,7 +63,7 @@ describe('fetchWithAuth — error parsing', () => {
     expect(result.errorDetail?.kind).toBe('gateway');
     expect(result.errorDetail?.code).toBe('UNAUTHORIZED_NO_AUTH_HEADER');
     expect(result.errorDetail?.status).toBe(401);
-    expect(result.errorDetail?.message).toContain('Missing authorization');
+    expect((result.errorDetail as any)?.message).toContain('Missing authorization');
   });
 
   it('parseia erro do gateway 403 (ex: FORBIDDEN)', async () => {

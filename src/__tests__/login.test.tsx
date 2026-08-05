@@ -24,17 +24,18 @@ jest.mock('expo-router', () => ({
 }));
 
 const mockUseAuth = jest.fn(() => ({
-  signIn: jest.fn(),
-  profile: null,
+  signIn: jest.fn() as jest.Mock,
+  profile: null as { role: string } | null,
   isLoading: false,
-  user: null,
+  user: null as null,
+  session: null as null,
 }));
 
 jest.mock('@/hooks/useAuth', () => ({
   useAuth: () => mockUseAuth(),
 }));
 
-const mockUseNetworkStatus = jest.fn(() => true);
+const mockUseNetworkStatus = jest.fn((): boolean | null => true);
 
 jest.mock('@/hooks/useNetworkStatus', () => ({
   useNetworkStatus: () => mockUseNetworkStatus(),
@@ -62,6 +63,7 @@ describe('LoginScreen', () => {
       profile: null,
       isLoading: false,
       user: null,
+      session: null,
     });
     mockUseNetworkStatus.mockReturnValue(true);
     mockGetAll.mockResolvedValue([]);
@@ -157,6 +159,7 @@ describe('LoginScreen', () => {
         profile: { role: 'editor' },
         isLoading: false,
         user: null,
+        session: null,
       });
 
       const { getByTestId } = render(<LoginScreen />);
@@ -178,6 +181,7 @@ describe('LoginScreen', () => {
         profile: { role: 'admin' },
         isLoading: false,
         user: null,
+        session: null,
       });
 
       const { getByTestId } = render(<LoginScreen />);
@@ -199,6 +203,7 @@ describe('LoginScreen', () => {
         profile: { role: 'admin' },
         isLoading: false,
         user: null,
+        session: null,
       });
 
       const { getByTestId } = render(<LoginScreen />);
@@ -219,6 +224,7 @@ describe('LoginScreen', () => {
         profile: null,
         isLoading: false,
         user: null,
+        session: null,
       });
 
       const { getByTestId, getByText } = render(<LoginScreen />);
@@ -237,6 +243,7 @@ describe('LoginScreen', () => {
         profile: null,
         isLoading: false,
         user: null,
+        session: null,
       });
 
       const { getByTestId, getByText } = render(<LoginScreen />);
@@ -257,6 +264,7 @@ describe('LoginScreen', () => {
         profile: null,
         isLoading: false,
         user: null,
+        session: null,
       });
 
       const { getByTestId, getByText } = render(<LoginScreen />);
@@ -278,6 +286,7 @@ describe('LoginScreen', () => {
         profile: null,
         isLoading: false,
         user: null,
+        session: null,
       });
 
       const { getByTestId } = render(<LoginScreen />);

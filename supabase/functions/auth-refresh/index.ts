@@ -77,6 +77,15 @@ Deno.serve(async (req: Request) => {
     if (!refreshRes.ok) {
       const errorText = await refreshRes.text();
       console.warn('[auth-refresh] Refresh falhou:', refreshRes.status, errorText);
+      // Log de falha para telemetria (fire-and-forget)
+      const supabase = createClient(supabaseUrl, serviceKey);
+      logAccess({
+        supabase,
+        userId: null,
+        action: 'token_refresh_failed',
+        metadata: { status: refreshRes.status, error: errorText.slice(0, 200) },
+        req,
+      });
       return err('REFRESH_TOKEN_INVALID', 401, origin);
     }
 

@@ -105,7 +105,7 @@ export const LogFilters = ({ filters, onChange }: Props) => {
               <DSText style={styles.label}>Usuário</DSText>
               <Input
                 value={filterState.userId}
-                onChangeText={text => setFilterState(prev => ({ ...prev, userId: text }))}
+                onChange={text => setFilterState(prev => ({ ...prev, userId: text }))}
                 placeholder="ID do usuário (opcional)"
               />
               
@@ -135,14 +135,14 @@ export const LogFilters = ({ filters, onChange }: Props) => {
               <HStack style={styles.dateInputs}>
                 <Input
                   value={filterState.startDate}
-                  onChangeText={text => setFilterState(prev => ({ ...prev, startDate: text }))}
+                  onChange={text => setFilterState(prev => ({ ...prev, startDate: text }))}
                   placeholder="DD/MM/AAAA"
                   style={styles.dateInput}
                 />
                 <Text style={styles.dateSeparator}>a</Text>
                 <Input
                   value={filterState.endDate}
-                  onChangeText={text => setFilterState(prev => ({ ...prev, endDate: text }))}
+                  onChange={text => setFilterState(prev => ({ ...prev, endDate: text }))}
                   placeholder="DD/MM/AAAA"
                   style={styles.dateInput}
                 />

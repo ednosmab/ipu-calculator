@@ -109,7 +109,7 @@ export const LogTable = ({
           refreshControl={
             <RefreshControl
               refreshing={refreshing || false}
-              onRefresh={onRefresh}
+              onRefresh={onRefresh ?? (() => {})}
             />
           }
         />
