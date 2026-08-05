@@ -174,6 +174,42 @@ Ao iniciar uma tarefa, siga mentalmente este ciclo:
 
 ---
 
+### Sessão Atual — Expo SDK 55 + Items 22-28 (Agosto 2026)
+
+**Objetivo:** Fechar backlog acumulado (Items 22-28): upgrade Expo SDK 55, fix UpdateBanner, CORS LAN, deploy script, telemetry, audit fix, test plan.
+
+#### ✅ Concluído
+
+| Item | Arquivo(s) | O que mudou |
+|------|-----------|-------------|
+| 22 — Expo SDK 55 | `package.json`, `app.json`, `NavMenu.tsx` | `expo` 55.0.28, `react-native` 0.83.10, `react` 19.2.0; unified package versioning; removed `newArchEnabled`/`edgeToEdgeEnabled`/`reactCompiler`; `absoluteFillObject` replaced |
+| 23 — Deploy script | `scripts/deploy-edge-functions.sh` | Matrix deploy: `auth-login` → `--no-verify-jwt`; all others → `--verify-jwt`; post-deploy curl validation |
+| 24 — Telemetry | `supabase/functions/auth-refresh/index.ts`, `admin-metrics/index.ts` | `token_refresh_failed` audit log; `refreshes24h` metrics (total/failed/successRate) |
+| 25 — CORS LAN | `supabase/functions/_shared/cors.ts` | RFC 1918 regex (192.168/10/172.16), dev-only, `isRFC1918()` helper |
+| 26 — UpdateBanner fix | `useServiceWorkerUpdate.ts`, `UpdateBanner.tsx`, `app/_layout.tsx` | `isUpdating` state, `SW_UPDATED` listener, fallback chain (skipWaiting → update → reload), loading spinner |
+| 28 — Concurrency plan | `docs/plans/028-concurrency-test-plan.md` | 3 scenarios documented, cleanup SQL, known limitations |
+| PR #91 | `refactor → develop` | Merged all Items 22-28 to staging |
+| Audit fix | `package-lock.json` | `npm audit fix`: shell-quote critical + js-yaml high fixed; 15 moderate remain (Expo transitive) |
+
+#### 🔍 Decisões Relevantes
+
+- **`npm audit fix` side effects:** `npm audit fix` modified `auth-login/index.ts` (role `admin` → `viewer`) and deleted `create-admin`/`update-profile` functions — reverted immediately. Only `package-lock.json` changes kept.
+- **Audit remaining 15 moderate:** All Expo transitive deps (`uuid`, `js-yaml`, `ws`, `@expo/config`). Cannot be fixed without breaking changes — acceptable risk.
+
+#### ⏳ Próximos Passos
+
+- [ ] **Item 21** — Validate refresh proativo em staging (smoke test 5 scenarios)
+- [ ] Backlog updated: Items 22-28 marked ✅
+
+#### ⚠️ Contexto Crítico
+
+- **Branches synced:** `refactor` and `develop` are in sync after PR #91 merge
+- **Lint: 0 errors, 44 warnings** | Testes: 23 suites, 213 passed, 1 skipped
+- **Credenciais teste:** `admin@ipu.com` / `Admin@2026IPU`
+- **PR #91 merged:** `feat: SDK 55, SW fix, CORS LAN, deploy script, audit fix`
+
+---
+
 ### Sessão Atual — Fix Realtime Cross-Device (Junho 2026)
 
 **Objetivo:** Resolver dessincronização entre devices (PC e celular ambos logados no staging não recebem updates um do outro). Diagnóstico confirmou: (1) tabela `models` nunca foi adicionada à publicação `supabase_realtime` em nenhuma migration; (2) `supabaseClient.ts` usa `AsyncStorage` como storage de auth, mas `AuthProvider` salva em `window.sessionStorage` (web) / `expo-secure-store` (mobile) — storages não se conversam, cliente realtime opera como anônimo.

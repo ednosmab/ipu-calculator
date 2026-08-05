@@ -38,7 +38,7 @@ Deno.serve(async (req: Request) => {
     // Get user info for logging
     const { data: profile } = await supabase
       .from('profiles')
-      .select('name, email')
+      .select('name')
       .eq('id', targetId)
       .single();
 

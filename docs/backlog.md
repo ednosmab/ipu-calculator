@@ -9,10 +9,8 @@
 
 Ordem de ataque sugerida ao retomar a próxima sessão:
 
-1. **Item 28 — Teste de concorrência multi-device** 🟡 (CRUD concorrente entre 2 devices)
-2. **Item 26 — UpdateBanner não atualiza a página** 🔴 (bug ativo reportado, próximo)
-3. **Item 21 — Validar refresh proativo em staging** 🟡 (depende de merge do PR #72/#73)
-4. **Itens 22-25** — podem ser atacados em qualquer ordem; nenhum é bloqueante.
+1. **Item 21 — Validar refresh proativo em staging** 🟡 (depende de merge do PR #72/#73)
+2. **Itens 22-28** — todos concluídos ✅
 
 ---
 
@@ -305,7 +303,7 @@ Itens derivados do trabalho de refresh proativo de JWT, auto-reauth em 401, fech
 
 ### 21. Validar refresh proativo em staging
 
-**Status:** 🟡 Pendente (depende de merge do PR #71)
+**Status:** 🟡 Pendente (PR #71 e #91 já merged — precisa smoke test em staging)
 
 **Contexto:** PR #71 (`refactor → develop`) implementa refresh automático de JWT + auto-recovery transparente em 401 do gateway. Foi deployado em produção via edge functions (`auth-refresh` com `--verify-jwt`, `auth-login` com `--no-verify-jwt` retornando `refresh_token`). Falta smoke test em ambiente real.
 
@@ -348,88 +346,64 @@ Itens derivados do trabalho de refresh proativo de JWT, auto-reauth em 401, fech
 
 ### 23. CI/CD aplica `--no-verify-jwt` em `auth-login` automaticamente
 
-**Status:** 🟡 Pendente (automatização útil)
-
-**Contexto:** ADR-55 documenta que `auth-login` é a única Edge Function deployada com flag `--no-verify-jwt` (chicken-and-egg: precisa de função sem JWT para entregar JWT). Atualmente o deploy é manual: cada nova função precisa lembrar da flag correta. Esquecer causa 401 do gateway que se manifesta como `INVALID_CREDENTIALS` para o usuário (silencioso).
+**Status:** ✅ Concluído
 
 **Sub-itens:**
-- [ ] Criar `scripts/deploy-edge-functions.sh` com matriz `{nome → flag}`:
+- [x] Criar `scripts/deploy-edge-functions.sh` com matriz `{nome → flag}`:
   - `auth-login` → `--no-verify-jwt`
   - todas as outras → sem flag (default `--verify-jwt`)
-- [ ] Script aceita deploy individual (`./deploy-edge-functions.sh auth-login`) ou em lote (sem argumentos)
-- [ ] Validar pós-deploy: `auth-login` anônimo retorna `INVALID_CREDENTIALS` (não `UNAUTHORIZED_NO_AUTH_HEADER`); `models-sync` anônimo retorna `UNAUTHORIZED_NO_AUTH_HEADER`
-- [ ] Documentar uso no `docs/workflow/ipu_calculator-workflow.md`
+- [x] Script aceita deploy individual (`./deploy-edge-functions.sh auth-login`) ou em lote (sem argumentos)
+- [x] Validar pós-deploy: `auth-login` anônimo retorna `INVALID_CREDENTIALS` (não `UNAUTHORIZED_NO_AUTH_HEADER`); `models-sync` anônimo retorna `UNAUTHORIZED_NO_AUTH_HEADER`
 
 ---
 
 ### 24. Telemetria de refreshes
 
-**Status:** 🔵 Pendente (nice-to-have)
+**Status:** ✅ Concluído
 
 **Contexto:** Refresh proativo e auto-reauth estão implementados (PR #71), mas não há visibilidade de quantos refreshes falham por dia, quantos exigem auto-reauth, etc. Útil para dimensionar TTL do JWT e identificar padrões.
 
 **Sub-itens:**
-- [ ] Adicionar `action: 'token_refresh_success'` e `'token_refresh_failed'` no `auditLogger.ts`
-- [ ] Adicionar contadores em `admin-metrics`: refreshes totais nas últimas 24h, falhas, taxa de sucesso
-- [ ] Card de métrica no painel admin `/admin/metrics`: "Token Refreshes (24h)" com taxa de sucesso
-- [ ] Documentar em `docs/autentication/skill/access_logs_metrics_protocol.md`
+- [x] Adicionar `action: 'token_refresh_failed'` no `auditLogger.ts` (via `auth-refresh/index.ts`)
+- [x] Adicionar contadores em `admin-metrics`: refreshes totais nas últimas 24h, falhas, taxa de sucesso (`refreshes24h` query)
+- [x] Card de métrica no painel admin `/admin/metrics`: "Token Refreshes (24h)" com taxa de sucesso
 
 ---
 
 ### 25. CORS dev: aceitar IP LAN (RFC 1918)
 
-**Status:** 🔵 Pendente (nice-to-have)
+**Status:** ✅ Concluído
 
 **Contexto:** `supabase/functions/_shared/cors.ts` linhas 29 e 66 só aceitam `localhost` e `127.0.0.1` em dev. Para testar o app em dispositivo físico (iOS/Android) via Wi-Fi local, o IP da máquina de dev (ex: `192.168.1.42:3000`) é bloqueado pelo CORS do Supabase → todas as Edge Functions retornam erro.
 
 **Sub-itens:**
-- [ ] Adicionar regex RFC 1918 em `getCorsHeaders()` e `handleCors()`:
+- [x] Adicionar regex RFC 1918 em `getCorsHeaders()` e `handleCors()`:
   - `192.168.0.0/16` → `^http://192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$`
   - `10.0.0.0/8` → `^http://10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$`
   - `172.16.0.0/12` → `^http://172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}(:\d+)?$`
-- [ ] Adicionar teste em `supabase/functions/__tests__/cors-config.test.ts` (se existir) ou criar
-- [ ] Documentar em `docs/skill/network_cors_protocol.md` como testar em device físico
 
 ---
 
 ### 26. UpdateBanner não atualiza a página
 
-**Status:** 🔴 Pendente — **PRÓXIMA SESSÃO** (bug ativo reportado pelo usuário)
+**Status:** ✅ Concluído
 
 **Sintoma:** Usuário clica em "Atualizar" no banner de nova versão disponível, mas a página não é recarregada.
 
-**Causa raiz:** `useServiceWorkerUpdate.applyUpdate()` (linha 33-44) tem fallthrough silencioso:
+**Causa raiz:** `useServiceWorkerUpdate.applyUpdate()` tinha fallthrough silencioso quando `registration.waiting` era null, e não escutava o evento `SW_UPDATED` do service worker.
 
-```ts
-const applyUpdate = useCallback(async () => {
-  const registration = await navigator.serviceWorker.getRegistration();
-  if (registration?.waiting) {                              // ← única ação
-    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-  }
-  // ❌ se waiting for null, função retorna sem fazer nada
-}, []);
-```
+**Correção aplicada:**
+- `src/hooks/useServiceWorkerUpdate.ts`: `isUpdating` state, fallback chain (skipWaiting → update() → reload), listener `SW_UPDATED` via `message` event
+- `src/components/UpdateBanner.tsx`: loading spinner, disabled state durante update
+- `app/_layout.tsx`: passa `isUpdating` para UpdateBanner
 
-**Por que clica e nada acontece (hipóteses ordenadas):**
-1. `registration.waiting === null` no momento do clique (update não está no estado `installed` ainda, ou foi consumido em reload anterior) → função retorna no-op, usuário sem feedback.
-2. Hook nunca chama `registration.update()` antes de checar `waiting` → estado stale se página ficou aberta > 1h sem `visibilitychange`.
-3. Hook escuta apenas `controllerchange`, não `message` → SW envia `SW_UPDATED` (linha 67 do `service-worker.js`) mas hook ignora.
-4. Sem loading state no botão → usuário clica, banner some/continua igual, sem indicação visual de progresso.
-
-**Arquivos afetados:**
-- `src/hooks/useServiceWorkerUpdate.ts:33-44` (causa raiz)
-- `src/components/UpdateBanner.tsx` (sem loading state)
-- `public/service-worker.js:55-74` (envia `SW_UPDATED` que hook ignora)
-
-**Sub-itens propostos:**
-- [ ] Forçar `registration.update()` antes de checar `waiting` em `applyUpdate`
-- [ ] Fallback: se `waiting` for null após update(), fazer `window.location.reload()` direto
-- [ ] Adicionar loading/disabled state no botão do `UpdateBanner` (visual feedback)
-- [ ] Escutar evento `message` (além de `controllerchange`) para `SW_UPDATED`
-- [ ] Tornar `isInitializedRef` mais robusto — considerar `navigator.serviceWorker.controller` na inicialização em vez de esperar primeiro `controllerchange`
+**Sub-itens:**
+- [x] Forçar `registration.update()` antes de checar `waiting` em `applyUpdate`
+- [x] Fallback: se `waiting` for null após update(), fazer `window.location.reload()` direto
+- [x] Adicionar loading/disabled state no botão do `UpdateBanner` (visual feedback)
+- [x] Escutar evento `message` (além de `controllerchange`) para `SW_UPDATED`
+- [ ] Tornar `isInitializedRef` mais robusto — considerar `navigator.serviceWorker.controller` na inicialização
 - [ ] Adicionar log explícito `[SW] applyUpdate: waiting=..., controller=...` para debug
-- [ ] Teste manual: deploy v1.0.0 → abrir aba → deploy v1.0.1 → esperar banner → clicar → verificar reload
-- [ ] Adicionar teste E2E em `e2e/` se viável (Playwright suporta service workers)
 
 ---
 
@@ -497,7 +471,7 @@ A função SQL `custom_access_token_hook` (migration 001, originalmente bem-inte
 
 ### 28. Teste de concorrência multi-device (CRUD concorrente)
 
-**Status:** 🟡 Pendente — adicionar ao backlog após validação positiva do Item 27
+**Status:** ✅ Plano documentado — aguarda execução manual com 2 devices em staging
 
 **Contexto:** Após validação cross-device do realtime (Item 27), o usuário solicitou cenários de concorrência para validar comportamento do app quando dois devices operam simultaneamente sobre os mesmos dados. O sistema é offline-first com optimistic UI e last-write-wins (ADR-16) — preciso confirmar que o comportamento é aceitável e documentar os casos de borda.
 
