@@ -1,11 +1,11 @@
+import { parseNumber } from "@/core/parsers/numberParser";
+import { saveCalculationUseCase } from "@/features/history/application/saveCalculationUseCase";
+import { CalculationHistory } from "@/features/history/domain/calculationHistory";
+import { historyRepository } from "@/features/history/infra/historyRepository";
+import { useCalculatorLogic } from "@/hooks/useCalculatorLogic";
 import { useEffect, useState } from "react";
 import { calculateCalibration } from "../domain/calculateCalibration";
 import { calibrationSchema } from "../domain/calibrationSchema";
-import { useCalculatorLogic } from "@/hooks/useCalculatorLogic";
-import { parseNumber } from "@/core/parsers/numberParser";
-import { saveCalculationUseCase } from "@/features/history/application/saveCalculationUseCase";
-import { historyRepository } from "@/features/history/infra/historyRepository";
-import { CalculationHistory } from "@/features/history/domain/calculationHistory";
 
 export const useCalibration = () => {
   const [history, setHistory] = useState<CalculationHistory[]>([]);
@@ -41,7 +41,7 @@ export const useCalibration = () => {
   useEffect(() => {
     if (!isHelperActive) return;
 
-    const numExtracted = parseNumber(logic.inputs.extractedWeight) / 100; // Divide by 100
+    const numExtracted = parseNumber(logic.inputs.extractedWeight)
     const numAverage = parseNumber(logic.inputs.averageValue);
 
     if (numExtracted > 0 && numAverage > 0) {
@@ -52,7 +52,9 @@ export const useCalibration = () => {
 
   const toggleHelper = (value: boolean) => {
     setIsHelperActive(value);
-    if (!value) {
+    if (value) {
+      logic.setInputValue('averageValue', '5');
+    } else {
       logic.setInputValue('extractedWeight', '');
       logic.setInputValue('averageValue', '');
     }

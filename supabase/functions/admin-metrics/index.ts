@@ -61,12 +61,37 @@ Deno.serve(async (req: Request) => {
 
     const loginsByDay = buildLoginsByDay(loginLogs ?? []);
 
+    // 6. Token refreshes (últimas 24h)
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+      .toISOString();
+
+    const { count: refreshesTotal } = await supabase
+      .from('access_logs')
+      .select('id', { count: 'exact', head: true })
+      .eq('action', 'token_refresh')
+      .gte('created_at', twentyFourHoursAgo);
+
+    const { count: refreshesFailed } = await supabase
+      .from('access_logs')
+      .select('id', { count: 'exact', head: true })
+      .eq('action', 'token_refresh_failed')
+      .gte('created_at', twentyFourHoursAgo);
+
+    const refreshSuccessRate = (refreshesTotal ?? 0) + (refreshesFailed ?? 0) > 0
+      ? Math.round(((refreshesTotal ?? 0) / ((refreshesTotal ?? 0) + (refreshesFailed ?? 0))) * 100)
+      : 100;
+
     return ok({
       summary: {
         activesToday: activesToday ?? 0,
         active30Days: active30,
         totalModels: totalModels ?? 0,
         totalUsers: totalUsers ?? 0,
+        refreshes24h: {
+          total: refreshesTotal ?? 0,
+          failed: refreshesFailed ?? 0,
+          successRate: refreshSuccessRate,
+        },
       },
       loginsByDay,
     }, 200, req.headers.get('origin'));

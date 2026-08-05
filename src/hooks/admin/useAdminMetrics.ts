@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { sessionStorage } from '@/core/auth/sessionStorage';
 
 interface MetricsData {
   activeUsersToday: number;
@@ -24,12 +25,15 @@ export function useAdminMetrics() {
     setIsLoading(true);
     setError(null);
 
-    fetch(`/admin/metrics`, {
-      headers: {
-        'Authorization': `Bearer ${authUser.session?.access_token}`,
-        'Content-Type': 'application/json',
-      },
-    })
+    void (async () => {
+      const token = await sessionStorage.getToken();
+      return fetch(`/admin/metrics`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+    })()
       .then((response) => {
         if (!response.ok) {
           throw new Error('Failed to fetch metrics');
@@ -57,12 +61,15 @@ export function useAdminMetrics() {
   const refetch = () => {
     if (!authUser) return Promise.resolve();
     setIsLoading(true);
-    return fetch(`/admin/metrics`, {
-      headers: {
-        'Authorization': `Bearer ${authUser.session?.access_token}`,
-        'Content-Type': 'application/json',
-      },
-    })
+    return (async () => {
+      const token = await sessionStorage.getToken();
+      return fetch(`/admin/metrics`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+    })()
       .then((response) => {
         if (!response.ok) throw new Error('Failed to fetch metrics');
         return response.json();

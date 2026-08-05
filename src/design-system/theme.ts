@@ -18,6 +18,7 @@ export const theme = {
     successBg: 'rgba(0, 245, 212, 0.1)',
     inputPlaceholder: '#9BA1A6',
     border: '#2C3036',
+     secondary: '#121418',
      error: '#FF3B30',
      badgeCreated: '#4A90D9',
      badgeEdited: '#FF9500',
@@ -25,6 +26,7 @@ export const theme = {
      black: '#000000',
      overlay: 'rgba(0, 0, 0, 0.7)',
      warning: '#FF9500',
+     info: '#0099FF',
    },
   spacing: {
     xs: 4,
@@ -32,6 +34,7 @@ export const theme = {
     md: 16,
     lg: 24,
     xl: 32,
+    xxs: 2,
     buttonSm: 10,
     buttonMd: 14,
     buttonLg: 18,

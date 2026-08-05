@@ -17,6 +17,8 @@ type Props = {
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   error?: string;
   helperText?: string;
+  secureTextEntry?: boolean;
+  style?: object;
 };
 
 export const Input = forwardRef<InputRef, Props>(({
@@ -27,7 +29,9 @@ export const Input = forwardRef<InputRef, Props>(({
   placeholder = "0.00",
   autoCapitalize,
   error,
-  helperText
+  helperText,
+  secureTextEntry,
+  style,
 }, ref) => {
   const [isFocused, setIsFocused] = useState(false);
   const internalRef = useRef<TextInput>(null);
@@ -49,10 +53,12 @@ export const Input = forwardRef<InputRef, Props>(({
         placeholder={placeholder}
         placeholderTextColor={theme.colors.inputPlaceholder}
         autoCapitalize={autoCapitalize}
+        secureTextEntry={secureTextEntry}
         style={[
           styles.input,
           isFocused && styles.inputFocused,
-          !!error && styles.inputError
+          !!error && styles.inputError,
+          style,
         ]}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}

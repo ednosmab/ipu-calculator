@@ -131,10 +131,10 @@ FLUXO DE LEITURA:
 
 | Tecnologia | Versão | Propósito |
 |-----------|--------|-----------|
-| React Native | 0.81.5 | Framework mobile cross-platform |
-| Expo | ~54.0.34 | Camada de tooling e build |
-| Expo Router | ~6.0.23 | Roteamento file-based |
-| React | 19.1.0 | Biblioteca de UI |
+| React Native | 0.83.10 | Framework mobile cross-platform |
+| Expo | ~55.0.28 | Camada de tooling e build |
+| Expo Router | ~55.0.17 | Roteamento file-based |
+| React | 19.2.0 | Biblioteca de UI |
 | TypeScript | ~5.9.2 | Tipagem estática |
 | Zod | ^4.3.6 | Validação de schemas |
 | AsyncStorage | 2.2.0 | Persistência local |

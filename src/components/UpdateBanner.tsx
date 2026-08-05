@@ -1,14 +1,15 @@
 import React from 'react';
-import { View, StyleSheet, Pressable, Platform } from 'react-native';
+import { View, StyleSheet, Pressable, Platform, ActivityIndicator } from 'react-native';
 import { Text, theme } from '@/design-system';
 import { FontAwesome5 } from '@expo/vector-icons';
 
 interface UpdateBannerProps {
   onUpdate: () => void;
   onDismiss: () => void;
+  isUpdating?: boolean;
 }
 
-export const UpdateBanner: React.FC<UpdateBannerProps> = ({ onUpdate, onDismiss }) => {
+export const UpdateBanner: React.FC<UpdateBannerProps> = ({ onUpdate, onDismiss, isUpdating = false }) => {
   if (Platform.OS !== 'web') return null;
 
   return (
@@ -18,14 +19,20 @@ export const UpdateBanner: React.FC<UpdateBannerProps> = ({ onUpdate, onDismiss 
         <Text style={styles.message}>
           Nova versão disponível!
         </Text>
-        <Pressable 
-          onPress={onUpdate} 
+        <Pressable
+          onPress={onUpdate}
+          disabled={isUpdating}
           style={({ pressed }) => [
             styles.updateButton,
-            pressed && { opacity: 0.8 }
+            isUpdating && styles.updateButtonDisabled,
+            pressed && !isUpdating && { opacity: 0.8 }
           ]}
         >
-          <Text style={styles.updateText}>Atualizar</Text>
+          {isUpdating ? (
+            <ActivityIndicator size="small" color={theme.colors.primaryText} />
+          ) : (
+            <Text style={styles.updateText}>Atualizar</Text>
+          )}
         </Pressable>
         <Pressable onPress={onDismiss} style={styles.dismissButton}>
           <FontAwesome5 name="times" size={14} color={theme.colors.textSecondary} />
@@ -75,6 +82,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 6,
     marginRight: 8,
+    minWidth: 70,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  updateButtonDisabled: {
+    opacity: 0.6,
   },
   updateText: {
     color: theme.colors.primaryText,

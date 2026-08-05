@@ -140,4 +140,9 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.md,
     color: theme.colors.textSecondary,
   },
+  error: {
+    color: theme.colors.error,
+    fontSize: theme.typography.sizes.md,
+    marginBottom: theme.spacing.md,
+  },
 });

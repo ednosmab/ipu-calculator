@@ -9,7 +9,7 @@
 
 Ordem de ataque sugerida ao retomar a próxima sessão:
 
-1. **Commit + push da migration 009** (validação no mobile real é o último item 27 pendente)
+1. **Item 28 — Teste de concorrência multi-device** 🟡 (CRUD concorrente entre 2 devices)
 2. **Item 26 — UpdateBanner não atualiza a página** 🔴 (bug ativo reportado, próximo)
 3. **Item 21 — Validar refresh proativo em staging** 🟡 (depende de merge do PR #72/#73)
 4. **Itens 22-25** — podem ser atacados em qualquer ordem; nenhum é bloqueante.
@@ -322,27 +322,27 @@ Itens derivados do trabalho de refresh proativo de JWT, auto-reauth em 401, fech
 
 ### 22. Upgrade Expo SDK 54 → 55
 
-**Status:** 🟡 Pendente (workload grande, não urgente)
+**Status:** ✅ Concluído (web/PWA)
 
-**Contexto:** Em junho/2026, 5 dependabot PRs foram fechadas por incompatibilidade com Expo SDK 54:
-- #65 `react-test-renderer 19.1.0→19.2.7` — peer `react@^19.2.7` (temos 19.1.0)
-- #66 `react-native 0.81.5→0.85.3` — requer Expo SDK 55+; breaking changes (`StyleSheet.absoluteFillObject` removido, Jest preset movido)
-- #67 `expo-secure-store 55.0.13→56.0.4` — requer Expo SDK 55+; 56.0.0 elevou iOS mínimo para 16.4
-- #68 `eslint-config-expo 10.0.0→56.0.4` — versão do config segue Expo SDK (56 = SDK 56)
-- #69 `react-native-reanimated 4.1.7→4.4.0` — peer `react-native@0.83-0.86` (temos 0.81.5)
+**Contexto:** Em junho/2026, 5 dependabot PRs foram fechadas por incompatibilidade com Expo SDK 54. Upgrade realizado em agosto/2026.
 
-Três PRs adicionais de `dependabot ignore` foram aplicados para evitar reabertura.
+**Mudanças aplicadas:**
+- `expo` 54.0.34 → 55.0.28, `react-native` 0.81.5 → 0.83.10, `react` 19.1.0 → 19.2.0
+- Todos os pacotes Expo migrados para unified versioning (55.x.x)
+- `babel-preset-expo` e `expo-modules-core` adicionados como devDeps (novo requirement SDK 55)
+- `app.json`: removido `newArchEnabled` (mandatory), `edgeToEdgeEnabled` (mandatory Android 16+), `experiments.reactCompiler` (now stable)
+- `StyleSheet.absoluteFillObject` substituído por positioning explícito em `NavMenu.tsx`
 
 **Sub-itens:**
-- [ ] Auditar breaking changes: `StyleSheet.absoluteFillObject`, Jest preset location, novos peer deps
-- [ ] Atualizar `expo` no `package.json` (SDK 54 → 55) e rodar `npx expo install --fix`
+- [x] Auditar breaking changes: `StyleSheet.absoluteFillObject`, Jest preset location, novos peer deps
+- [x] Atualizar `expo` no `package.json` (SDK 54 → 55) e rodar `npx expo install --fix`
 - [ ] Reabrir dependabot PRs e validar merge limpo
-- [ ] Validar 23 test suites / 207 testes após upgrade
-- [ ] Validar build de produção com `npm run build` (gera dist com SW cache versionado)
-- [ ] Testar em device iOS e Android (mínimo 16.4 iOS)
-- [ ] Atualizar `docs/GUIA_TECNICO_COMPLETO.md` seção 2.1 (versões)
+- [x] Validar 23 test suites / 213 testes após upgrade
+- [x] Validar build de produção com `npm run build` (gera dist com SW cache versionado)
+- [ ] Testar em device iOS e Android (mínimo 16.4 iOS) — requer Xcode 26
+- [x] Atualizar `docs/COMPLETE_TECHNICAL_GUIDE.md` seção 2.1 (versões)
 
-**Não-objetivo:** Não é uma única sessão — estimar 1-2 dias de trabalho com testes extensivos.
+**Pendente (mobile):** iOS requer Xcode 26 (publicado junto com Expo SDK 55). Build Android pode ser testado agora.
 
 ---
 
@@ -492,6 +492,121 @@ A função SQL `custom_access_token_hook` (migration 001, originalmente bem-inte
 - Diagnóstico inicial culpou `setAuth()` assíncrono (race condition client-side) — ref #76 corrigiu isso mas não era a causa raiz
 - Apenas teste WS puro (`node + ws`) revelou a mensagem exata: `role "viewer" does not exist` no system event
 - O realtime server estava funcional o tempo todo — falhava só no eval de RLS
+
+---
+
+### 28. Teste de concorrência multi-device (CRUD concorrente)
+
+**Status:** 🟡 Pendente — adicionar ao backlog após validação positiva do Item 27
+
+**Contexto:** Após validação cross-device do realtime (Item 27), o usuário solicitou cenários de concorrência para validar comportamento do app quando dois devices operam simultaneamente sobre os mesmos dados. O sistema é offline-first com optimistic UI e last-write-wins (ADR-16) — preciso confirmar que o comportamento é aceitável e documentar os casos de borda.
+
+**Cenários a testar (2 devices logados simultaneamente em staging):**
+
+#### 28.1 — CREATE com mesmo nome (race no `createModel`)
+
+**Setup:** Devices A e B ambos logados, ambos na tela de Modelos.
+1. Device A começa a criar modelo "Teste Concorrência" (inputs X, Y)
+2. **Antes** que A termine/salve, Device B começa a criar modelo "Teste Concorrência" (inputs Z, W)
+3. Ambos completam o save
+4. Aguardar `fetchRemoteModelsUseCase()` rodar (sync em ambos)
+
+**Comportamento esperado atual:**
+- Cada device faz check local de duplicata em `modelUseCases.ts:13` — vê o próprio modelo mas não o do outro
+- Ambos criam localmente com `id` diferente (UUIDs aleatórios)
+- Ambos sincronizam com servidor — banco tem 2 modelos com mesmo nome
+- Realtime entrega INSERT nos 2 devices → cada um vê 2 cards "Teste Concorrência"
+- UI fica ambígua: qual é "o" modelo?
+
+**Perguntas a responder:**
+- [ ] Banco aceita 2 rows com mesmo `name`? (verificar — não há UNIQUE constraint em nenhuma migration)
+- [ ] O check de duplicata local é confiável quando há race entre devices?
+- [ ] UX é aceitável ou precisa de resolução manual ("merge") ou aviso?
+
+**Possíveis melhorias (avaliar após teste):**
+- Adicionar UNIQUE constraint em `name` no DB e tratar 23505 no `models-sync`
+- Reservar nome no servidor antes de criar (lock distribuído) — over-engineering provavelmente
+- Aceitar como limitação: optimistic UI assume "cada device é um usuário diferente"; concorrência de nome é caso de borda
+
+#### 28.2 — UPDATE no mesmo modelo (race no `updateModel`)
+
+**Setup:** Modelo "M" existe no servidor, ambos devices têm cópia local. `version: 3` em ambos.
+1. Device A edita inputs: isocianato 0.08, poliol 0.16
+2. Device B (sem ver a edição de A) edita o mesmo modelo: isocianato 0.09, poliol 0.15
+3. A salva → local: `version: 4, updatedAt: T1`
+4. B salva (ainda com base v3) → local: `version: 4, updatedAt: T2` (T2 > T1 ou < T1)
+5. Ambos sincronizam com servidor
+
+**Comportamento esperado atual (ADR-16):**
+- Servidor processa 2x `POST /models-sync`
+- A primeira grava `version: 4` (A vence por qualquer um dos dois)
+- A segunda: dependendo do version, B vence (se for > 4) ou A mantém (se for ≤ 4)
+- **Detalhe crítico:** o servidor tem `version` como critério ou só `updatedAt`? Verificar `models-sync/index.ts`
+
+**Perguntas a responder:**
+- [ ] Servidor compara `version` antes de sobrescrever? (deveria)
+- [ ] Device perdedor recebe notificação de que sua edição foi sobrescrita? (badge de conflito?)
+- [ ] Realtime entrega UPDATE nos 2 devices? Cada um vê a versão que "venceu"?
+- [ ] A UI do device perdedor tem algum feedback de "sua edição foi perdida"?
+
+**Possíveis melhorias:**
+- Backend comparar `(client.version > current.version)` E `(client.updatedAt > current.updatedAt)` — se versão menor, rejeitar com 409
+- Frontend detectar "minha versão local é menor que a do servidor" após sync → toast "Outro device atualizou este modelo"
+- Operational transform / CRDT — fora de escopo (YAGNI)
+
+#### 28.3 — DELETE vs UPDATE (race deletar + editar)
+
+**Setup:** Mesmo modelo "M", A e B têm cópia local.
+1. A decide deletar M (clica no lixeira, modal confirma)
+2. B edita M (muda isocianato) — antes de receber o DELETE event
+3. A sincroniza: `DELETE /models-delete`
+4. B sincroniza: `POST /models-sync` com sua edição
+
+**Comportamento esperado atual:**
+- Servidor processa DELETE primeiro: row removida
+- Servidor processa INSERT/UPDATE de B: `models-sync` faz upsert → row ressurge no servidor (com id de B)
+- Device A recebe UPDATE event do servidor (row ressurgiu) — modelo volta na tela de A
+- Device B recebe INSERT event (se for inserção) ou UPDATE event
+
+**Perguntas a responder:**
+- [ ] O `models-sync` faz UPSERT (insert or update) ou só UPDATE?
+- [ ] Se a row foi deletada, o sync de B deveria inserir de volta (ressurreição) ou falhar?
+- [ ] A notifica B que deletou? B deveria ter feedback?
+
+**Possíveis melhorias:**
+- `models-sync` rejeitar com 410 Gone se a row foi deletada nos últimos 5min
+- Soft delete (campo `deleted_at`) para evitar ressurreição
+- A e B conversarem via realtime (UI mostra "Outro device está editando este modelo")
+
+---
+
+**Plano de teste:**
+
+1. Setup inicial: confirmar que 2 devices estão logados e realtime conectado
+2. Para cada cenário (28.1, 28.2, 28.3):
+   - Definir 1 caso de teste manual (passos exatos, tempo entre ações, dados usados)
+   - Executar com logs do DebugPanel abertos em ambos
+   - Verificar logs `[SyncEngine]`, `[modelRepository]`, `[useRealtimeModels]`
+   - Capturar screenshots do antes/depois
+   - Documentar comportamento observado vs esperado
+3. Se comportamento for aceitável: documentar em ADR / guide e fechar o item
+4. Se comportamento falhar: priorizar fix (constraint no DB, conflict UI, etc.) antes de novos features
+
+**Critério de aceitação:**
+- [ ] 3 cenários executados e documentados
+- [ ] Comportamento atual é aceitável OU melhorias priorizadas e adicionadas ao backlog
+
+**Arquivos a observar durante teste:**
+- `src/features/models/application/modelUseCases.ts:13,38` (check de duplicata local)
+- `src/features/models/application/fetchRemoteModelsUseCase.ts` (merge logic com version)
+- `supabase/functions/models-sync/index.ts` (lógica de upsert)
+- `supabase/functions/models-delete/index.ts` (soft vs hard delete)
+
+**Relacionado:**
+- ADR-15: `syncStatus` + `localAction` para indicar estado de conflito
+- ADR-16: Version counter para merge (last-write-wins)
+- ADR-17: Pending operations com max 3 tentativas
+- Item 27: realtime funcionando — pré-requisito para esses testes
 
 ---
 
