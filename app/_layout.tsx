@@ -56,7 +56,7 @@ function AppContent() {
   });
   const [isMounted, setIsMounted] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
-  const { updateAvailable, dismissUpdate, applyUpdate } = useServiceWorkerUpdate();
+  const { updateAvailable, isUpdating, dismissUpdate, applyUpdate } = useServiceWorkerUpdate();
   const { debugInfo } = usePWAInstall();
 
   useEffect(() => {
@@ -110,7 +110,7 @@ function AppContent() {
             <NavMenu />
 
             {updateAvailable && (
-              <UpdateBanner onUpdate={applyUpdate} onDismiss={dismissUpdate} />
+              <UpdateBanner onUpdate={applyUpdate} onDismiss={dismissUpdate} isUpdating={isUpdating} />
             )}
 
             {isDebugVisible && (

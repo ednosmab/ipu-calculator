@@ -64,7 +64,7 @@ export default function LoginScreen() {
     try {
       await signIn(email.trim(), password);
       const redirect = getPostLoginRedirect(profile?.role);
-      router.replace(redirect);
+      router.replace(redirect as any);
     } catch (err: unknown) {
       const code = err instanceof Error ? err.message : 'INTERNAL_ERROR';
       setErrorCode(code);

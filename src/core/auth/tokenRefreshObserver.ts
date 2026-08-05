@@ -130,8 +130,8 @@ export function createTokenRefreshObserver(): TokenRefreshObserver {
     }
     const sub = AppState.addEventListener('change', handleAppStateChange);
     return () => {
-      if (typeof document !== 'undefined') {
-        document.removeEventListener('storage', handleStorage);
+      if (typeof window !== 'undefined' && typeof window.removeEventListener === 'function') {
+        window.removeEventListener('storage', handleStorage as EventListener);
       }
       sub.remove();
     };

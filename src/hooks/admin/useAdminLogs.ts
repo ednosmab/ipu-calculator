@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { sessionStorage } from '@/core/auth/sessionStorage';
 
 interface AccessLog {
   id: string;
@@ -50,9 +51,10 @@ export function useAdminLogs(filters: LogFilters = {}) {
       params.append('limit', '50'); // Paginação fixa de 50
       params.append('offset', (page * 50).toString());
       
+      const token = await sessionStorage.getToken();
       const response = await fetch(`/admin/logs?${params.toString()}`, {
         headers: {
-          'Authorization': `Bearer ${authUser.session?.access_token}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });

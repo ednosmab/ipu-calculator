@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { logger } from '@/core/logging/logger';
 
 export const useServiceWorkerUpdate = () => {
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const isInitializedRef = useRef(false);
 
   const checkForUpdate = useCallback(async () => {
@@ -16,9 +18,9 @@ export const useServiceWorkerUpdate = () => {
         return;
       }
 
-      registration.update();
+      await registration.update();
     } catch (e) {
-      console.error('[SW] Check error:', e);
+      logger.warn('[SW] Check error:', e);
     }
   }, []);
 
@@ -34,12 +36,36 @@ export const useServiceWorkerUpdate = () => {
     if (typeof window === 'undefined' || !navigator.serviceWorker) return;
 
     try {
+      setIsUpdating(true);
+
       const registration = await navigator.serviceWorker.getRegistration();
-      if (registration?.waiting) {
-        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      if (!registration) {
+        logger.warn('[SW] No registration found, forcing reload');
+        window.location.reload();
+        return;
       }
+
+      if (registration.waiting) {
+        logger.info('[SW] Sending SKIP_WAITING to waiting SW');
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        return;
+      }
+
+      logger.info('[SW] No waiting SW — forcing registration.update()');
+      await registration.update();
+
+      const updatedReg = await navigator.serviceWorker.getRegistration();
+      if (updatedReg?.waiting) {
+        logger.info('[SW] After update() — SW now waiting, sending SKIP_WAITING');
+        updatedReg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        return;
+      }
+
+      logger.info('[SW] No waiting SW after update — forcing page reload');
+      window.location.reload();
     } catch (e) {
-      console.error('[SW] Apply update error:', e);
+      logger.error('[SW] Apply update error:', e);
+      window.location.reload();
     }
   }, []);
 
@@ -61,11 +87,19 @@ export const useServiceWorkerUpdate = () => {
       });
     };
 
+    const handleSWMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'SW_UPDATED') {
+        logger.info('[SW] Received SW_UPDATED — reloading');
+        window.location.reload();
+      }
+    };
+
     navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
-    
+    navigator.serviceWorker.addEventListener('message', handleSWMessage);
+
     checkForUpdate();
     const interval = setInterval(checkForUpdate, 1000 * 60 * 60);
-    
+
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         checkForUpdate();
@@ -84,10 +118,11 @@ export const useServiceWorkerUpdate = () => {
 
     return () => {
       navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+      navigator.serviceWorker.removeEventListener('message', handleSWMessage);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       clearInterval(interval);
     };
   }, [handleControllerChange, checkForUpdate]);
 
-  return { updateAvailable, dismissUpdate, applyUpdate };
+  return { updateAvailable, isUpdating, dismissUpdate, applyUpdate };
 };

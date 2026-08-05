@@ -41,11 +41,9 @@ export const ModelCard = ({ model, onEdit, onEditTime, onDelete, onSelect }: Pro
             styles.badge,
             model.localAction === 'created' && styles.badgeCreated,
             model.localAction === 'edited' && styles.badgeEdited,
-            model.localAction === 'deleted' && styles.badgeDeleted,
           ]}>
             <Text style={model.localAction === 'edited' ? styles.badgeTextDark : styles.badgeText}>
-              {model.localAction === 'created' ? 'Novo' :
-                model.localAction === 'edited' ? 'Editado' : 'Excluir'}
+              {model.localAction === 'created' ? 'Novo' : 'Editado'}
             </Text>
           </View>
         )}
@@ -146,7 +144,7 @@ modelName: {
     textTransform: 'uppercase' as const,
   },
   badgeTextDark: {
-    color: theme.colors.background,
+    color: theme.colors.bg,
     fontSize: 10,
     fontWeight: theme.typography.weights.bold,
     textTransform: 'uppercase' as const,

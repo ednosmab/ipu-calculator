@@ -143,8 +143,10 @@ export const useRealtimeModels = () => {
           'postgres_changes',
           { event: '*', schema: 'public', table: 'models' },
           (payload) => {
-            const eventId = payload.new?.id ?? payload.old?.id ?? 'unknown';
-            const eventName = payload.new?.name ?? payload.old?.name ?? null;
+            const newRecord = payload.new as Record<string, unknown> | undefined;
+            const oldRecord = payload.old as Record<string, unknown> | undefined;
+            const eventId = (newRecord?.id ?? oldRecord?.id ?? 'unknown') as string;
+            const eventName = (newRecord?.name ?? oldRecord?.name ?? null) as string | null;
             console.log('[useRealtimeModels] Notificação realtime recebida:', {
               eventType: payload.eventType,
               modelId: eventId,

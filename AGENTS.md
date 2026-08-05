@@ -174,6 +174,42 @@ Ao iniciar uma tarefa, siga mentalmente este ciclo:
 
 ---
 
+### Sessão Atual — Expo SDK 55 + Items 22-28 (Agosto 2026)
+
+**Objetivo:** Fechar backlog acumulado (Items 22-28): upgrade Expo SDK 55, fix UpdateBanner, CORS LAN, deploy script, telemetry, audit fix, test plan.
+
+#### ✅ Concluído
+
+| Item | Arquivo(s) | O que mudou |
+|------|-----------|-------------|
+| 22 — Expo SDK 55 | `package.json`, `app.json`, `NavMenu.tsx` | `expo` 55.0.28, `react-native` 0.83.10, `react` 19.2.0; unified package versioning; removed `newArchEnabled`/`edgeToEdgeEnabled`/`reactCompiler`; `absoluteFillObject` replaced |
+| 23 — Deploy script | `scripts/deploy-edge-functions.sh` | Matrix deploy: `auth-login` → `--no-verify-jwt`; all others → `--verify-jwt`; post-deploy curl validation |
+| 24 — Telemetry | `supabase/functions/auth-refresh/index.ts`, `admin-metrics/index.ts` | `token_refresh_failed` audit log; `refreshes24h` metrics (total/failed/successRate) |
+| 25 — CORS LAN | `supabase/functions/_shared/cors.ts` | RFC 1918 regex (192.168/10/172.16), dev-only, `isRFC1918()` helper |
+| 26 — UpdateBanner fix | `useServiceWorkerUpdate.ts`, `UpdateBanner.tsx`, `app/_layout.tsx` | `isUpdating` state, `SW_UPDATED` listener, fallback chain (skipWaiting → update → reload), loading spinner |
+| 28 — Concurrency plan | `docs/plans/028-concurrency-test-plan.md` | 3 scenarios documented, cleanup SQL, known limitations |
+| PR #91 | `refactor → develop` | Merged all Items 22-28 to staging |
+| Audit fix | `package-lock.json` | `npm audit fix`: shell-quote critical + js-yaml high fixed; 15 moderate remain (Expo transitive) |
+
+#### 🔍 Decisões Relevantes
+
+- **`npm audit fix` side effects:** `npm audit fix` modified `auth-login/index.ts` (role `admin` → `viewer`) and deleted `create-admin`/`update-profile` functions — reverted immediately. Only `package-lock.json` changes kept.
+- **Audit remaining 15 moderate:** All Expo transitive deps (`uuid`, `js-yaml`, `ws`, `@expo/config`). Cannot be fixed without breaking changes — acceptable risk.
+
+#### ⏳ Próximos Passos
+
+- [ ] **Item 21** — Validate refresh proativo em staging (smoke test 5 scenarios)
+- [ ] Backlog updated: Items 22-28 marked ✅
+
+#### ⚠️ Contexto Crítico
+
+- **Branches synced:** `refactor` and `develop` are in sync after PR #91 merge
+- **Lint: 0 errors, 44 warnings** | Testes: 23 suites, 213 passed, 1 skipped
+- **Credenciais teste:** `admin@ipu.com` / `Admin@2026IPU`
+- **PR #91 merged:** `feat: SDK 55, SW fix, CORS LAN, deploy script, audit fix`
+
+---
+
 ### Sessão Atual — Fix Realtime Cross-Device (Junho 2026)
 
 **Objetivo:** Resolver dessincronização entre devices (PC e celular ambos logados no staging não recebem updates um do outro). Diagnóstico confirmou: (1) tabela `models` nunca foi adicionada à publicação `supabase_realtime` em nenhuma migration; (2) `supabaseClient.ts` usa `AsyncStorage` como storage de auth, mas `AuthProvider` salva em `window.sessionStorage` (web) / `expo-secure-store` (mobile) — storages não se conversam, cliente realtime opera como anônimo.
@@ -210,3 +246,50 @@ Ao iniciar uma tarefa, siga mentalmente este ciclo:
 - **`#5 TPA — v2` é a versão que o celular tem localmente** — útil para validar após o fix: criar v3 no PC e verificar se celular faz refetch e atualiza para v3.
 - **Lint: 0 errors, 44 warnings**. Testes: 23 suites, 208 passed, 1 skipped (delta +1 teste: `should not throw when sessionStorage is unavailable`).
 - **Não foi feito commit/push** das alterações do hook — usuário precisa revisar e pedir COMMIT/PUSH explicitamente.
+
+---
+
+### Sessão Atual — Fix Definitivo Realtime + ADR-56 + Item 28 (Junho 2026)
+
+**Objetivo:** Fechar o Item 27 do backlog (realtime não disparava para INSERT/UPDATE) com a causa raiz real, validar cross-device em produção, e abrir nova frente de testes de concorrência.
+
+#### ✅ Concluído
+
+| Item | Arquivo(s) | O que mudou |
+|------|-----------|-------------|
+| 1 — Causa raiz real | Diagnóstico via `node + ws` puro | `custom_access_token_hook` sobrescrevia o claim **reservado** `role` do JWT com `viewer`/`admin`/`editor`. Realtime executava `SET ROLE 'viewer'` no contexto de replication lógica → `ERROR 42704 (undefined_object)` → listener `postgres_changes` falhava silenciosamente |
+| 2 — Migration 009 | `supabase/migrations/009_fix_realtime_hook_role_claim.sql` (novo) | Hook reescrito: injeta APENAS a claim não-reservada `is_active`. Claim `role` permanece `authenticated` (default Supabase). Aplicada via `npx supabase db push` |
+| 3 — ADR-56 | `docs/adr/README.md` | Documentada decisão "JWT Custom Claim NÃO-Reservado" com contexto, sintoma exato do system event, alternativas (criar role Postgres vs mover policies), comando de verificação |
+| 4 — Technical guide | `docs/COMPLETE_TECHNICAL_GUIDE.md` (seção 7.7) | Adicionado **Gotcha crítico — JWT Custom Claim Reservado** + 4 requisitos de setup para `postgres_changes` funcionar |
+| 5 — Backlog item 27 | `docs/backlog.md` | Status 🟡 → ✅. Reescrito com causa raiz correta (substitui misdiagnose de race condition client-side). Mantida referência ao PR #76 como fix defensivo |
+| 6 — Backlog item 28 | `docs/backlog.md` (novo) | 3 cenários de concorrência multi-device: 28.1 CREATE mesmo nome, 28.2 UPDATE mesmo modelo, 28.3 DELETE vs UPDATE. Plano de teste + critério de aceitação |
+| 7 — PR #77 | https://github.com/ednosmab/ipu-calculator/pull/77 | Commit `813ab49` em `refactor` → CI verde → aguardando merge |
+
+#### 🔍 Decisões Relevantes
+
+- **Por que reescrever o hook (e não só adicionar claim)?** Sobrescrever `role` causa regressão sempre que o realtime server é reiniciado ou o subscriber muda. Remover a sobrescrita é o fix definitivo; `is_active` continua sendo o atalho não-reservado para RLS sem subquery.
+- **Por que 4 migrations (006→007→008→009) em vez de uma só?** Evolução natural: 006 adicionou realtime, 007 tentou `SECURITY DEFINER` (não funcionou), 008 introduziu `is_active` claim, 009 corrigiu o bug raiz. Cada uma é defensiva para a próxima.
+- **Por que PR #76 foi mergeado se não era a causa raiz?** Fix de race condition client-side é **defensivo** — evita que `setAuth()` async cause outros problemas futuros. Custo zero, benefício marginal.
+- **Por que testar concorrência só AGORA (não no Item 27)?** Item 27 era pré-requisito — sem realtime funcionando, não dava para VER os conflitos entre devices. Agora dá.
+- **Por que considerar aceitável a limitação em 28.1/28.2?** YAGNI: CRDT/operational transform é over-engineering para 1 usuário com 2 devices ocasionais. Se a UX ficar ruim, prioriza-se constraint/UI feedback.
+
+#### ⏳ Próximos Passos
+
+- [ ] **Item 28.1** — Definir caso de teste manual (2 devices, mesmo nome, capturar logs e screenshots)
+- [ ] **Item 28.2** — Verificar `models-sync/index.ts` se servidor compara `version` antes de sobrescrever
+- [ ] **Item 28.3** — Verificar se `models-sync` faz UPSERT (ressurreição) ou rejeita com 410
+- [ ] **Item 26** — UpdateBanner não atualiza a página (próximo bug ativo)
+- [ ] **Item 21** — Validar refresh proativo em staging (após merge do PR #72/#73)
+- [ ] Merge PR #77 → develop (revisão do usuário)
+- [ ] Teste E2E em `e2e/realtime-sync.spec.ts` cobrindo INSERT e UPDATE cross-tab (opcional)
+
+#### ⚠️ Contexto Crítico
+
+- **DELETE "funcionava" antes do fix** era ilusão: era o `processPendingDeletesUseCase` rodando após o servidor confirmar, NÃO o evento realtime. INSERT/UPDATE precisam do listener ativo, que falhava silenciosamente no setup.
+- **Por que AppState change "resolvia" o problema visualmente?** `useModels` chama `fetchRemoteModelsUseCase(true)` em mudança de estado — REST GET independente do realtime. Pega o que tá no banco no momento.
+- **JWT com fix decodificado**: `"role": "authenticated"`, `"is_active": true`, `"sub": "a91e2352-..."` (admin user). Antes do fix: `"role": "viewer"` (profile role vazando para claim reservado).
+- **Mobile não precisa rebuild** — só migration SQL no DB. **Usuário precisa fazer logout/login** para obter JWT novo com `role: authenticated`. JWTs antigos continuam funcionando (backward-compat: `COALESCE(...::boolean, true)`).
+- **Validação em produção (user report)**: usuário confirmou end-to-end funcionando — criou modelo no PC, atribuiu via injeção, apareceu realtime no celular, deletou no celular, sumiu realtime no PC, calculou injeção e atribuiu valor. Tudo sincronizando.
+- **Banco de testes para Item 28**: usar staging (2 devices logados), criar modelos com prefixo `CONCORRENCIA_` para fácil cleanup, deletar após teste
+- **Lint: 0 errors, 44 warnings** (sem alteração). Testes: 23 suites, 213 passed, 1 skipped (sem alteração)
+- **Refactor branch** agora tem 4 commits (PRs #72→#76→#77 mergeados via squash + fix do hook)

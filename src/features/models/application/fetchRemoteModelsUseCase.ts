@@ -1,6 +1,6 @@
 import { edgeFunctionsClient } from '@/core/api/edgeFunctionsClient';
 import { modelRepository } from '../infra/modelRepository';
-import { CalculationModel } from '../domain/calculationModel';
+import { CalculationModel, ModelType } from '../domain/calculationModel';
 import { getDeviceId } from '@/core/device/deviceId';
 
 export const fetchRemoteModelsUseCase = async (): Promise<void> => {
@@ -39,7 +39,7 @@ export const fetchRemoteModelsUseCase = async (): Promise<void> => {
         const remoteModels: CalculationModel[] = data.map((item) => ({
           id: item.id,
           name: item.name,
-          type: item.type,
+          type: item.type as ModelType,
           inputs: item.inputs,
           createdAt: new Date(item.created_at).getTime(),
           updatedAt: new Date(item.updated_at).getTime(),
