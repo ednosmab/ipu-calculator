@@ -121,7 +121,7 @@ Deno.serve(async (req: Request) => {
           body: JSON.stringify({
             id: data.user.id,
             name: userName,
-            role: 'admin',
+            role: 'viewer',
             active: true,
           }),
         }
@@ -133,7 +133,7 @@ Deno.serve(async (req: Request) => {
         return err('PROFILE_CREATE_FAILED', 500, origin);
       }
 
-      profileData = { role: 'admin', active: true, name: userName };
+      profileData = { role: 'viewer', active: true, name: userName };
     }
 
     // Se inactive, bloqueia
